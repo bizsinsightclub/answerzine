@@ -9,8 +9,32 @@ import { SITE, u, absolute } from "./site.mjs";
 
 export { SITE };
 
-/** 첫 페인트 전에 저장된 테마를 적용한다. Night가 기본이라 paper일 때만 속성을 건다. */
-const THEME_BOOT = `try{if(localStorage.getItem("az-theme")==="paper")document.documentElement.setAttribute("data-theme","paper")}catch(e){}`;
+/**
+ * 첫 페인트 전에 실행되는 부트 스크립트.
+ *
+ * 세 가지를 첫 페인트 "전에" 정해야 깜빡임이 없다.
+ *   1. 테마 — Night가 기본이라 paper일 때만 속성을 건다.
+ *   2. 인트로를 이미 본 세션인가 — 봤으면 splash-done을 걸어 로고 화면을 아예 그리지 않는다.
+ *      이걸 app.js(defer)에 두면 두 번째 페이지부터 로고가 한 번 번쩍이고 사라진다.
+ *   3. JS가 도는가 — .js가 붙은 문서에서만 등장 애니메이션이 켜진다.
+ *      스크립트가 죽어도 본문은 그냥 보인다. 콘텐츠는 이미 빌드에서 렌더돼 있다.
+ */
+const BOOT = `(function(d){var r=d.documentElement;try{
+if(localStorage.getItem("az-theme")==="paper")r.setAttribute("data-theme","paper");
+if(sessionStorage.getItem("az-intro")==="1")r.className+=" splash-done";
+}catch(e){}r.className+=" js";})(document);`;
+
+/** 로딩 화면. 마크업으로 심고 CSS 애니메이션으로 스스로 걷힌다 — JS가 없어도 사라진다. */
+function splash() {
+  return h`<div class="splash" data-splash role="presentation">
+  <div class="splash-inner">
+    <img class="logo logo-light" src="${u("/assets/img/logo-light.png")}" alt="" width="1970" height="860">
+    <img class="logo logo-dark" src="${u("/assets/img/logo-dark.png")}" alt="" width="1971" height="842">
+    <div class="splash-rule"></div>
+    <p class="splash-tagline">${SITE.tagline}</p>
+  </div>
+</div>`;
+}
 
 export function page({ title, description, url, content, noindex = false, bodyClass = "", showChrome = true }) {
   const full = title === SITE.name ? title : `${title} — ${SITE.name}`;
@@ -33,9 +57,10 @@ ${noindex ? '<meta name="robots" content="noindex">' : ""}
 <meta property="og:url" content="${escapeHTML(canonical)}">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="${u("/assets/style.css")}">
-<script>${THEME_BOOT}</script>
+<script>${BOOT}</script>
 </head>
 <body class="${escapeHTML(bodyClass)}">
+${showChrome ? splash() : ""}
 ${showChrome ? header() : ""}
 ${content}
 ${showChrome ? footer() : ""}

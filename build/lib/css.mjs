@@ -195,6 +195,17 @@ const COMPONENTS = `
 .stat-card { border-top: 3px solid var(--rule); border-bottom: 1px solid var(--rule); padding: var(--s3) 0 var(--s4); }
 .stat-spark { color: var(--secondary); margin: var(--s2) 0; }
 .stat-axis { font-family: var(--sans); font-size: 11px; line-height: 1.5; color: var(--tertiary); margin: var(--s2) 0 var(--s3); }
+
+/* 추세선을 그릴 수 없는 출처(스냅숏)에서는 선 대신 비교 기준을 글자로 적는다.
+   가짜 4주 배열보다 "무엇과 비교한 값인가" 한 줄이 검증 가능하다. */
+.stat-basis {
+  font-family: var(--sans); font-size: 12px; line-height: 1.6; color: var(--secondary);
+  margin: var(--s3) 0; padding-left: var(--s3); border-left: 1px solid var(--dc, var(--divider));
+}
+.stat-basis-label {
+  display: block; font-size: 10px; font-weight: 700; letter-spacing: .1em;
+  text-transform: uppercase; color: var(--tertiary); margin-bottom: 2px;
+}
 .stat-source {
   font-family: var(--sans); font-size: 11px; font-weight: 700; letter-spacing: .04em;
   color: var(--ink); text-decoration: underline; text-underline-offset: 3px;
@@ -366,14 +377,85 @@ const ZINE = `
 }
 `;
 
+/* ── 인트로 로딩 화면 ──────────────────────────────────────────
+   마크업으로 심고 CSS 애니메이션으로 스스로 걷힌다. JS가 죽어도 1.75초 뒤에 사라지고,
+   그 뒤로는 pointer-events가 없어 클릭을 가로채지도 않는다.
+   같은 세션에서 두 번째 페이지부터는 <head>의 부트 스크립트가 .splash-done을 걸어
+   아예 그리지 않는다 — 페이지를 넘길 때마다 로고가 다시 뜨면 로딩이 아니라 방해다. */
+const SPLASH = `
+.splash {
+  position: fixed; inset: 0; z-index: 90;
+  display: grid; place-items: center;
+  background: var(--bg);
+  animation: splash-out .5s cubic-bezier(.4, 0, .2, 1) 1.25s forwards;
+}
+.splash-inner { text-align: center; padding: var(--s5); }
+.splash .logo {
+  width: min(430px, 68vw); height: auto; margin: 0 auto;
+  /* 로고는 왼쪽에서 오른쪽으로 닦아내듯 드러난다. 종이 위에 잉크가 눌리는 순서와 같다. */
+  clip-path: inset(0 100% 0 0);
+  animation: splash-wipe .85s cubic-bezier(.22, 1, .36, 1) .1s forwards;
+}
+.splash-rule {
+  border-top: 3px solid var(--rule); border-bottom: 1px solid var(--rule); height: 5px;
+  margin: var(--s4) auto 0; width: min(430px, 68vw);
+  transform: scaleX(0); transform-origin: left center;
+  animation: splash-rule .6s cubic-bezier(.22, 1, .36, 1) .5s forwards;
+}
+.splash-tagline {
+  font-family: var(--sans); font-size: 12px; font-weight: 700;
+  letter-spacing: .16em; text-transform: uppercase; color: var(--secondary);
+  margin: var(--s3) 0 0; opacity: 0;
+  animation: splash-fade .5s ease-out .72s forwards;
+}
+@keyframes splash-wipe { to { clip-path: inset(0 0 0 0); } }
+@keyframes splash-rule { to { transform: scaleX(1); } }
+@keyframes splash-fade { to { opacity: 1; } }
+@keyframes splash-out  { to { opacity: 0; visibility: hidden; pointer-events: none; } }
+
+/* 인트로가 걷히는 동안 스크롤을 잠근다. JS가 있을 때만 걸고, 해제도 JS가 한다 —
+   스크립트가 죽어도 잠금이 남지 않도록 CSS에서 기본값을 잠그지 않는다. */
+.splash-lock, .splash-lock body { overflow: hidden; }
+
+/* 이미 본 세션이거나 인트로를 끝낸 뒤에는 존재하지 않는다. */
+.splash-done .splash, .splash-gone .splash { display: none; }
+
+/* 마스트헤드는 인트로가 걷히는 리듬에 맞춰 올라온다. */
+.js:not(.splash-done) .site-header .masthead {
+  opacity: 0; animation: rise-in .6s cubic-bezier(.22, 1, .36, 1) 1.35s forwards;
+}
+`;
+
+/* ── 등장 ──────────────────────────────────────────────────
+   .js가 붙은 문서에서만 숨긴다. 스크립트가 없거나 실패하면 본문은 처음부터 보인다 —
+   콘텐츠는 빌드 시점에 이미 HTML에 들어 있으므로 읽기가 JS에 의존하면 안 된다. */
+const REVEAL = `
+.js [data-reveal] {
+  opacity: 0; transform: translateY(16px);
+  transition: opacity .62s cubic-bezier(.22, 1, .36, 1), transform .62s cubic-bezier(.22, 1, .36, 1);
+  transition-delay: calc(var(--i, 0) * 70ms);
+  will-change: opacity, transform;
+}
+.js [data-reveal].is-in { opacity: 1; transform: none; }
+/* 화면에 들어온 뒤에는 will-change를 놓아준다. 남겨두면 레이어가 계속 떠 있다. */
+.js [data-reveal].is-in { will-change: auto; }
+
+/* 리드 기사의 색 태그는 본문보다 반 박자 먼저 선다. */
+.js .index-lead[data-reveal] { --i: 0; }
+
+@keyframes rise-in { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+`;
+
 const PRINT = `
 @media print {
   @page { size: A4; margin: 0; }
   html, body { margin: 0; padding: 0; background: #fff; letter-spacing: 0; }
-  .site-header, .site-footer, .statement-wrap, .shell, .seg,
+  .site-header, .site-footer, .statement-wrap, .shell, .seg, .splash,
   .theme-toggle, .print-btn, .zine-preview .label, .zine-preview > p {
     display: none !important;
   }
+  /* 등장 애니메이션이 안 끝난 채로 인쇄되면 본문이 통째로 opacity:0으로 찍힌다. */
+  .js [data-reveal] { opacity: 1 !important; transform: none !important; }
   .zine-preview { padding: 0; margin: 0; max-width: none; }
 
   /* 지면을 감싼 여백이 남아 있으면 297mm 박스가 인쇄 지면을 넘겨 2페이지가 된다.
@@ -389,16 +471,23 @@ const PRINT = `
 const MOTION = `
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
-    animation-duration: .001ms !important; animation-iteration-count: 1 !important;
-    transition-duration: .001ms !important; scroll-behavior: auto !important;
+    animation-duration: .001ms !important; animation-delay: 0s !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .001ms !important; transition-delay: 0s !important;
+    scroll-behavior: auto !important;
   }
+  /* 인트로는 "빠르게 재생"이 아니라 없는 것으로 한다. 지연까지 0으로 눌러도
+     로고가 한 프레임 번쩍이고 사라지는 편이 더 거슬린다. */
+  .splash { display: none !important; }
+  .js [data-reveal] { opacity: 1 !important; transform: none !important; }
+  .js:not(.splash-done) .site-header .masthead { opacity: 1 !important; animation: none !important; }
 }
 `;
 
 export function stylesheet(domains = []) {
   // GitHub Pages 프로젝트 사이트는 /<저장소명>/ 하위에 놓인다. 폰트 경로도 접두사가 필요하다.
   const fonts = FONTS.replaceAll("__BASE__", getBase());
-  return [fonts, themeCSS(), domainCSS(domains), BASE, TYPE, CHROME, LAYOUT, COMPONENTS, ZINE, PRINT, MOTION]
+  return [fonts, themeCSS(), domainCSS(domains), BASE, TYPE, CHROME, LAYOUT, COMPONENTS, ZINE, SPLASH, REVEAL, PRINT, MOTION]
     .join("\n")
     .trim() + "\n";
 }

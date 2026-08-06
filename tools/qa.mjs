@@ -64,10 +64,17 @@ const WL = read("sources/whitelist.json");
 const TIER_URL_OK = { primary:true, conditional:true, secondary:false, evidence_only:false, blocked:false };
 const dupHost = WL.sources.map(s => s.host).filter((h, i, a) => a.indexOf(h) !== i);
 if (dupHost.length) fail("whitelist", `host 중복: ${dupHost.join(", ")}`);
+const SERIES_KINDS = WL.seriesKinds ?? {};
 for (const s of WL.sources) {
   if (!WL.tiers[s.tier]) fail(s.host, `알 수 없는 등급 "${s.tier}"`);
   if (s.tier !== "blocked" && !s.market) fail(s.host, "market이 없다.");
+  if (s.tier === "blocked") continue;
+  if (!s.series) fail(s.host, `series가 없다. ${Object.keys(SERIES_KINDS).join("/")} 중 하나를 적는다 — 추세선 허용 여부가 여기서 갈린다.`);
+  else if (!SERIES_KINDS[s.series]) fail(s.host, `알 수 없는 series "${s.series}"`);
+  if (s.urlStatus?.startsWith("broken") && !s.seriesNote)
+    warn(s.host, "urlStatus가 broken인데 무엇이 어떻게 깨졌는지 seriesNote가 없다.");
 }
+if (!Object.keys(SERIES_KINDS).length) fail("whitelist", "seriesKinds가 없다.");
 for (const d of DOM) {
   if (!d.primarySources?.length && !d.warning)
     warn(d.key, "1차 출처가 없는데 warning 표기도 없다.");
@@ -87,7 +94,11 @@ function judge(url) {
   for (const p of WL.blockedPatterns) if (url.includes(p.pattern ?? p)) return { status:"blocked", host };
   const hit = WL.sources.find(s => host === s.host || host.endsWith("." + s.host));
   if (!hit) return { status:"unlisted", host };
-  return { status:hit.tier, host, name:hit.name, market:hit.market, urlOk:TIER_URL_OK[hit.tier] };
+  return {
+    status:hit.tier, host, name:hit.name, market:hit.market, urlOk:TIER_URL_OK[hit.tier],
+    // series는 "지난 주 값을 지금 다시 읽을 수 있는가"다. 추세선 허용 여부를 이 값이 정한다.
+    series:hit.series ?? "none", seriesNote:hit.seriesNote, urlStatus:hit.urlStatus,
+  };
 }
 
 /* ══════════════ 3. LESSONS.md ══════════════ */
@@ -259,6 +270,7 @@ for (const f of files) {
     chk("stat.label", b1?.label, "statLabel");
     chk("stat.value", b1?.value, "statValue");
     chk("axisCaption", b1?.axisCaption, "axisCaption");
+    chk("stat.basis", b1?.basis, "basis");
 
     /* --- 필수값 --- */
     for (const [k, v] of [["headline", st.headline], ["teaser", st.teaser],
@@ -277,13 +289,6 @@ for (const f of files) {
       fail(at, "본문에 <영문> 꺾쇠가 있다. HTML 태그로 파싱되어 사라진다. 〈 〉(U+3008/3009)를 쓴다.");
     if (/놀랍게도|무려|충격적/.test(prose)) warn(at, "금지 수식어(놀랍게도/무려/충격적)가 있다.");
 
-    /* --- trend --- */
-    const tr = b1?.trend ?? [];
-    if (tr.length < 2) fail(at, "trend 값이 2개 미만이라 스파크라인을 그릴 수 없다.");
-    else if (tr.length < BUDGET.trendPoints[0] || tr.length > BUDGET.trendPoints[1])
-      warn(at, `trend ${tr.length}점 — ${BUDGET.trendPoints.join("~")}점 권장.`);
-    if (tr.some(v => typeof v !== "number" || !isFinite(v))) fail(at, "trend에 숫자가 아닌 값이 있다.");
-
     /* --- 출처 등급 --- */
     const j = judge(b1?.sourceUrl);
     if (j.status === "empty")         fail(at, "stat.sourceUrl이 비었다.");
@@ -292,6 +297,35 @@ for (const f of files) {
     else if (j.status === "unlisted") fail(at, `미등록 출처 — ${j.host}. sources/whitelist.json에 먼저 등록한다.`);
     else if (!j.urlOk)                fail(at, `${j.name}은 ${j.status} 등급이라 sourceUrl로 쓸 수 없다.`);
     else if (j.status === "conditional") warn(at, `${j.name}은 조건부 출처다. 기사에 출처 기관이 명시됐는지 확인할 것.`);
+    if (j.urlStatus?.startsWith("broken"))
+      fail(at, `${j.name}의 등록 URL이 ${j.urlStatus} 상태다. 새 경로를 확인하기 전에는 sourceUrl로 쓸 수 없다. CLAUDE.md §7.1`);
+
+    /* --- 추세선 · 시계열 재현성 (L-010) ---
+       추세선은 "이 선을 다음 주에도 같은 방법으로 다시 그릴 수 있는가"를 통과해야 한다.
+       스냅숏 출처(멜론·예스24·교보문고)는 지난 주 값이 사후에 열리지 않으므로,
+       거기서 뽑은 4주 배열은 아무도 검증할 수 없는 선이 된다. 숫자 하나가 낫다. */
+    const tr = b1?.trend;
+    const seriesOk = j.series === "archived";
+    if (tr === undefined || tr === null) {
+      if (!b1?.basis)
+        fail(at, "trend가 없으면 stat.basis(이 값이 무엇과 비교한 값인지 한 문장)가 있어야 한다. 비교 대상 없는 숫자는 크기만 있고 뜻이 없다.");
+      if (b1?.axisCaption)
+        warn(at, "trend가 없는데 axisCaption이 있다. 그릴 축이 없으므로 basis로 옮긴다.");
+    } else if (!Array.isArray(tr)) {
+      fail(at, "trend는 배열이어야 한다.");
+    } else {
+      if (!seriesOk)
+        fail(at, `추세선을 그렸는데 출처 ${j.name ?? j.host}의 series가 "${j.series}"다. ` +
+                 `과거 주차를 다시 읽을 수 없는 출처에서 뽑은 선은 재현·검증이 불가능하다. ` +
+                 `trend를 지우고 stat.basis로 바꾸거나, 아카이브가 있는 출처로 옮긴다.`);
+      if (tr.length < 2) fail(at, "trend가 있는데 값이 2개 미만이라 선을 그릴 수 없다. 빈 배열이면 필드를 지운다.");
+      else if (tr.length < BUDGET.trendPoints[0] || tr.length > BUDGET.trendPoints[1])
+        warn(at, `trend ${tr.length}점 — ${BUDGET.trendPoints.join("~")}점 권장.`);
+      if (tr.some(v => typeof v !== "number" || !isFinite(v))) fail(at, "trend에 숫자가 아닌 값이 있다.");
+      if (!b1?.axisCaption) fail(at, "trend가 있으면 axisCaption으로 두 축이 무엇인지 밝힌다.");
+      if (!b1?.trendSource)
+        fail(at, "trend가 있으면 trendSource로 각 점을 어디서 어떻게 읽었는지 적는다. 말할 수 없으면 그릴 수 없다.");
+    }
 
     /* --- 시장 정합성 (market-scope.md §5) --- */
     const m = st.market ?? "KR";
@@ -304,14 +338,37 @@ for (const f of files) {
     } else if (!/^\d{4}-\d{2}-\d{2}$/.test(st.anchorDate)) {
       fail(at, `anchorDate 형식이 YYYY-MM-DD가 아니다: ${st.anchorDate}`);
     } else if (st.range) {
-      const [y, mo, dd] = st.range.split(" – ")[0].split(".").map(Number);
+      const head = st.range.split(" – ")[0];
+      const [y, mo, dd] = head.split(".").map(Number);
       const start = Date.UTC(y, mo - 1, dd);
+      // 종료일은 "MM.DD"라 연도가 없다. 시작일보다 앞서면 해가 넘어간 것이다.
+      const [em, ed] = st.range.split(" – ")[1].split(".").map(Number);
+      let end = Date.UTC(y, em - 1, ed);
+      if (end < start) end = Date.UTC(y + 1, em - 1, ed);
       const anchor = Date.parse(st.anchorDate + "T00:00:00Z");
       const days = Math.round((start - anchor) / 86400000);
-      if (days < 0)
-        fail(at, `기준일(${st.anchorDate})이 집계 시작일(${st.range.split(" – ")[0]})보다 ${-days}일 늦다. ` +
+
+      if (anchor > end) {
+        // 오디세이 사고의 형태 — 집계가 끝난 뒤에 일어난 일을 그 주 숫자로 설명했다.
+        fail(at, `기준일(${st.anchorDate})이 집계 종료일(${st.range.split(" – ")[1]})보다 늦다. ` +
                  `그 주에 사건이 아직 일어나지 않았다 — 존재할 수 없는 인용이다. market-scope.md §2`);
-      else {
+      } else if (days < 0) {
+        /* 기준일이 집계 창 "안"에 있다. 개봉·공개 당주 기사가 여기 해당하고,
+           이건 사고가 아니라 가장 설명하기 좋은 소재다. 다만 그 주 숫자는 7일이 아니라
+           며칠치이므로, 부분 주라는 사실을 스토리가 스스로 선언하고 본문에 밝혀야 한다. */
+        if (!st.anchorInWindow)
+          fail(at, `기준일(${st.anchorDate})이 집계 시작일(${head})보다 ${-days}일 늦다. ` +
+                   `집계 창 안에서 사건이 일어난 것이라면 anchorInWindow: true를 선언하고 ` +
+                   `며칠치 숫자인지 본문에 밝힌다. 창 밖이면 소재를 버린다. market-scope.md §2`);
+        else {
+          const partial = Math.round((end - anchor) / 86400000) + 1;
+          const prose = [b0?.text, b2?.text, b4?.text, st.teaser, b1?.basis, b1?.axisCaption].join(" ");
+          if (!/이틀|사흘|나흘|닷새|엿새|하루|\d+일치|\d+일간|\d+일 ?동안/.test(prose))
+            fail(at, `anchorInWindow인데 본문 어디에도 부분 집계(${partial}일치)라는 사실이 없다. ` +
+                     `7일치로 읽히면 독자를 속이는 숫자가 된다.`);
+          else ok(`${st.id} — 부분 주 ${partial}일치로 선언됨`);
+        }
+      } else {
         const wk = Math.floor(days / 7) + 1;
         const claimed = (b1?.label ?? "").match(/(\d+)\s*주\s*차/);
         if (claimed && Number(claimed[1]) !== wk)

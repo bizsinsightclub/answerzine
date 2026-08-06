@@ -1,9 +1,8 @@
 {
   "$schema": "https://answerzine.kr/schema/registry-1.json",
-  "version": "2026-w32",
-  "updated": "2026-08-07",
+  "version": "2026-w32b",
+  "updated": "2026-08-06",
   "note": "도메인 단일 소스. build/lib/*.mjs, tools/zine-builder.html, tools/qa.mjs가 모두 이 파일을 참조한다. 색상은 여기서만 정의한다.",
-
   "colorRules": {
     "background": "#16150F",
     "backgroundPaper": "#F4F1E7",
@@ -15,7 +14,6 @@
     "noteExpansion": "도메인 8개로 확장하면서 minHueDistance를 40°에서 35°로 낮췄다. 8개를 색상환에 배치하면 이론적 최대 간격이 45°이고, 기존 4개(35·135·210·349°)가 불균등해 실제 확보 가능한 최소 간격은 37°다. 현재 최소 간격은 135↔172의 37°다. 9번째 도메인은 이 규칙으로 불가능하다 — 색 이외의 구분 수단이 필요하다.",
     "recommendedNext": null
   },
-
   "domains": [
     {
       "key": "movie",
@@ -32,7 +30,10 @@
       "status": "active",
       "order": 1,
       "anchorType": "국내 개봉일",
-      "primarySources": ["kobis.or.kr", "kofic.or.kr"],
+      "primarySources": [
+        "kobis.or.kr",
+        "kofic.or.kr"
+      ],
       "api": "tools/kobis.mjs"
     },
     {
@@ -50,8 +51,11 @@
       "status": "active",
       "order": 2,
       "anchorType": "국내 음원 발매일 또는 계기 발생일",
-      "primarySources": ["melon.com", "circlechart.kr"],
-      "warning": "멜론·써클차트 모두 현재 시점 스냅숏만 제공한다. 지난 주 순위는 사후 재현이 안 되므로 그 주에 수집해야 한다."
+      "primarySources": [
+        "melon.com",
+        "circlechart.kr"
+      ],
+      "warning": "멜론은 조회 시점 스냅숏이라 지난 주 순위가 사후에 재현되지 않는다. 써클차트는 주차 지정 조회가 되지만(series=archived) 2026-w32 확인 시점에 사이트가 개편돼 새 경로(page_chart/onoff.circle)의 순위 목록이 클라이언트 렌더다. 헤드리스 브라우저 없이는 읽히지 않는다."
     },
     {
       "key": "youtube",
@@ -69,7 +73,7 @@
       "order": 3,
       "anchorType": "영상 게시일 (KST)",
       "primarySources": [],
-      "warning": "결과 측 1차 출처가 없다. domains/youtube.md §2, §8 참조. 2026-w31에서 이 사유로 탈락했다."
+      "warning": "결과 측 1차 출처가 없다. 2025-07-21 유튜브 Trending 페이지가 폐지됐고 후속인 YouTube Charts는 과거 주차 아카이브가 없다(series=none). 이 도메인은 유튜브의 1위를 가져오지 않는다 — 파는 쪽이 집계한 1위를 가져오고 유튜브는 계기 측 증거로만 쓴다. domains/youtube.md §2 참조."
     },
     {
       "key": "book",
@@ -86,7 +90,12 @@
       "status": "active",
       "order": 4,
       "anchorType": "국내 출간일 또는 사건 발생일",
-      "primarySources": ["yes24.com", "kpipa.or.kr"]
+      "primarySources": [
+        "yes24.com",
+        "kyobobook.co.kr",
+        "kpipa.or.kr"
+      ],
+      "warning": "예스24·교보문고 모두 series=snapshot이다. 과거 주차가 열리지 않으므로 이 도메인에서는 stat.trend를 그릴 수 없다 — 그 주에 본 것을 그 주에 기록한다."
     },
     {
       "key": "stage",
@@ -103,8 +112,10 @@
       "status": "active",
       "order": 5,
       "anchorType": "국내 첫 공연일 (개막일)",
-      "primarySources": ["kopis.or.kr"],
-      "note": "공연예술통합전산망은 KOBIS와 같은 급의 정부 전수 집계다. 오픈API를 제공한다. 결번 대체 1순위."
+      "primarySources": [
+        "kopis.or.kr"
+      ],
+      "warning": "2026-w32 확인 시점에 KOPIS 포털이 전면 개편돼 whitelist에 등록됐던 두 URL이 모두 404였고, 남은 화면에도 서버 렌더 데이터가 없다. 오픈API 서비스키를 발급받기 전에는 이 도메인으로 회차를 만들 수 없다."
     },
     {
       "key": "news",
@@ -121,7 +132,9 @@
       "status": "active",
       "order": 6,
       "anchorType": "기사 최초 보도일",
-      "primarySources": ["bigkinds.or.kr"],
+      "primarySources": [
+        "bigkinds.or.kr"
+      ],
       "note": "한국언론진흥재단 빅카인즈. 네이버 뉴스 랭킹은 집계 기준 비공개라 쓰지 않는다."
     },
     {
@@ -139,8 +152,11 @@
       "status": "active",
       "order": 7,
       "anchorType": "국내 공개일",
-      "primarySources": ["netflix.com"],
-      "warning": "넷플릭스 Tudum만 국가별 주간 시청시간을 공개한다. 티빙·웨이브·쿠팡플레이는 수치를 공개하지 않으므로 국내 OTT 전체를 대표하지 않는다. 기사에 반드시 플랫폼을 명시한다."
+      "primarySources": [
+        "netflix.com"
+      ],
+      "warning": "국가별 표에는 순위와 톱10 체류 주차만 있다. 시청시간(hours viewed)은 글로벌 표에만 있으므로 국내 서사에 쓰지 않는다. 티빙·웨이브·쿠팡플레이는 수치를 공개하지 않으니 기사에 반드시 플랫폼을 명시한다.",
+      "note": "Tudum이 전 국가·전 주차 누적 TSV를 공개한다(all-weeks-countries.tsv). 이 저장소에서 시계열 재현성이 가장 높은 출처이고, 추세선을 그려도 되는 몇 안 되는 도메인이다. 기준선은 domains/ott.md §3에서 이 파일로 직접 계산한다."
     },
     {
       "key": "travel",
@@ -157,27 +173,67 @@
       "status": "active",
       "order": 8,
       "anchorType": "계기 발생일 (행사 개시일·미디어 노출일 등)",
-      "primarySources": ["datalab.visitkorea.or.kr"],
+      "primarySources": [
+        "datalab.visitkorea.or.kr"
+      ],
       "warning": "한국관광 데이터랩은 월 단위 갱신이라 주간 이례 판정이 어렵다. 주간 소재로 쓰려면 계기가 뚜렷한 경우에만."
     }
   ],
-
   "budget": {
     "note": "design.md §4.1 — Chromium 헤드리스 실측으로 도출. [권장, 절대상한]",
-    "kicker": [22, 26],
-    "headline": [24, 32],
-    "teaser": [78, 104],
-    "text": [180, 240],
-    "quote": [40, 48],
-    "concept": [30, 34],
-    "note_": [125, 140],
-    "statLabel": [22, 26],
-    "statValue": [18, 22],
-    "axisCaption": [52, 60],
-    "trendPoints": [4, 5],
-    "a4UsedPx": [940, 1050]
+    "kicker": [
+      22,
+      26
+    ],
+    "headline": [
+      24,
+      32
+    ],
+    "teaser": [
+      78,
+      104
+    ],
+    "text": [
+      180,
+      240
+    ],
+    "quote": [
+      40,
+      48
+    ],
+    "concept": [
+      30,
+      34
+    ],
+    "note_": [
+      125,
+      140
+    ],
+    "statLabel": [
+      22,
+      26
+    ],
+    "statValue": [
+      18,
+      22
+    ],
+    "axisCaption": [
+      52,
+      60
+    ],
+    "basis": [
+      52,
+      60
+    ],
+    "trendPoints": [
+      4,
+      5
+    ],
+    "a4UsedPx": [
+      940,
+      1050
+    ]
   },
-
   "zineLayout": {
     "leadSlots": 1,
     "miniSlots": 3,

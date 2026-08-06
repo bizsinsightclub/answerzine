@@ -14,7 +14,7 @@ const tag = (s) =>
 
 function leadBlock(s) {
   const { stat } = blocksOf(s);
-  return h`<article class="index-lead" data-domain="${s.slug}" style="--dc: var(--dc-${raw(s.slug)})">
+  return h`<article class="index-lead" data-reveal data-domain="${s.slug}" style="--dc: var(--dc-${raw(s.slug)})">
   <p class="meta">${raw(tag(s))} · ${s.range}${s.draft ? raw(' <span class="draft-flag">작업 중</span>') : ""}</p>
   ${s.kicker ? raw(h`<p class="kicker">${s.kicker}</p>`) : ""}
   <h2 style="font-size:clamp(30px,4.6vw,46px)"><a href="${u(s.url)}" style="text-decoration:none">${s.headline}</a></h2>
@@ -23,7 +23,7 @@ function leadBlock(s) {
 </article>`;
 }
 
-const rowBlock = (s) => h`<article class="row" data-domain="${s.slug}" style="--dc: var(--dc-${raw(s.slug)})">
+const rowBlock = (s) => h`<article class="row" data-reveal data-domain="${s.slug}" style="--dc: var(--dc-${raw(s.slug)})">
   <a href="${u(s.url)}">
     <p class="meta">${raw(tag(s))} · ${s.range}${s.draft ? raw(' <span class="draft-flag">작업 중</span>') : ""}</p>
     ${s.kicker ? raw(h`<p class="kicker">${s.kicker}</p>`) : ""}
@@ -44,7 +44,7 @@ export function renderIndex(issues, stories, registry) {
   const content = h`<main class="shell">
   <p class="dateline">${latest ? dateline(latest.range) : "준비 중"}</p>
 
-  <nav class="seg" aria-label="도메인 필터">
+  <nav class="seg" data-reveal aria-label="도메인 필터">
     ${filters.map((name, i) =>
       raw(h`<button type="button" data-domain="${raw(keyOf(name))}" aria-pressed="${i === 0 ? "true" : "false"}">${name}</button>`)
     )}
@@ -66,7 +66,7 @@ export function renderIndex(issues, stories, registry) {
     <ol class="issue-list">
       ${issues.map((iss) => {
         const mine = stories.filter((s) => s.issue.issue === iss.issue);
-        return raw(h`<li class="issue-item${iss.issue === latest?.issue ? " is-current" : ""}">
+        return raw(h`<li class="issue-item${iss.issue === latest?.issue ? " is-current" : ""}" data-reveal>
         <a href="${u(`/${iss.issue}/`)}">
           <span class="issue-week">${issueLabel(iss.issue)}</span>
           <span class="issue-meta">${iss.range} · ${mine.length}편${iss.status === "draft" ? " · 작업 중" : ""}</span>
