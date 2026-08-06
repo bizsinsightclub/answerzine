@@ -1,0 +1,367 @@
+{
+  "$schema": "https://answerzine.kr/schema/whitelist-1.json",
+  "version": "2026-w32",
+  "updated": "2026-08-06",
+  "note": "수집 소스 화이트리스트. tools/zine-builder.html이 이 파일을 읽어 sourceUrl을 판정한다. 운영 규칙은 sources/README.md 참조.",
+
+  "tiers": {
+    "primary": {
+      "label": "1차 출처",
+      "sourceUrl": true,
+      "desc": "집계 주체가 직접 공개하는 데이터. stat.sourceUrl로 사용 가능."
+    },
+    "secondary": {
+      "label": "보조",
+      "sourceUrl": false,
+      "desc": "맥락·교차 확인용. 본문 근거로는 쓰되 sourceUrl로는 쓰지 않는다."
+    },
+    "evidence_only": {
+      "label": "계기 측 전용",
+      "sourceUrl": false,
+      "desc": "계기(영상 게시일·조회수 등) 확인에만 사용. 결과(판매) 증거가 될 수 없다."
+    },
+    "conditional": {
+      "label": "조건부",
+      "sourceUrl": true,
+      "desc": "언론 보도. 수치의 출처 기관이 기사 안에 명시된 경우에만 sourceUrl 허용."
+    },
+    "blocked": {
+      "label": "사용 금지",
+      "sourceUrl": false,
+      "desc": "2차 가공·개인 의견·검색 결과. 어떤 용도로도 근거가 될 수 없다."
+    }
+  },
+
+  "markets": {
+    "KR": "국내 시장. 기본값.",
+    "OVERSEAS": "해외 시장. market-scope.md §6의 세 조건을 충족할 때만 사용."
+  },
+
+  "sources": [
+    {
+      "host": "yes24.com",
+      "name": "예스24",
+      "tier": "primary",
+      "market": "KR",
+      "domains": ["book"],
+      "reads": "종합/분야 베스트셀러 순위, 전주 대비 판매 지수, 구매자 연령·성별 분포",
+      "url": "https://www.yes24.com/24/category/bestseller",
+      "sourceLabel": "예스24 베스트셀러 확인하기"
+    },
+    {
+      "host": "kyobobook.co.kr",
+      "name": "교보문고",
+      "tier": "secondary",
+      "market": "KR",
+      "domains": ["book"],
+      "reads": "베스트셀러 순위 (서점 편향 교차 확인용)"
+    },
+    {
+      "host": "aladin.co.kr",
+      "name": "알라딘",
+      "tier": "secondary",
+      "market": "KR",
+      "domains": ["book"],
+      "reads": "베스트셀러 순위 (서점 편향 교차 확인용)"
+    },
+    {
+      "host": "kpipa.or.kr",
+      "name": "한국출판문화산업진흥원",
+      "tier": "primary",
+      "market": "KR",
+      "domains": ["book"],
+      "reads": "출판 산업 통계, 발행 부수"
+    },
+
+    {
+      "host": "melon.com",
+      "name": "멜론",
+      "tier": "primary",
+      "market": "KR",
+      "domains": ["music"],
+      "reads": "TOP100 순위, 순위 변동, 서비스 내 검색량 증감",
+      "url": "https://www.melon.com/chart/index.htm",
+      "sourceLabel": "멜론 차트 확인하기"
+    },
+    {
+      "host": "circlechart.kr",
+      "name": "써클차트 (구 가온차트)",
+      "tier": "primary",
+      "market": "KR",
+      "domains": ["music"],
+      "reads": "국내 통합 음원·음반 집계",
+      "note": "플랫폼 편향이 없는 국내 통합 집계. 멜론 단독 수치를 검증할 때 우선 사용."
+    },
+    {
+      "host": "genie.co.kr",
+      "name": "지니뮤직",
+      "tier": "secondary",
+      "market": "KR",
+      "domains": ["music"],
+      "reads": "차트 순위 (플랫폼 편향 확인용)"
+    },
+    {
+      "host": "bugs.co.kr",
+      "name": "벅스",
+      "tier": "secondary",
+      "market": "KR",
+      "domains": ["music"],
+      "reads": "차트 순위 (플랫폼 편향 확인용)"
+    },
+
+    {
+      "host": "kobis.or.kr",
+      "name": "KOBIS 영화관입장권통합전산망",
+      "tier": "primary",
+      "market": "KR",
+      "domains": ["movie"],
+      "reads": "일별/주간 관객수, 누적, 스크린·상영 횟수, 국내 개봉일",
+      "url": "https://www.kobis.or.kr/kobis/business/stat/boxs/findDailyBoxOfficeList.do",
+      "sourceLabel": "KOBIS 박스오피스 확인하기",
+      "note": "국내 유일의 공식 전수 집계. 국내 개봉일 확인도 여기서 한다."
+    },
+    {
+      "host": "kofic.or.kr",
+      "name": "영화진흥위원회",
+      "tier": "primary",
+      "market": "KR",
+      "domains": ["movie"],
+      "reads": "영화 산업 통계, 배급·상영 자료"
+    },
+    {
+      "host": "cgv.co.kr",
+      "name": "CGV",
+      "tier": "secondary",
+      "market": "KR",
+      "domains": ["movie"],
+      "reads": "특별관 회차 매진 여부, 관람평 (정황용)"
+    },
+    {
+      "host": "lottecinema.co.kr",
+      "name": "롯데시네마",
+      "tier": "secondary",
+      "market": "KR",
+      "domains": ["movie"],
+      "reads": "예매 현황, 관람평 (정황용)"
+    },
+    {
+      "host": "megabox.co.kr",
+      "name": "메가박스",
+      "tier": "secondary",
+      "market": "KR",
+      "domains": ["movie"],
+      "reads": "예매 현황, 관람평 (정황용)"
+    },
+
+    {
+      "host": "youtube.com",
+      "name": "유튜브",
+      "tier": "evidence_only",
+      "market": "KR",
+      "domains": ["youtube", "music"],
+      "reads": "영상 게시일, 조회수 (계기 측 증거 전용)",
+      "note": "조회수는 '봤다'의 증거이지 '샀다'의 증거가 아니다. 결과 측 sourceUrl로 절대 사용 불가. domains/youtube.md §2 참조."
+    },
+    {
+      "host": "datalab.naver.com",
+      "name": "네이버 데이터랩",
+      "tier": "secondary",
+      "market": "KR",
+      "domains": ["youtube", "book", "music", "movie"],
+      "reads": "쇼핑인사이트 카테고리 검색·클릭 추이",
+      "note": "검색·클릭이지 판매가 아니다. 결과 측 보조 근거로만."
+    },
+    {
+      "host": "oliveyoung.co.kr",
+      "name": "올리브영",
+      "tier": "secondary",
+      "market": "KR",
+      "domains": ["youtube"],
+      "reads": "랭킹, 품절 표기",
+      "note": "공식 보도자료에 수치가 명시된 경우에만 primary로 승격 가능."
+    },
+    {
+      "host": "daiso.co.kr",
+      "name": "다이소",
+      "tier": "secondary",
+      "market": "KR",
+      "domains": ["youtube"],
+      "reads": "상품 페이지, 품절 표기"
+    },
+
+    {
+      "host": "kostat.go.kr",
+      "name": "통계청",
+      "tier": "primary",
+      "market": "KR",
+      "domains": ["*"],
+      "reads": "소매판매액, 소비 통계"
+    },
+    {
+      "host": "korea.kr",
+      "name": "대한민국 정책브리핑",
+      "tier": "primary",
+      "market": "KR",
+      "domains": ["*"],
+      "reads": "부처 공식 발표·보도자료"
+    },
+
+    {
+      "host": "yna.co.kr",
+      "name": "연합뉴스",
+      "tier": "conditional",
+      "market": "KR",
+      "domains": ["*"],
+      "note": "기사 안에 수치의 출처 기관이 명시된 경우에만 sourceUrl 허용. 가능하면 원 기관 페이지를 직접 쓴다."
+    },
+    {
+      "host": "news1.kr",
+      "name": "뉴스1",
+      "tier": "conditional",
+      "market": "KR",
+      "domains": ["*"]
+    },
+    {
+      "host": "asiae.co.kr",
+      "name": "아시아경제",
+      "tier": "conditional",
+      "market": "KR",
+      "domains": ["*"],
+      "note": "2026-w31-youtube가 이 출처를 사용했다. 결과 측 단독 근거로는 부족하다."
+    },
+    {
+      "host": "mk.co.kr",
+      "name": "매일경제",
+      "tier": "conditional",
+      "market": "KR",
+      "domains": ["*"]
+    },
+    {
+      "host": "hankyung.com",
+      "name": "한국경제",
+      "tier": "conditional",
+      "market": "KR",
+      "domains": ["*"]
+    },
+
+    {
+      "host": "boxofficemojo.com",
+      "name": "Box Office Mojo",
+      "tier": "primary",
+      "market": "OVERSEAS",
+      "domains": ["movie"],
+      "reads": "북미·글로벌 박스오피스",
+      "note": "⚠️ 해외 시장. 국내 서사에 섞지 않는다. market-scope.md §6의 세 조건 충족 시에만."
+    },
+    {
+      "host": "the-numbers.com",
+      "name": "The Numbers",
+      "tier": "primary",
+      "market": "OVERSEAS",
+      "domains": ["movie"],
+      "note": "⚠️ 해외 시장."
+    },
+    {
+      "host": "billboard.com",
+      "name": "Billboard",
+      "tier": "primary",
+      "market": "OVERSEAS",
+      "domains": ["music"],
+      "note": "⚠️ 해외 시장. 빌보드 순위로 국내 음원 소비를 설명하지 않는다."
+    },
+    {
+      "host": "charts.spotify.com",
+      "name": "Spotify Charts",
+      "tier": "primary",
+      "market": "OVERSEAS",
+      "domains": ["music"],
+      "note": "⚠️ 글로벌/국가별 구분 주의. 글로벌 차트를 국내 인기로 쓰지 않는다."
+    },
+
+    {
+      "host": "namu.wiki",
+      "name": "나무위키",
+      "tier": "blocked",
+      "reason": "익명 편집 위키. 2차 가공 정보이며 시점에 따라 내용이 바뀐다."
+    },
+    {
+      "host": "wikipedia.org",
+      "name": "위키백과",
+      "tier": "blocked",
+      "reason": "위키. 각주의 원 출처를 직접 찾아 쓴다."
+    },
+    {
+      "host": "blog.naver.com",
+      "name": "네이버 블로그",
+      "tier": "blocked",
+      "reason": "개인 게시물."
+    },
+    {
+      "host": "tistory.com",
+      "name": "티스토리",
+      "tier": "blocked",
+      "reason": "개인 게시물."
+    },
+    {
+      "host": "brunch.co.kr",
+      "name": "브런치",
+      "tier": "blocked",
+      "reason": "개인 게시물."
+    },
+    {
+      "host": "dcinside.com",
+      "name": "디시인사이드",
+      "tier": "blocked",
+      "reason": "커뮤니티."
+    },
+    {
+      "host": "fmkorea.com",
+      "name": "에펨코리아",
+      "tier": "blocked",
+      "reason": "커뮤니티."
+    },
+    {
+      "host": "theqoo.net",
+      "name": "더쿠",
+      "tier": "blocked",
+      "reason": "커뮤니티."
+    },
+    {
+      "host": "reddit.com",
+      "name": "Reddit",
+      "tier": "blocked",
+      "reason": "커뮤니티."
+    },
+    {
+      "host": "instagram.com",
+      "name": "인스타그램",
+      "tier": "blocked",
+      "reason": "개인 게시물. 공식 계정의 공지는 보도자료 원문을 찾아 쓴다."
+    },
+    {
+      "host": "x.com",
+      "name": "X (트위터)",
+      "tier": "blocked",
+      "reason": "개인 게시물."
+    }
+  ],
+
+  "blockedPatterns": [
+    {
+      "pattern": "/search",
+      "reason": "검색 결과 페이지. 시점에 따라 내용이 바뀌어 검증 불가."
+    },
+    {
+      "pattern": "google.com",
+      "reason": "검색 엔진."
+    },
+    {
+      "pattern": "search.naver.com",
+      "reason": "검색 결과 페이지."
+    },
+    {
+      "pattern": "search.daum.net",
+      "reason": "검색 결과 페이지."
+    }
+  ]
+}

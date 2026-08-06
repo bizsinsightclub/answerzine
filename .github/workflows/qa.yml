@@ -1,0 +1,82 @@
+name: QA
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  validate:
+    name: 회차·룰셋 검증
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: 데이터 검증 (tools/qa.mjs)
+        run: node tools/qa.mjs
+
+  links:
+    name: 출처 링크 생존 확인
+    runs-on: ubuntu-latest
+    continue-on-error: true   # 외부 사이트 장애로 배포를 막지 않는다
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: sourceUrl HTTP 상태 확인
+        run: |
+          node -e '
+          import("node:fs").then(async fs => {
+            const dir = "issues";
+            if (!fs.existsSync(dir)) return;
+            const urls = new Set();
+            for (const f of fs.readdirSync(dir).filter(f => f.endsWith(".json"))) {
+              const d = JSON.parse(fs.readFileSync(dir + "/" + f, "utf8"));
+              for (const s of (d.stories ?? d)) {
+                const u = s.blocks?.find(b => b.type === "stat")?.sourceUrl;
+                if (u) urls.add(u);
+                if (s.anchorSourceUrl) urls.add(s.anchorSourceUrl);
+              }
+            }
+            let bad = 0;
+            for (const u of urls) {
+              try {
+                const r = await fetch(u, { method: "HEAD", redirect: "follow",
+                                           signal: AbortSignal.timeout(15000) });
+                console.log((r.ok ? "  ok  " : "  !!  ") + r.status + "  " + u);
+                if (!r.ok) bad++;
+              } catch (e) {
+                console.log("  !!  ERR   " + u + "  (" + e.message + ")");
+                bad++;
+              }
+            }
+            console.log(bad ? `\n응답 실패 ${bad}건 — 출처를 확인할 것.` : "\n모든 출처 정상.");
+            process.exit(bad ? 1 : 0);
+          })'
+
+  pages:
+    name: 제작기 배포
+    needs: validate
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+      - id: deploy
+        uses: actions/deploy-pages@v4

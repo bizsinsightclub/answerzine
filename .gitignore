@@ -1,0 +1,15 @@
+node_modules/
+dist/
+.DS_Store
+*.log
+
+# 세션 인프라 — 저장소에 올리지 않는다
+.superpowers/
+.playwright-mcp/
+.claude/*
+!.claude/agents/
+!.claude/agents/**
+
+# 폰트 원본 — 55MB. 실제 쓰는 2벌만 구현 시 assets/fonts/로 옮긴다.
+# NotoSerif-*.ttf 72종은 한글 0자라 이 프로젝트에서 쓰지 않는다.
+Fonts/
