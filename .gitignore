@@ -13,3 +13,4 @@ dist/
 # 폰트 원본 — 55MB. 실제 쓰는 2벌만 구현 시 assets/fonts/로 옮긴다.
 # NotoSerif-*.ttf 72종은 한글 0자라 이 프로젝트에서 쓰지 않는다.
 Fonts/
+.omc/
