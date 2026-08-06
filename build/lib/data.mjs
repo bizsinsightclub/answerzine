@@ -68,6 +68,27 @@ export function neighbors(list, id) {
   return { prev: list[i + 1] ?? null, next: list[i - 1] ?? null };
 }
 
+/**
+ * 회차 단위 이웃. 독자가 호를 주별로 넘겨보는 데 쓴다.
+ * 스토리 이웃(neighbors)과 축이 다르다 — 이건 잡지 한 권을 넘기는 동작이다.
+ */
+export function issueNeighbors(issues, issueId) {
+  const i = issues.findIndex((x) => x.issue === issueId);
+  if (i === -1) return { prev: null, next: null, index: -1, total: issues.length };
+  return {
+    prev: issues[i + 1] ?? null, // 배열은 최신순이므로 뒤가 지난 호
+    next: issues[i - 1] ?? null,
+    index: i,
+    total: issues.length,
+  };
+}
+
+/** 회차 라벨. "2026-w31" → "2026년 31주" */
+export function issueLabel(issueId) {
+  const m = /^(\d{4})-w(\d{2})$/.exec(issueId ?? "");
+  return m ? `${m[1]}년 ${Number(m[2])}주` : issueId;
+}
+
 /** 스토리 블록에서 타입별로 꺼낸다. 계약은 text,stat,text,quote,text 고정이다. */
 export function blocksOf(story) {
   const b = story.blocks ?? [];

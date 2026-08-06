@@ -46,7 +46,17 @@ test("진의 헤드라인·티저가 웹과 문자열이 같다 — §8 QA #17",
 
 test("스티커 수치는 리드의 stat.value를 그대로 쓴다", () => {
   const z = renderZinePage(ISSUE, stories, REG);
-  assert.match(z.content, /zine-sticker[^>]*>[^<]*\+326\.5%/);
+  const m = z.content.match(/<div class="zine-sticker">([\s\S]*?)<\/div>/);
+  assert.ok(m, "스티커가 없다");
+  assert.match(m[1], /\+326\.5%/, "리드 stat.value가 스티커에 없다");
+  assert.match(m[1], /주간 판매량 지수/, "리드 stat.label이 스티커에 없다");
+});
+
+test("스티커는 사진 콜라주 안에 있다 — 사진과 본문 사이에 뜨지 않는다", () => {
+  const z = renderZinePage(ISSUE, stories, REG);
+  const collage = z.content.match(/<div class="zine-photo-collage">([\s\S]*?)<\/div>\s*<\/div>/);
+  assert.ok(collage, "콜라주 블록이 없다");
+  assert.match(collage[1], /zine-sticker/, "스티커가 콜라주 밖에 있다");
 });
 
 test("QR 캡션은 회차 URL을 가리킨다", () => {
@@ -61,11 +71,13 @@ test("미니가 3편 미만이면 경고한다", () => {
   assert.ok(z.warnings.some((w) => /미니/.test(w)), "레이아웃 경고가 있어야 한다");
 });
 
-test("미니가 3편을 넘으면 경고하고 3편만 싣는다", () => {
-  const five = [...stories, mk("2026-w31-x", "book", "도서", "다섯째.", "티저 다섯.")];
+test("도메인이 늘어도 지면은 상위 4편만 싣는다", () => {
+  // 활성 도메인 8개 체제에서, 통과 편수가 슬롯을 넘는 것이 정상 상황이 됐다.
+  const five = [...stories, mk("2026-w31-x", "stage", "공연", "다섯째.", "티저 다섯.")];
   const z = renderZinePage({ ...ISSUE, stories: five }, five, REG);
-  assert.ok(z.warnings.some((w) => /슬롯 3개를 넘/.test(w)));
+  assert.equal(z.minis.length, 4, "미니 후보는 4편이다");
   assert.ok(!z.content.includes("다섯째."), "슬롯을 넘은 스토리는 지면에 없어야 한다");
+  assert.ok(z.warnings.some((w) => /상위 4편만/.test(w)), "웹에만 실린다는 사실을 알려야 한다");
 });
 
 test("zineBodyFor는 zineBody가 있으면 그대로 쓴다", () => {

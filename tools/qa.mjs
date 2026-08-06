@@ -47,8 +47,9 @@ for (const d of DOM) {
 }
 const dupKey = DOM.map(d => d.key).filter((k, i, a) => a.indexOf(k) !== i);
 if (dupKey.length) fail("registry", `key 중복: ${dupKey.join(", ")}`);
-if (DOM.length > reg.zineLayout.leadSlots + reg.zineLayout.miniSlots)
-  warn("registry", `활성 도메인 ${DOM.length}개 > 진 슬롯 ${reg.zineLayout.leadSlots + reg.zineLayout.miniSlots}개. domains/README.md §3 결정 필요.`);
+const SLOTS = reg.zineLayout.leadSlots + reg.zineLayout.miniSlots;
+if (DOM.length > SLOTS && reg.zineLayout.selection !== "score")
+  warn("registry", `활성 도메인 ${DOM.length}개 > 진 슬롯 ${SLOTS}개인데 selection 규칙이 없다. domains/README.md §3 결정 필요.`);
 if (!fails) ok(`활성 도메인 ${DOM.length}개, 색상 규칙 통과`);
 
 /* ══════════════ 2. 화이트리스트 ══════════════ */

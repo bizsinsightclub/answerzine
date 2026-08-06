@@ -92,7 +92,7 @@ export async function build({ root = ROOT, out = join(ROOT, "dist"), quiet = fal
   for (const issue of issues) {
     const mine = stories.filter((s) => s.issue.issue === issue.issue);
 
-    const iss = renderIssue(issue, stories, registry);
+    const iss = renderIssue(issue, stories, registry, issues);
     write(`${issue.issue}/index.html`, page({ ...iss, url: `/${issue.issue}/` }));
 
     const zine = renderZinePreview(issue, mine, registry);

@@ -49,7 +49,10 @@ function header() {
   return h`<header class="site-header shell" style="padding-bottom:0">
   <div class="masthead">
     <div class="masthead-top">
-      <a class="wordmark" href="${u("/")}">${SITE.name}</a>
+      <a class="wordmark" href="${u("/")}" aria-label="${SITE.name} 홈">
+        <img class="logo logo-light" src="${u("/assets/img/logo-light.png")}" alt="${SITE.name}" width="1970" height="860">
+        <img class="logo logo-dark" src="${u("/assets/img/logo-dark.png")}" alt="" aria-hidden="true" width="1971" height="842">
+      </a>
       <div style="display:flex;align-items:center;gap:16px">
         <span class="tagline">${SITE.tagline}</span>
         <button class="theme-toggle" data-theme-toggle type="button" aria-label="테마 전환">Paper</button>

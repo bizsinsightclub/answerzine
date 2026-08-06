@@ -115,14 +115,16 @@ const CHROME = `
 
 .masthead { padding-top: var(--s3); }
 .masthead-top { display: flex; align-items: baseline; justify-content: space-between; gap: var(--s4); }
-.wordmark {
-  font-family: var(--sans); font-weight: 900; font-size: clamp(20px, 3vw, 30px);
-  letter-spacing: .18em; text-transform: uppercase; text-decoration: none; color: var(--ink);
-}
+/* 워드마크는 원본 로고를 쓴다. 배경을 투명화한 두 벌을 테마별로 바꿔 단다. */
+.wordmark { display: inline-block; text-decoration: none; color: var(--ink); line-height: 0; }
+.logo { height: clamp(30px, 4.4vw, 46px); width: auto; display: block; }
+.logo-dark { display: none; }
+[data-theme="paper"] .logo-light { display: none; }
+[data-theme="paper"] .logo-dark { display: block; }
 .tagline { font-family: var(--sans); font-size: 12px; font-weight: 700; letter-spacing: .06em; color: var(--secondary); }
 
 /* 굵은 선 + 가는 선 — 신문 마스트헤드 관용구 */
-.ruleline { border-top: 3px solid var(--rule); border-bottom: 1px solid var(--rule); height: 5px; margin: var(--s3) 0 var(--s2); }
+.ruleline { border-top: 3px solid var(--rule); border-bottom: 1px solid var(--rule); height: 5px; margin: var(--s3) 0 0; }
 .dateline { font-family: var(--sans); font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--secondary); margin-bottom: var(--s6); }
 
 .theme-toggle {
@@ -229,6 +231,56 @@ const COMPONENTS = `
 
 .empty-state { border-top: 1px solid var(--divider); padding: var(--s7) 0; color: var(--secondary); font-size: 15px; }
 
+/* 호 넘기기 — 잡지 한 권을 넘기는 동작. 스토리 내비(nav-row)와 축이 다르다. */
+.pager {
+  display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: var(--s3);
+  border-top: 1px solid var(--rule); border-bottom: 1px solid var(--divider);
+  padding: var(--s3) 0; margin: 0 0 var(--s5); font-family: var(--sans);
+}
+.pager-link { text-decoration: none; display: block; }
+.pager-next { text-align: right; }
+.pager-link.is-off { opacity: .35; }
+.pager-dir { display: block; font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--tertiary); }
+.pager-issue { display: block; font-size: 14px; font-weight: 700; letter-spacing: -.01em; color: var(--ink); }
+.pager-link:hover .pager-issue { text-decoration: underline; text-underline-offset: 3px; }
+.pager-now { font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--secondary); white-space: nowrap; text-align: center; }
+.pager-count { display: block; font-size: 11px; font-weight: 400; color: var(--tertiary); font-variant-numeric: tabular-nums; }
+@media (max-width: 520px) {
+  .pager { grid-template-columns: 1fr 1fr; }
+  .pager-now { grid-column: 1 / -1; order: -1; text-align: left; margin-bottom: var(--s2); }
+}
+
+.issue-range { font-weight: 400; color: var(--secondary); font-size: .6em; letter-spacing: 0; }
+
+/* 편집 메모는 독자가 아니라 운영을 위한 기록이다. 접어두고 필요할 때만 편다. */
+.editor-note { margin: 0 0 var(--s6); max-width: var(--measure); }
+.editor-note summary {
+  font-family: var(--sans); font-size: 11px; font-weight: 700; letter-spacing: .08em;
+  text-transform: uppercase; color: var(--tertiary); cursor: pointer; list-style: none;
+}
+.editor-note summary::-webkit-details-marker { display: none; }
+.editor-note summary::after { content: " +"; }
+.editor-note[open] summary::after { content: " −"; }
+.editor-note p {
+  font-family: var(--sans); font-size: 12.5px; line-height: 1.75; color: var(--secondary);
+  margin: var(--s2) 0 0; padding-left: var(--s3); border-left: 1px solid var(--divider);
+}
+
+/* 주차별 호 목록 */
+.issue-list { list-style: none; padding: 0; margin: var(--s4) 0 0; counter-reset: issue; }
+.issue-item { border-top: 1px solid var(--divider); }
+.issue-item a {
+  display: grid; grid-template-columns: 8rem 1fr; gap: var(--s2) var(--s4);
+  padding: var(--s3) 0; text-decoration: none; align-items: baseline;
+}
+@media (max-width: 640px) { .issue-item a { grid-template-columns: 1fr; } }
+.issue-week { font-family: var(--sans); font-weight: 900; font-size: 17px; letter-spacing: -.02em; color: var(--ink); }
+.issue-meta { font-family: var(--sans); font-size: 12px; color: var(--tertiary); font-variant-numeric: tabular-nums; }
+.issue-heads { grid-column: 2; font-size: 14px; line-height: 1.6; color: var(--secondary); }
+@media (max-width: 640px) { .issue-heads { grid-column: 1; } }
+.issue-item a:hover .issue-week { text-decoration: underline; text-underline-offset: 3px; }
+.issue-item.is-current .issue-week::after { content: " ·"; color: var(--tertiary); }
+
 .btn {
   display: inline-block; font-size: 12px; font-weight: 700; letter-spacing: .08em;
   text-transform: uppercase; border: 1px solid var(--ink); padding: 9px 16px;
@@ -249,7 +301,7 @@ const ZINE = `
   box-shadow: 0 6px 30px rgba(0,0,0,.18);
 }
 .zine-masthead { text-align: center; padding-bottom: 2mm; }
-.zine-wordmark { font-family: var(--sans); font-weight: 900; font-size: 26px; letter-spacing: .22em; text-transform: uppercase; }
+.zine-logo { height: 15mm; width: auto; margin: 0 auto 1mm; display: block; }
 .zine-ruleline { border-top: 3px solid var(--ink); border-bottom: 1px solid var(--ink); height: 5px; margin: 2mm 0; }
 .zine-dateline { font-family: var(--sans); font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
 .zine-section-rule { border-top: 1px solid var(--ink); margin: 4mm 0; }
@@ -262,7 +314,7 @@ const ZINE = `
 .zine-lead-body::after { content: ""; display: block; clear: both; }
 .zine-lead-photo { float: left; width: 38%; margin: 0 5mm 3mm 0; }
 
-.zine-photo-collage { position: relative; margin: 0 0 2mm; }
+.zine-photo-collage { position: relative; margin: 0 0 9mm; }
 .zine-photo-placeholder {
   aspect-ratio: 4 / 3; border: 2px solid var(--ink); transform: rotate(-1.1deg);
   background: repeating-linear-gradient(45deg, #DBD7C9 0, #DBD7C9 2px, #EDE9DC 2px, #EDE9DC 5px);
@@ -274,9 +326,20 @@ const ZINE = `
 .zine-tape { position: absolute; width: 60px; height: 20px; background: rgba(255,255,255,.6); border: 1px dashed rgba(0,0,0,.3); }
 .zine-tape-1 { top: -9px; left: 6px; transform: rotate(-9deg); }
 .zine-tape-2 { top: -7px; right: 2px; transform: rotate(7deg); }
+/* 사진 왼쪽 아래 모서리에 겹쳐 붙는다. 라벨이 길어도 배너로 늘어나지 않도록 폭을 묶는다. */
 .zine-sticker {
-  display: inline-block; padding: 5px 11px; border: 2px solid var(--ink); background: var(--surface);
-  font-family: var(--sans); font-weight: 900; font-size: 12px; transform: rotate(-3deg);
+  position: absolute; left: -2mm; bottom: -6mm; z-index: 2;
+  max-width: 78%; padding: 4px 9px;
+  border: 2px solid var(--ink); background: var(--surface);
+  font-family: var(--sans); transform: rotate(-3deg); line-height: 1.2;
+}
+.zine-sticker .lbl {
+  display: block; font-size: 8px; font-weight: 700;
+  letter-spacing: .06em; text-transform: uppercase; color: var(--secondary);
+}
+.zine-sticker .val {
+  display: block; font-size: 15px; font-weight: 900;
+  letter-spacing: -.025em; font-variant-numeric: tabular-nums;
 }
 
 .zine-secondary-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6mm; margin-top: 1mm; position: relative; }

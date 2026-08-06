@@ -1,18 +1,19 @@
 {
   "$schema": "https://answerzine.kr/schema/registry-1.json",
   "version": "2026-w32",
-  "updated": "2026-08-06",
-  "note": "도메인 단일 소스. Answer_Zine.html의 DOMAIN_META, tools/zine-builder.html, tools/qa.mjs가 모두 이 파일을 참조한다. 색상은 여기서만 정의한다.",
+  "updated": "2026-08-07",
+  "note": "도메인 단일 소스. build/lib/*.mjs, tools/zine-builder.html, tools/qa.mjs가 모두 이 파일을 참조한다. 색상은 여기서만 정의한다.",
 
   "colorRules": {
     "background": "#16150F",
     "backgroundPaper": "#F4F1E7",
     "minContrast": 4.5,
-    "minHueDistance": 40,
-    "openHueWindows": [[75, 95], [250, 309]],
+    "minHueDistance": 35,
+    "openHueWindows": [],
     "note": "신규 도메인은 minContrast와 minHueDistance를 모두 충족해야 한다. design.md §6.2 참조.",
     "noteThemes": "color는 Night 테마(#16150F)용, colorPaper는 Paper 테마(#F4F1E7)용이다. 둘 다 4.5:1을 넘겨야 하고 hue는 서로 같아야 한다. 배경이 #222222에서 #16150F로 바뀌면서 movie/youtube의 기존 AA 미달(4.36:1)이 5.01:1로 해소됐다.",
-    "recommendedNext": { "hex": "#BF5AF2", "name": "systemPurple", "hue": 280, "contrast": 4.52 }
+    "noteExpansion": "도메인 8개로 확장하면서 minHueDistance를 40°에서 35°로 낮췄다. 8개를 색상환에 배치하면 이론적 최대 간격이 45°이고, 기존 4개(35·135·210·349°)가 불균등해 실제 확보 가능한 최소 간격은 37°다. 현재 최소 간격은 135↔172의 37°다. 9번째 도메인은 이 규칙으로 불가능하다 — 색 이외의 구분 수단이 필요하다.",
+    "recommendedNext": null
   },
 
   "domains": [
@@ -31,7 +32,8 @@
       "status": "active",
       "order": 1,
       "anchorType": "국내 개봉일",
-      "primarySources": ["kobis.or.kr", "kofic.or.kr"]
+      "primarySources": ["kobis.or.kr", "kofic.or.kr"],
+      "api": "tools/kobis.mjs"
     },
     {
       "key": "music",
@@ -48,7 +50,8 @@
       "status": "active",
       "order": 2,
       "anchorType": "국내 음원 발매일 또는 계기 발생일",
-      "primarySources": ["melon.com", "circlechart.kr"]
+      "primarySources": ["melon.com", "circlechart.kr"],
+      "warning": "멜론·써클차트 모두 현재 시점 스냅숏만 제공한다. 지난 주 순위는 사후 재현이 안 되므로 그 주에 수집해야 한다."
     },
     {
       "key": "youtube",
@@ -66,7 +69,7 @@
       "order": 3,
       "anchorType": "영상 게시일 (KST)",
       "primarySources": [],
-      "warning": "결과 측 1차 출처가 없다. domains/youtube.md §2, §8 참조."
+      "warning": "결과 측 1차 출처가 없다. domains/youtube.md §2, §8 참조. 2026-w31에서 이 사유로 탈락했다."
     },
     {
       "key": "book",
@@ -84,6 +87,78 @@
       "order": 4,
       "anchorType": "국내 출간일 또는 사건 발생일",
       "primarySources": ["yes24.com", "kpipa.or.kr"]
+    },
+    {
+      "key": "stage",
+      "name": "공연",
+      "color": "#0C907E",
+      "colorName": "틸 (Night)",
+      "colorPaper": "#0A7B6C",
+      "colorPaperName": "틸 명도 보정 (Paper)",
+      "hue": 172,
+      "contrast": 4.62,
+      "contrastPaper": 4.57,
+      "contrastPass": true,
+      "doc": "domains/stage.md",
+      "status": "active",
+      "order": 5,
+      "anchorType": "국내 첫 공연일 (개막일)",
+      "primarySources": ["kopis.or.kr"],
+      "note": "공연예술통합전산망은 KOBIS와 같은 급의 정부 전수 집계다. 오픈API를 제공한다. 결번 대체 1순위."
+    },
+    {
+      "key": "news",
+      "name": "뉴스",
+      "color": "#8B66F3",
+      "colorName": "인디고 (Night)",
+      "colorPaper": "#7142F0",
+      "colorPaperName": "인디고 명도 보정 (Paper)",
+      "hue": 256,
+      "contrast": 4.61,
+      "contrastPaper": 4.97,
+      "contrastPass": true,
+      "doc": "domains/news.md",
+      "status": "active",
+      "order": 6,
+      "anchorType": "기사 최초 보도일",
+      "primarySources": ["bigkinds.or.kr"],
+      "note": "한국언론진흥재단 빅카인즈. 네이버 뉴스 랭킹은 집계 기준 비공개라 쓰지 않는다."
+    },
+    {
+      "key": "ott",
+      "name": "OTT",
+      "color": "#E212D8",
+      "colorName": "마젠타 (Night)",
+      "colorPaper": "#C110B9",
+      "colorPaperName": "마젠타 명도 보정 (Paper)",
+      "hue": 303,
+      "contrast": 4.63,
+      "contrastPaper": 4.6,
+      "contrastPass": true,
+      "doc": "domains/ott.md",
+      "status": "active",
+      "order": 7,
+      "anchorType": "국내 공개일",
+      "primarySources": ["netflix.com"],
+      "warning": "넷플릭스 Tudum만 국가별 주간 시청시간을 공개한다. 티빙·웨이브·쿠팡플레이는 수치를 공개하지 않으므로 국내 OTT 전체를 대표하지 않는다. 기사에 반드시 플랫폼을 명시한다."
+    },
+    {
+      "key": "travel",
+      "name": "여행",
+      "color": "#59900C",
+      "colorName": "라임 (Night)",
+      "colorPaper": "#4A780A",
+      "colorPaperName": "라임 명도 보정 (Paper)",
+      "hue": 85,
+      "contrast": 4.72,
+      "contrastPaper": 4.67,
+      "contrastPass": true,
+      "doc": "domains/travel.md",
+      "status": "active",
+      "order": 8,
+      "anchorType": "계기 발생일 (행사 개시일·미디어 노출일 등)",
+      "primarySources": ["datalab.visitkorea.or.kr"],
+      "warning": "한국관광 데이터랩은 월 단위 갱신이라 주간 이례 판정이 어렵다. 주간 소재로 쓰려면 계기가 뚜렷한 경우에만."
     }
   ],
 
@@ -106,6 +181,7 @@
   "zineLayout": {
     "leadSlots": 1,
     "miniSlots": 3,
-    "note": "도메인이 5개 이상이 되면 미니 슬롯이 모자란다. domains/README.md §3의 세 선택지 중 하나를 사용자가 결정해야 한다."
+    "selection": "score",
+    "note": "지면은 리드 1 + 미니 3으로 고정이다. 활성 도메인이 8개여도 지면은 늘리지 않는다. 그 주에 통과한 스토리 중 점수 상위 4편만 싣고, 나머지는 웹에만 게재한다. 도메인을 8개로 늘린 이유는 지면을 채우기 위해서가 아니라 결번이 나도 4편을 확보하기 위해서다."
   }
 }

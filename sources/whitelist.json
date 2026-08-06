@@ -1,9 +1,8 @@
 {
   "$schema": "https://answerzine.kr/schema/whitelist-1.json",
   "version": "2026-w32",
-  "updated": "2026-08-06",
+  "updated": "2026-08-07",
   "note": "수집 소스 화이트리스트. tools/zine-builder.html이 이 파일을 읽어 sourceUrl을 판정한다. 운영 규칙은 sources/README.md 참조.",
-
   "tiers": {
     "primary": {
       "label": "1차 출처",
@@ -31,19 +30,19 @@
       "desc": "2차 가공·개인 의견·검색 결과. 어떤 용도로도 근거가 될 수 없다."
     }
   },
-
   "markets": {
     "KR": "국내 시장. 기본값.",
     "OVERSEAS": "해외 시장. market-scope.md §6의 세 조건을 충족할 때만 사용."
   },
-
   "sources": [
     {
       "host": "yes24.com",
       "name": "예스24",
       "tier": "primary",
       "market": "KR",
-      "domains": ["book"],
+      "domains": [
+        "book"
+      ],
       "reads": "종합/분야 베스트셀러 순위, 전주 대비 판매 지수, 구매자 연령·성별 분포",
       "url": "https://www.yes24.com/24/category/bestseller",
       "sourceLabel": "예스24 베스트셀러 확인하기"
@@ -53,7 +52,9 @@
       "name": "교보문고",
       "tier": "secondary",
       "market": "KR",
-      "domains": ["book"],
+      "domains": [
+        "book"
+      ],
       "reads": "베스트셀러 순위 (서점 편향 교차 확인용)"
     },
     {
@@ -61,7 +62,9 @@
       "name": "알라딘",
       "tier": "secondary",
       "market": "KR",
-      "domains": ["book"],
+      "domains": [
+        "book"
+      ],
       "reads": "베스트셀러 순위 (서점 편향 교차 확인용)"
     },
     {
@@ -69,16 +72,19 @@
       "name": "한국출판문화산업진흥원",
       "tier": "primary",
       "market": "KR",
-      "domains": ["book"],
+      "domains": [
+        "book"
+      ],
       "reads": "출판 산업 통계, 발행 부수"
     },
-
     {
       "host": "melon.com",
       "name": "멜론",
       "tier": "primary",
       "market": "KR",
-      "domains": ["music"],
+      "domains": [
+        "music"
+      ],
       "reads": "TOP100 순위, 순위 변동, 서비스 내 검색량 증감",
       "url": "https://www.melon.com/chart/index.htm",
       "sourceLabel": "멜론 차트 확인하기"
@@ -88,7 +94,9 @@
       "name": "써클차트 (구 가온차트)",
       "tier": "primary",
       "market": "KR",
-      "domains": ["music"],
+      "domains": [
+        "music"
+      ],
       "reads": "국내 통합 음원·음반 집계",
       "note": "플랫폼 편향이 없는 국내 통합 집계. 멜론 단독 수치를 검증할 때 우선 사용."
     },
@@ -97,7 +105,9 @@
       "name": "지니뮤직",
       "tier": "secondary",
       "market": "KR",
-      "domains": ["music"],
+      "domains": [
+        "music"
+      ],
       "reads": "차트 순위 (플랫폼 편향 확인용)"
     },
     {
@@ -105,16 +115,19 @@
       "name": "벅스",
       "tier": "secondary",
       "market": "KR",
-      "domains": ["music"],
+      "domains": [
+        "music"
+      ],
       "reads": "차트 순위 (플랫폼 편향 확인용)"
     },
-
     {
       "host": "kobis.or.kr",
       "name": "KOBIS 영화관입장권통합전산망",
       "tier": "primary",
       "market": "KR",
-      "domains": ["movie"],
+      "domains": [
+        "movie"
+      ],
       "reads": "일별/주간 관객수, 누적, 스크린·상영 횟수, 국내 개봉일",
       "url": "https://www.kobis.or.kr/kobis/business/stat/boxs/findDailyBoxOfficeList.do",
       "sourceLabel": "KOBIS 박스오피스 확인하기",
@@ -125,7 +138,9 @@
       "name": "영화진흥위원회",
       "tier": "primary",
       "market": "KR",
-      "domains": ["movie"],
+      "domains": [
+        "movie"
+      ],
       "reads": "영화 산업 통계, 배급·상영 자료"
     },
     {
@@ -133,7 +148,9 @@
       "name": "CGV",
       "tier": "secondary",
       "market": "KR",
-      "domains": ["movie"],
+      "domains": [
+        "movie"
+      ],
       "reads": "특별관 회차 매진 여부, 관람평 (정황용)"
     },
     {
@@ -141,7 +158,9 @@
       "name": "롯데시네마",
       "tier": "secondary",
       "market": "KR",
-      "domains": ["movie"],
+      "domains": [
+        "movie"
+      ],
       "reads": "예매 현황, 관람평 (정황용)"
     },
     {
@@ -149,16 +168,20 @@
       "name": "메가박스",
       "tier": "secondary",
       "market": "KR",
-      "domains": ["movie"],
+      "domains": [
+        "movie"
+      ],
       "reads": "예매 현황, 관람평 (정황용)"
     },
-
     {
       "host": "youtube.com",
       "name": "유튜브",
       "tier": "evidence_only",
       "market": "KR",
-      "domains": ["youtube", "music"],
+      "domains": [
+        "youtube",
+        "music"
+      ],
       "reads": "영상 게시일, 조회수 (계기 측 증거 전용)",
       "note": "조회수는 '봤다'의 증거이지 '샀다'의 증거가 아니다. 결과 측 sourceUrl로 절대 사용 불가. domains/youtube.md §2 참조."
     },
@@ -167,7 +190,12 @@
       "name": "네이버 데이터랩",
       "tier": "secondary",
       "market": "KR",
-      "domains": ["youtube", "book", "music", "movie"],
+      "domains": [
+        "youtube",
+        "book",
+        "music",
+        "movie"
+      ],
       "reads": "쇼핑인사이트 카테고리 검색·클릭 추이",
       "note": "검색·클릭이지 판매가 아니다. 결과 측 보조 근거로만."
     },
@@ -176,7 +204,9 @@
       "name": "올리브영",
       "tier": "secondary",
       "market": "KR",
-      "domains": ["youtube"],
+      "domains": [
+        "youtube"
+      ],
       "reads": "랭킹, 품절 표기",
       "note": "공식 보도자료에 수치가 명시된 경우에만 primary로 승격 가능."
     },
@@ -185,16 +215,19 @@
       "name": "다이소",
       "tier": "secondary",
       "market": "KR",
-      "domains": ["youtube"],
+      "domains": [
+        "youtube"
+      ],
       "reads": "상품 페이지, 품절 표기"
     },
-
     {
       "host": "kostat.go.kr",
       "name": "통계청",
       "tier": "primary",
       "market": "KR",
-      "domains": ["*"],
+      "domains": [
+        "*"
+      ],
       "reads": "소매판매액, 소비 통계"
     },
     {
@@ -202,16 +235,19 @@
       "name": "대한민국 정책브리핑",
       "tier": "primary",
       "market": "KR",
-      "domains": ["*"],
+      "domains": [
+        "*"
+      ],
       "reads": "부처 공식 발표·보도자료"
     },
-
     {
       "host": "yna.co.kr",
       "name": "연합뉴스",
       "tier": "conditional",
       "market": "KR",
-      "domains": ["*"],
+      "domains": [
+        "*"
+      ],
       "note": "기사 안에 수치의 출처 기관이 명시된 경우에만 sourceUrl 허용. 가능하면 원 기관 페이지를 직접 쓴다."
     },
     {
@@ -219,14 +255,18 @@
       "name": "뉴스1",
       "tier": "conditional",
       "market": "KR",
-      "domains": ["*"]
+      "domains": [
+        "*"
+      ]
     },
     {
       "host": "asiae.co.kr",
       "name": "아시아경제",
       "tier": "conditional",
       "market": "KR",
-      "domains": ["*"],
+      "domains": [
+        "*"
+      ],
       "note": "2026-w31-youtube가 이 출처를 사용했다. 결과 측 단독 근거로는 부족하다."
     },
     {
@@ -234,22 +274,27 @@
       "name": "매일경제",
       "tier": "conditional",
       "market": "KR",
-      "domains": ["*"]
+      "domains": [
+        "*"
+      ]
     },
     {
       "host": "hankyung.com",
       "name": "한국경제",
       "tier": "conditional",
       "market": "KR",
-      "domains": ["*"]
+      "domains": [
+        "*"
+      ]
     },
-
     {
       "host": "boxofficemojo.com",
       "name": "Box Office Mojo",
       "tier": "primary",
       "market": "OVERSEAS",
-      "domains": ["movie"],
+      "domains": [
+        "movie"
+      ],
       "reads": "북미·글로벌 박스오피스",
       "note": "⚠️ 해외 시장. 국내 서사에 섞지 않는다. market-scope.md §6의 세 조건 충족 시에만."
     },
@@ -258,7 +303,9 @@
       "name": "The Numbers",
       "tier": "primary",
       "market": "OVERSEAS",
-      "domains": ["movie"],
+      "domains": [
+        "movie"
+      ],
       "note": "⚠️ 해외 시장."
     },
     {
@@ -266,7 +313,9 @@
       "name": "Billboard",
       "tier": "primary",
       "market": "OVERSEAS",
-      "domains": ["music"],
+      "domains": [
+        "music"
+      ],
       "note": "⚠️ 해외 시장. 빌보드 순위로 국내 음원 소비를 설명하지 않는다."
     },
     {
@@ -274,10 +323,103 @@
       "name": "Spotify Charts",
       "tier": "primary",
       "market": "OVERSEAS",
-      "domains": ["music"],
+      "domains": [
+        "music"
+      ],
       "note": "⚠️ 글로벌/국가별 구분 주의. 글로벌 차트를 국내 인기로 쓰지 않는다."
     },
-
+    {
+      "host": "kopis.or.kr",
+      "name": "KOPIS 공연예술통합전산망",
+      "tier": "primary",
+      "market": "KR",
+      "domains": [
+        "stage"
+      ],
+      "reads": "공연별 예매 관객수·매출액·상연 횟수, 장르별 통계, 개막일",
+      "url": "https://www.kopis.or.kr/por/db/pblprfr/pblprfrList.do",
+      "sourceLabel": "KOPIS 공연 통계 확인하기",
+      "note": "예술경영지원센터가 운영하는 정부 전수 집계. 오픈API 제공. KOBIS와 같은 급이다."
+    },
+    {
+      "host": "sac.or.kr",
+      "name": "예술의전당",
+      "tier": "secondary",
+      "market": "KR",
+      "domains": [
+        "stage"
+      ],
+      "reads": "공연 일정·회차 매진 여부 (정황용)"
+    },
+    {
+      "host": "interpark.com",
+      "name": "인터파크 티켓",
+      "tier": "secondary",
+      "market": "KR",
+      "domains": [
+        "stage"
+      ],
+      "reads": "예매 순위 (플랫폼 편향 확인용). 집계 기준 비공개."
+    },
+    {
+      "host": "bigkinds.or.kr",
+      "name": "빅카인즈 (한국언론진흥재단)",
+      "tier": "primary",
+      "market": "KR",
+      "domains": [
+        "news"
+      ],
+      "reads": "기사 건수 추이, 키워드 트렌드, 언론사별 보도량",
+      "url": "https://www.bigkinds.or.kr/",
+      "sourceLabel": "빅카인즈에서 확인하기",
+      "note": "국가 지원 뉴스 빅데이터 분석 시스템. 검색 결과 URL은 시점에 따라 바뀌므로 분석 조건을 기사에 명시한다."
+    },
+    {
+      "host": "kpf.or.kr",
+      "name": "한국언론진흥재단",
+      "tier": "primary",
+      "market": "KR",
+      "domains": [
+        "news"
+      ],
+      "reads": "언론수용자 조사, 뉴스 이용 통계"
+    },
+    {
+      "host": "netflix.com",
+      "name": "넷플릭스 Tudum",
+      "tier": "primary",
+      "market": "KR",
+      "domains": [
+        "ott"
+      ],
+      "reads": "국가별 주간 Top10, 시청시간(hours viewed), 주간 순위",
+      "url": "https://www.netflix.com/tudum/top10/south-korea",
+      "sourceLabel": "넷플릭스 Top 10 확인하기",
+      "note": "국가별 주간 집계를 넷플릭스가 직접 공개한다. ⚠️ 넷플릭스 단독 수치이므로 국내 OTT 전체로 일반화하지 않는다. 기사에 플랫폼을 명시할 것."
+    },
+    {
+      "host": "datalab.visitkorea.or.kr",
+      "name": "한국관광 데이터랩",
+      "tier": "primary",
+      "market": "KR",
+      "domains": [
+        "travel"
+      ],
+      "reads": "지역별 방문자 수, 이동 통신·카드 소비 기반 관광 지표",
+      "url": "https://datalab.visitkorea.or.kr/",
+      "sourceLabel": "한국관광 데이터랩 확인하기",
+      "note": "한국관광공사 운영. 월 단위 갱신이라 주간 이례 판정에는 한계가 있다."
+    },
+    {
+      "host": "knto.or.kr",
+      "name": "한국관광공사",
+      "tier": "primary",
+      "market": "KR",
+      "domains": [
+        "travel"
+      ],
+      "reads": "관광 통계, 보도자료"
+    },
     {
       "host": "namu.wiki",
       "name": "나무위키",
@@ -345,7 +487,6 @@
       "reason": "개인 게시물."
     }
   ],
-
   "blockedPatterns": [
     {
       "pattern": "/search",

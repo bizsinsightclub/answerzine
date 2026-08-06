@@ -20,15 +20,18 @@ export function zineBodyFor(story) {
 }
 
 function photoBlock(story, stat) {
-  const bg = story.photo?.src ? `background-image:url('${story.photo.src}');` : "";
+  // 사진은 스토리가 명시할 때만 붙인다. 기본 사진을 두면 엉뚱한 기사에 남의 사진이 얹힌다.
+  const src = story.photo?.src ?? null;
   const alt = story.photo?.alt ?? "";
+  const bg = src ? `background-image:url('${u(src)}');` : "";
+  // 스티커는 사진 모서리에 겹쳐 붙인다. 사진과 본문 사이에 띄우면 배너처럼 읽힌다.
   return h`<div class="zine-lead-photo">
   <div class="zine-photo-collage">
-    <div class="zine-photo-placeholder" style="${raw(bg)}" role="img" aria-label="${alt || "사진 자리"}">${bg ? "" : "PHOTO"}</div>
+    <div class="zine-photo-placeholder" style="${raw(bg)}" role="img" aria-label="${alt || "사진 자리"}">${src ? "" : "PHOTO"}</div>
     <div class="zine-tape zine-tape-1"></div>
     <div class="zine-tape zine-tape-2"></div>
+    ${stat ? raw(h`<div class="zine-sticker"><span class="lbl">${stat.label}</span><span class="val">${stat.value}</span></div>`) : ""}
   </div>
-  ${stat ? raw(h`<div class="zine-sticker">${stat.label} ${stat.value}</div>`) : ""}
 </div>`;
 }
 
@@ -40,16 +43,17 @@ export function renderZinePage(issue, stories, registry = {}) {
 
   if (!lead) warnings.push("리드 스토리가 없다. 회차가 비어 있다.");
   if (minis.length < 3)
-    warnings.push(`미니 슬롯이 ${minis.length}개다 (3개 기준). 인쇄 진 레이아웃 조정이 필요하다 — CLAUDE.md §7.2`);
+    warnings.push(`미니 슬롯이 ${minis.length}개다 (3개 기준). 그만큼 지면 하단이 빈다 — 결번 판정 결과인지 확인할 것. CLAUDE.md §7.2`);
   if (minis.length > 3)
-    warnings.push(`미니가 ${minis.length}개로 슬롯 3개를 넘는다. domains/README.md §3의 결정이 필요하다.`);
+    // 지면은 리드 1 + 미니 3 고정이다. 활성 도메인이 8개여도 늘리지 않는다 (registry.zineLayout).
+    warnings.push(`통과 ${list.length}편 중 점수 상위 4편만 지면에 싣는다. 나머지 ${minis.length - 3}편은 웹에만 게재된다.`);
 
   const leadStat = lead ? blocksOf(lead).stat : null;
   const body = lead ? zineBodyFor(lead) : [];
 
   const content = h`<div class="zine-page" id="zine-page">
   <header class="zine-masthead">
-    <div class="zine-wordmark">${SITE.name}</div>
+    <img class="zine-logo" src="${raw(u("/assets/img/logo-dark.png"))}" alt="${SITE.name}" width="1971" height="842">
     <div class="zine-ruleline"></div>
     <div class="zine-dateline">${dateline(issue.range)}</div>
   </header>

@@ -6,7 +6,7 @@
  */
 import { h, raw } from "./html.mjs";
 import { u } from "./site.mjs";
-import { blocksOf, parseRange } from "./data.mjs";
+import { blocksOf, parseRange, issueNeighbors, issueLabel } from "./data.mjs";
 import { dateline, SITE } from "./layout.mjs";
 
 const tag = (s) =>
@@ -60,10 +60,21 @@ export function renderIndex(issues, stories, registry) {
   ${latest ? raw(h`<p style="margin-top:40px"><a class="btn" href="${u(`/${latest.issue}/`)}">이번 호 전체 보기</a>
     <a class="btn" href="${u(`/${latest.issue}/print/`)}" style="margin-left:8px">인쇄용 A4</a></p>`) : ""}
 
-  ${older.length
+  ${issues.length > 1
     ? raw(h`<section style="margin-top:80px">
-    <p class="label">지난 호</p>
-    <div style="margin-top:16px">${older.map((s) => raw(rowBlock(s)))}</div>
+    <p class="label">지난 호 — 주별로 넘겨보기</p>
+    <ol class="issue-list">
+      ${issues.map((iss) => {
+        const mine = stories.filter((s) => s.issue.issue === iss.issue);
+        return raw(h`<li class="issue-item${iss.issue === latest?.issue ? " is-current" : ""}">
+        <a href="${u(`/${iss.issue}/`)}">
+          <span class="issue-week">${issueLabel(iss.issue)}</span>
+          <span class="issue-meta">${iss.range} · ${mine.length}편${iss.status === "draft" ? " · 작업 중" : ""}</span>
+          <span class="issue-heads">${mine.map((s) => s.headline).join(" / ")}</span>
+        </a>
+      </li>`);
+      })}
+    </ol>
   </section>`)
     : ""}
 </main>`;
@@ -76,14 +87,34 @@ export function renderIndex(issues, stories, registry) {
   };
 }
 
-export function renderIssue(issue, stories, registry) {
+/** 호 넘기기 바. 독자가 잡지를 주별로 넘기는 동작이다. */
+function issuePager(issue, issues) {
+  const { prev, next, index, total } = issueNeighbors(issues, issue.issue);
+  const link = (i, dir) =>
+    i
+      ? h`<a class="pager-link pager-${raw(dir)}" href="${u(`/${i.issue}/`)}">
+      <span class="pager-dir">${dir === "prev" ? "← 지난 호" : "다음 호 →"}</span>
+      <span class="pager-issue">${issueLabel(i.issue)}</span>
+    </a>`
+      : h`<span class="pager-link pager-${raw(dir)} is-off"><span class="pager-dir">${dir === "prev" ? "← 지난 호 없음" : "다음 호 없음 →"}</span></span>`;
+
+  return h`<nav class="pager" aria-label="호 이동">
+  ${raw(link(prev, "prev"))}
+  <span class="pager-now">${issueLabel(issue.issue)} <span class="pager-count">${index + 1} / ${total}</span></span>
+  ${raw(link(next, "next"))}
+</nav>`;
+}
+
+export function renderIssue(issue, stories, registry, issues = [issue]) {
   const mine = stories.filter((s) => s.issue.issue === issue.issue);
   const [lead, ...rest] = mine;
 
   const content = h`<main class="shell">
-  <p class="dateline">${dateline(issue.range)}</p>
-  <h1 style="font-size:clamp(28px,4vw,40px)">${issue.issue} · ${issue.range}${issue.status === "draft" ? raw(' <span class="draft-flag">작업 중</span>') : ""}</h1>
-  ${issue.notes ? raw(h`<p class="teaser" style="font-weight:400">${issue.notes}</p>`) : ""}
+  ${raw(issuePager(issue, issues))}
+
+  <p class="dateline" style="margin-top:24px">${dateline(issue.range)}</p>
+  <h1 style="font-size:clamp(28px,4vw,40px)">${issueLabel(issue.issue)}<span class="issue-range"> · ${issue.range}</span>${issue.status === "draft" ? raw(' <span class="draft-flag">작업 중</span>') : ""}</h1>
+  ${issue.notes ? raw(h`<details class="editor-note"><summary>편집 메모</summary><p>${issue.notes}</p></details>`) : ""}
 
   <div class="index-grid">
     ${lead ? raw(leadBlock(lead)) : ""}
@@ -94,10 +125,12 @@ export function renderIssue(issue, stories, registry) {
     <a class="btn" href="${u(`/${issue.issue}/print/`)}">인쇄용 A4 진</a>
     <a class="btn" href="${u("/")}" style="margin-left:8px">전체 아카이브</a>
   </p>
+
+  ${raw(issuePager(issue, issues))}
 </main>`;
 
   return {
-    title: `${issue.issue} — ${mine.length}편`,
+    title: `${issueLabel(issue.issue)} — ${mine.length}편`,
     description: lead ? lead.teaser : `${issue.range} 회차.`,
     content,
     noindex: issue.status === "draft",

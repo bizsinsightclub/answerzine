@@ -290,12 +290,23 @@ node build/build.mjs --serve  # 눈으로 확인
 
 ## 5. 도메인 레지스트리
 
-| 도메인 | key | 컬러 | 문서 | 상태 |
-|---|---|---|---|---|
-| 영화 | `movie` | `#0A84FF` | `domains/movie.md` | 활성 |
-| 음악 | `music` | `#FF9500` | `domains/music.md` | 활성 |
-| 유튜브 | `youtube` | `#FF2D55` | `domains/youtube.md` | 활성 |
-| 도서 | `book` | `#34C759` | `domains/book.md` | 활성 |
+| 도메인 | key | Night 컬러 | 문서 | 1차 출처 | 상태 |
+|---|---|---|---|---|---|
+| 영화 | `movie` | `#0A84FF` | `domains/movie.md` | KOBIS (오픈API) | 활성 |
+| 음악 | `music` | `#FF9500` | `domains/music.md` | 멜론·써클차트 | 활성 |
+| 유튜브 | `youtube` | `#FF2D55` | `domains/youtube.md` | **없음** ⚠️ | 활성 |
+| 도서 | `book` | `#34C759` | `domains/book.md` | 예스24·KPIPA | 활성 |
+| 공연 | `stage` | `#0C907E` | `domains/stage.md` | KOPIS (오픈API) | 활성 |
+| 뉴스 | `news` | `#8B66F3` | `domains/news.md` | 빅카인즈 | 활성 |
+| OTT | `ott` | `#E212D8` | `domains/ott.md` | 넷플릭스 Tudum | 활성 |
+| 여행 | `travel` | `#59900C` | `domains/travel.md` | 한국관광 데이터랩 | 활성 |
+
+**도메인이 8개인 이유는 지면을 채우기 위해서가 아니라, 결번이 나도 4편을 확보하기 위해서다.**
+지면은 여전히 리드 1 + 미니 3이고 그 주 통과분 중 **점수 상위 4편만** 싣는다. 나머지는 웹에만 실린다.
+
+출처 품질 순서로 보면 `movie`·`stage`가 가장 강하다(정부 전수 집계 + 오픈API).
+`youtube`는 결과 측 1차 출처가 없어 상시 탈락 위험이 있고, `travel`은 월 단위 갱신이라 주간 판정이 어렵다.
+**결번이 났을 때 먼저 파볼 도메인은 `stage` → `ott` → `news` 순이다.**
 
 컬러의 단일 소스는 코드의 `DOMAIN_META`다. 이 표는 사본이므로 **양쪽을 함께 고친다.**
 신규 도메인 추가는 `domains/README.md`의 절차를 따른다. 색상은 임의로 고르지 않는다 (`design.md` §6).
