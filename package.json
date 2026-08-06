@@ -10,7 +10,9 @@
     "test": "node --test test/*.test.mjs",
     "qa": "node tools/qa.mjs",
     "verify": "node build/verify.mjs",
-    "check": "node --test test/*.test.mjs && node tools/qa.mjs && node build/build.mjs && node build/verify.mjs"
+    "check": "node --test test/*.test.mjs && node tools/qa.mjs && node build/build.mjs && node build/verify.mjs",
+    "deploy": "node tools/deploy.mjs",
+    "deploy:dry": "node tools/deploy.mjs --dry"
   },
   "devDependencies": {
     "playwright": "^1.62.1",

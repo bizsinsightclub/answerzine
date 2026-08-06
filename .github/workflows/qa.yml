@@ -83,17 +83,17 @@ jobs:
             process.exit(bad ? 1 : 0);
           })'
 
+  # 배포는 gh-pages 브랜치에 산출물을 밀어넣는 방식이다.
+  # actions/deploy-pages를 쓰지 않는 이유: 2026-08-06에 액션 다운로드 서비스가
+  # 장애를 일으켜 발행이 막혔다. 이 방식은 로컬에서 `npm run deploy` 한 줄로도
+  # 똑같이 동작하므로, 남의 인프라가 죽어도 발행할 수 있다.
   pages:
-    name: 웹진 배포
+    name: 웹진 배포 (gh-pages)
     needs: validate
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     permissions:
-      pages: write
-      id-token: write
-    environment:
-      name: github-pages
-      url: ${{ steps.deploy.outputs.page_url }}
+      contents: write
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -114,9 +114,15 @@ jobs:
           mkdir -p dist/tools
           cp tools/dashboard.html tools/zine-builder.html dist/tools/
           cp -r domains sources issues runs dist/
-      - uses: actions/configure-pages@v5
-      - uses: actions/upload-pages-artifact@v3
-        with:
-          path: dist
-      - id: deploy
-        uses: actions/deploy-pages@v4
+          touch dist/.nojekyll
+      - name: gh-pages 푸시
+        run: |
+          cd dist
+          git init -q
+          git checkout -q -b gh-pages
+          git add -A
+          git -c user.name="answerzine deploy" -c user.email="noreply@answerzine.kr" \
+              commit -q -m "deploy: ${GITHUB_SHA::8}"
+          git push --force \
+            "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" \
+            gh-pages:gh-pages

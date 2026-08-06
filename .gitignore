@@ -20,3 +20,6 @@ dist/
 # 빌드 산출물
 dist/
 dist-test/
+
+# 배포 스테이징
+.deploy/
