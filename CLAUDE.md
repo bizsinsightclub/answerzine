@@ -90,18 +90,39 @@ tools/
 
 **★ 표시가 단일 소스다.** 문서 안의 표는 사람이 읽는 사본이므로, 값을 바꿀 때는 JSON을 먼저 고친다.
 
-### 2.2 아직 남은 것
+### 2.2 빌드 파이프라인
 
 ```
-Answer_Zine.html        단일 파일 4.1MB — 데이터·템플릿·에셋 전부 인라인
+issues/*.json          ─┐
+domains/registry.json  ─┼─►  build/build.mjs  ─►  dist/
+assets/ (폰트·이미지)   ─┘
 ```
 
-발행 산출물은 여전히 이 파일이고, `WEEKS` 배열과 인쇄 진을 손으로 고친다.
-`issues/*.json` → `Answer_Zine.html` 빌드 스크립트(`build/build.mjs`)와 에셋 외부화는 미착수다.
-착수 전 §9를 읽고 사용자 승인을 받는다.
+**`issues/*.json`이 유일한 정본이다.** 웹·인쇄 진·OG 태그가 전부 여기서 생성된다.
+마크업에 본문을 직접 쓰지 않는다. 손으로 옮겨 적는 단계가 없다.
 
-그때까지 S6은 **`issues/*.json`을 정본으로 두고 `Answer_Zine.html`에 옮겨 적는** 방식으로 한다.
-정본이 둘이 되지 않도록, 수정은 항상 JSON에서 먼저 한다.
+```
+build/
+  build.mjs             엔트리. --serve로 로컬 미리보기
+  verify.mjs            산출물 검증 — A4 페이지 수·콘솔 에러·링크·폰트 커버리지
+  lib/*.mjs             html · data · theme · css · layout · sparkline · render-* · assets
+test/*.test.mjs         node --test. 프레임워크 없음
+assets/fonts/           Paperlogy 3벌 + 나눔명조 2벌 (전부 SIL OFL)
+legacy/Answer_Zine.html 프로토타입 보관 — 발행 산출물이 아니다
+```
+
+산출물 구조는 정적 디렉터리 라우팅이다. 서버 설정 없이 GitHub Pages에서 그대로 열린다.
+
+```
+dist/index.html                아카이브 인덱스
+dist/2026-w31/index.html       회차 — QR 도착지 (answerzine.kr/2026-w31)
+dist/2026-w31/book/index.html  개별 스토리
+dist/2026-w31/print/index.html A4 인쇄 진
+```
+
+**런타임 의존성은 0이다.** `dist/`는 순수 정적 HTML·CSS·JS·폰트다.
+빌드 단계에만 `subset-font`와 `playwright` 둘이 있고, 이건 사용자 승인 사항이다 (§7.3).
+`npm install` 없이도 빌드는 성공한다 — 서브셋과 브라우저 검사만 건너뛴다.
 
 ---
 
@@ -237,15 +258,25 @@ S1 수집 → S2 선별 → S3 검증 → S4 집필 → S5 해석 → S6 빌드 
 
 ### S6. 빌드
 
-1. 새 회차 객체를 `WEEKS` **맨 앞**에 추가한다 (배열 = 최신순).
-   같은 주 여러 도메인은 `리드 → 미니1 → 미니2 → 미니3` 순으로 넣는다.
-2. 인쇄 진(`.zine-page`) 갱신 — 현재는 수동이다:
-   - `.zine-dateline` — `서울, 대한민국 — YYYY년 M월 N주차`
-   - `.zine-lead` — 리드의 kicker / headline / teaser / 본문 3문단 / `.zine-sticker` 수치
-   - `.zine-secondary-row` — 미니 3편의 kicker / headline / teaser
-   - `.zine-lead-photo` 이미지, 푸터 QR과 `answerzine.kr/YYYY-wNN`
-3. 인쇄 진 본문은 웹 본문의 **축약**이다. 새로 쓰지 말고 줄인다. **헤드라인과 티저는 웹과 한 글자도 다르면 안 된다.**
-4. 분량은 `design.md` §4 예산표를 지킨다.
+1. `issues/YYYY-wNN.json`을 만든다. `stories` 배열은 **점수 순**이다 — 맨 앞이 리드다.
+2. 빌드하고 검증한다.
+
+```bash
+node --test test/*.test.mjs   # 단위 테스트
+node tools/qa.mjs             # 입력 검증 (회차 데이터)
+node build/build.mjs          # dist/ 생성
+node build/verify.mjs         # 산출물 검증 (A4·콘솔·링크·폰트)
+node build/build.mjs --serve  # 눈으로 확인
+```
+
+`npm run check` 한 줄로 위 넷을 순서대로 돌릴 수 있다.
+
+3. 인쇄 진은 **자동 생성된다.** 손으로 고치지 않는다.
+   웹 본문의 축약이 필요하면 스토리에 `zineBody: ["…", "…", "…"]`를 넣는다.
+   없으면 `text` 블록 셋을 그대로 쓴다.
+   **헤드라인·티저·스티커 수치는 웹과 같은 값을 참조하므로 어긋날 수 없다.**
+4. 분량은 `design.md` §4 예산표를 지킨다. `tools/qa.mjs`가 검사한다.
+5. 빌드가 내는 경고를 읽는다. 미니 슬롯 부족·초과는 여기서 알려준다.
 
 ### S7. QA
 
@@ -391,57 +422,40 @@ const pages = (buf.toString('latin1').match(/\/Type\s*\/Page[^s]/g) || []).lengt
 
 ---
 
-## 9. 현재 코드의 결함 (주간 생산을 막는 것부터)
+## 9. 결함 기록 — 무엇이 어떻게 해소됐는가
 
-발견 기록이다. **한 번에 한 항목씩, 사용자가 지정한 것만** 고친다.
+프로토타입(`legacy/Answer_Zine.html`)이 안고 있던 13건이다. 전부 재현 확인했고, 빌드 파이프라인으로 해소됐다.
+**남겨두는 이유는 같은 실수를 다시 만들지 않기 위해서다.** 각 항목의 "지금" 열이 재발 방지 장치다.
 
-### P0 — 매주 발목을 잡는 것
+| # | 무엇이었나 | 지금 |
+|---|---|---|
+| 9.1 | 인쇄하면 A4 4페이지. `@media print` 숨김 목록에 `.statement-wrap` 누락 | `build/verify.mjs`가 **매 빌드마다 헤드리스 PDF로 페이지 수를 실측**한다. 실제로 이 검사가 새 코드의 2페이지 결함을 잡았다 |
+| 9.2 | `openStory()`가 배열 순서를 최신순이라 가정해 이전/다음이 시간을 거슬렀다 | `data.mjs`가 `range` 기준 정렬 배열 하나를 만들고 그 위에서만 인덱싱한다. `test/data.test.mjs`가 강제 |
+| 9.3 | 인쇄 지면이 하드코딩이라 **정본이 둘**이었다 | `render-zine.mjs`가 JSON에서 생성한다. **입력에 없으면 지면에도 없다** |
+| 9.4 | 라우팅 없음. QR이 가리키는 `answerzine.kr/2026-w31`이 존재하지 않았다 | 정적 디렉터리 라우팅. 그 주소가 실재한다 |
+| 9.5 | 필터와 내비게이션이 서로 다른 배열을 봤다 | 정렬+필터를 적용한 배열 하나가 단일 소스다 |
+| 9.6 | 4.1MB, 그중 4.07MB가 base64 인라인 에셋 (캐시 안 됨) | 에셋 외부화 + 서브셋. **폰트 전송량 181KB (brotli), 한 번 받아 전 페이지 캐시.** 두 서체 모두 OFL 확인 |
+| 9.7 | `innerHTML` + 이스케이프 부재, `onclick`에 id 보간 | 모든 문자열이 `escapeHTML()`을 통과한다. 이벤트 위임만 쓴다. `verify.mjs`가 `onclick` 부활을 감시 |
+| 9.8 | 4웨이트만 로드하면서 CSS는 8웨이트를 참조 | Paperlogy 400/700/900 + 나눔명조 400/700만. `test/css.test.mjs`가 그 외 참조를 실패 처리 |
+| 9.9 | 스파크라인 대체 텍스트 없음, 출처가 hover 의존 | SVG `<title>`에 추세 문장. 출처는 레일에 **상시 노출**. 인사이트는 `<details>` |
+| 9.10 | OG·description·파비콘 없음 | 회차·스토리마다 정적 생성. 파비콘 추가 |
+| 9.11 | 콘텐츠/코드 미분리 | 이 작업의 본체 |
+| 9.12 | QA 자동화 미구현 | `build/verify.mjs` + `test/*.test.mjs` 100건 |
+| 9.13 | 미사용 CSS 4건 | `css.mjs` 재작성 시 제거 |
 
-**9.1 인쇄하면 A4 4페이지가 나온다 (검증 완료)**
-`@media print` 숨김 목록에 `.statement-wrap`이 빠져 있다. `height: 220vh` 스크롤 트랙이 인쇄 지면에 **2,471px(≈A4 2.2장)의 빈 지면**을 만들고, 그 뒤에 진 1장이 붙어 총 4페이지가 나온다.
-Chromium 헤드리스로 실측: 현재 4페이지 → `.statement-wrap` 숨기면 1페이지. 진 페이지 자체는 정확히 A4 1장(794×1123 @96dpi)이다.
-→ 한 줄 수정:
+### 되돌리면 안 되는 것
 
-```css
-.intro, .statement-wrap, #main-content,
-.zine-preview-wrap h2, .zine-preview-wrap > p, .print-btn { display: none !important; }
-```
+아래는 **자동 검사가 지키고 있다.** 고치면 CI가 막는다.
 
-**9.2 이전/다음 회차가 시간을 거슬러 간다**
-`openStory()`가 `prev = WEEKS[idx+1]`, `next = WEEKS[idx-1]`로 배열 순서 = 최신순을 가정한다. 실제 배열은 `w31 → w27 → w31 → w31` 순이라 어긋난다.
-**주간 생산이 시작되면 매주 악화된다.** 같은 주의 4편을 한꺼번에 넣기 때문이다.
-→ 렌더 시점에 `range` 기준으로 정렬한 배열을 만들어 그 위에서 인덱싱한다.
+1. `@media print`에서 `.statement-wrap`을 숨기고 `.zine-mount` 여백과 `.zine-page`의 `min-height`를 해제할 것 — 안 그러면 2페이지가 된다
+2. 사용자 문자열은 `escapeHTML()` 또는 `h` 태그드 템플릿을 반드시 경유할 것
+3. `onclick` 속성을 쓰지 말 것
+4. 로드하지 않은 폰트 웨이트를 CSS에서 참조하지 말 것
+5. 웹 본문에 `column-count`를 쓰지 말 것
+6. 색 보더를 1px보다 굵게 하지 말 것
 
-**9.3 인쇄본 콘텐츠가 `WEEKS`와 이중으로 존재한다**
-`.zine-page` 내용이 HTML에 하드코딩되어 있어 매주 손으로 고쳐야 하고, 웹과 갈라질 수 있다 (지금도 본문 문장이 다르다).
-**주간 파이프라인 S6의 최대 비용이자 최대 오류원이다.**
-→ `renderZinePage()`로 `WEEKS`에서 리드 1 + 미니 3을 생성. 인쇄용 축약문이 필요하면 스키마에 `zineBody` 선택 필드를 추가한다.
+### 남은 것
 
-**9.4 라우팅이 없다**
-스토리가 URL을 바꾸지 않는다. 공유·뒤로가기·새로고침이 모두 안 된다.
-**인쇄 진 QR이 `answerzine.kr/2026-w31`을 가리키는데 그 URL을 처리할 코드가 없다.** 종이를 뿌리는 순간 드러난다.
-→ `location.hash` 기반 라우터 + `hashchange` 핸들러. QR URL 규칙을 이때 확정한다.
-
-**9.5 필터와 내비게이션이 어긋난다**
-필터를 건 상태에서 스토리를 열면 이전/다음은 전체 `WEEKS`를 따라간다.
-→ 정렬 + 필터를 적용한 배열 하나를 단일 소스로 삼는다.
-
-### P1
-
-**9.6 파일이 4.1MB이고 매주 커진다** — 그중 약 4.07MB가 base64 인라인 에셋(Paperlogy TTF 4종, 로고 2, 사진 1, QR 1)이다. 로직·마크업은 36KB뿐. 회차가 쌓이면 여기에 콘텐츠가 계속 붙는다.
-→ TTF→WOFF2 변환(통상 60~80% 감소) + 에셋 외부 분리. **폰트 재배포 라이선스를 먼저 확인할 것.**
-
-**9.7 `innerHTML` + 이스케이프 부재** — `WEEKS`의 모든 문자열이 이스케이프 없이 들어가고 `id`는 `onclick` 문자열에 보간된다. 지금은 우리가 콘텐츠를 직접 쓰지만, 외부 입력(JSON fetch, CMS)이 들어오는 순간 XSS다.
-작품명 함정도 여기 있다: `〈투명한 나선〉`처럼 한글 제목은 정상 출력되지만(HTML 토크나이저는 `<` 다음이 ASCII 알파벳일 때만 태그로 인식 — 브라우저에서 확인함), **`<Odyssey>`처럼 영문 제목을 꺾쇠로 쓰면 미지의 태그로 파싱되어 사라진다.**
-→ `escapeHTML()` + `onclick`을 이벤트 위임으로 교체. 그 전까지는 §6의 `〈 〉` 규칙을 지킨다.
-
-**9.8 폰트 웨이트 불일치** — `@font-face`는 300/400/700/900만 로드하는데 CSS는 500·590·600·800도 쓴다. 브라우저 대체로 `.row-headline`(600)→700, `.story-headline`(800)→900, `.domain-tag`(590)→400이 된다. 의도한 위계가 안 나온다. → `design.md` §3.
-
-**9.9 접근성** — 스파크라인 SVG에 대체 텍스트 없음. 툴팁·출처 링크가 hover 의존이라 터치 기기에서 접근 어려움. 뷰 전환 시 포커스 이동 없음.
-
-### P2
-
-**9.10 공유/SEO 메타 부재** — OG 태그·description·파비콘 없음. 라우팅(9.4) 이후에 회차별 메타가 의미를 갖는다.
-**9.11 콘텐츠/코드 분리** — §2.2 목표 구조로의 마이그레이션.
-**9.12 QA 자동화** — §8의 `[자동]` 항목을 `build/qa.mjs`로 구현.
-**9.13 미사용 CSS** — `.placeholder-body`, `.zine-readmore`, `.zine-footer-col`, `--kicker-color` 폴백. `.zine-footer-col`은 푸터가 원래 다단(다음 호 예고 등)이었음을 시사한다.
+- **QR이 플레이스홀더다.** 실제 QR 인코딩에는 라이브러리가 필요한데 §7.3 승인 사항이다.
+  지금은 URL이 읽히는 SVG를 넣어뒀다. 종이를 뿌리기 전에 결정해야 한다.
+- **리드 사진이 비어 있다.** `story.photo.src`로 주입하면 콜라주에 들어간다. 없으면 스트라이프가 보인다.
