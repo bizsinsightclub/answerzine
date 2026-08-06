@@ -19,6 +19,10 @@ import { createServer } from "node:http";
 
 import { loadIssues, loadRegistry, allStories } from "./lib/data.mjs";
 import { cmapSet, FONTS, usedCharset, UI_CHARS } from "./lib/assets.mjs";
+import { setBase } from "./lib/site.mjs";
+
+/** 빌드와 같은 규칙으로 정규화한다. "answerzine" → "/answerzine" */
+const BASE = setBase(process.env.BASE_PATH ?? "");
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const DIST = join(ROOT, "dist");
@@ -48,17 +52,31 @@ const htmlFiles = [];
 /* ══════════════ 1. 내부 링크 ══════════════ */
 head("내부 링크");
 {
+  // 기본 경로로 빌드했다면 링크에 접두사가 붙어 있다. 벗기고 해석한다.
+  // 정규화는 site.mjs의 setBase와 같은 규칙을 써야 한다 — 앞 슬래시 유무로 어긋나면 안 된다.
+  const strip = (t) => (BASE && t.startsWith(BASE + "/") ? t.slice(BASE.length) : t);
+
   const broken = [];
   for (const file of htmlFiles) {
     const html = readFileSync(file, "utf8");
     for (const m of html.matchAll(/(?:href|src)="(\/[^"#?]*)"/g)) {
-      const t = m[1];
+      const t = strip(m[1]);
       const cands = t.endsWith("/") ? [join(DIST, t, "index.html")] : [join(DIST, t), join(DIST, t, "index.html")];
-      if (!cands.some(existsSync)) broken.push(`${file.replace(DIST, "")} → ${t}`);
+      if (!cands.some(existsSync)) broken.push(`${file.replace(DIST, "")} → ${m[1]}`);
     }
   }
   if (broken.length) for (const b of broken) fail("링크", b);
-  else ok(`HTML ${htmlFiles.length}개의 내부 링크 전부 해석됨`);
+  else ok(`HTML ${htmlFiles.length}개의 내부 링크 전부 해석됨${BASE ? ` (기본 경로 ${BASE})` : ""}`);
+
+  // CSS의 폰트 경로도 확인한다. 여기가 깨지면 폴백 서체로 조용히 렌더된다.
+  const css = readFileSync(join(DIST, "assets/style.css"), "utf8");
+  const cssBroken = [];
+  for (const m of css.matchAll(/url\("([^"]+)"\)/g)) {
+    const t = strip(m[1]);
+    if (t.startsWith("/") && !existsSync(join(DIST, t))) cssBroken.push(m[1]);
+  }
+  if (cssBroken.length) for (const b of cssBroken) fail("폰트 경로", `style.css → ${b}`);
+  else ok("스타일시트의 폰트 경로 전부 해석됨");
 }
 
 /* ══════════════ 2. 이스케이프 ══════════════ */
@@ -124,7 +142,10 @@ if (!chromium) {
     ".js": "text/javascript; charset=utf-8", ".svg": "image/svg+xml",
     ".ttf": "font/ttf", ".otf": "font/otf" };
   const server = createServer((req, res) => {
-    let f = join(DIST, decodeURIComponent(req.url.split("?")[0]));
+    // GitHub Pages가 /<저장소명>/ 접두사를 벗겨 서빙하는 것과 같게 맞춘다.
+    let p = decodeURIComponent(req.url.split("?")[0]);
+    if (BASE && p.startsWith(BASE)) p = p.slice(BASE.length) || "/";
+    let f = join(DIST, p);
     try {
       if (existsSync(f) && statSync(f).isDirectory()) f = join(f, "index.html");
       if (!existsSync(f)) { res.writeHead(404).end(); return; }

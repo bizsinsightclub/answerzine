@@ -6,6 +6,7 @@
  * hover에 의존하던 출처 노출(§9.9)이 구조적으로 해소된다.
  */
 import { h, raw, escapeHTML } from "./html.mjs";
+import { u } from "./site.mjs";
 import { blocksOf } from "./data.mjs";
 import { sparklineSVG } from "./sparkline.mjs";
 
@@ -58,7 +59,7 @@ export function renderStory(story, { prev, next } = {}) {
 
   const navLink = (s, kind) =>
     s
-      ? h`<a href="${s.url}"><div class="nav-label">${kind === "prev" ? "← 이전 회차" : "다음 회차 →"}</div><div class="nav-headline">${s.headline}</div></a>`
+      ? h`<a href="${u(s.url)}"><div class="nav-label">${kind === "prev" ? "← 이전 회차" : "다음 회차 →"}</div><div class="nav-headline">${s.headline}</div></a>`
       : h`<div class="nav-label" style="opacity:.4">${kind === "prev" ? "← 이전 회차 없음" : "다음 회차 없음 →"}</div>`;
 
   const content = h`<main class="shell" style="${raw(dcVar(story))}">
@@ -82,7 +83,7 @@ ${raw(statCard(stat, story))}
     <div class="nav-next">${raw(navLink(next, "next"))}</div>
   </nav>
 
-  <p style="margin-top:32px"><a class="btn" href="/${story.issue.issue}/">이 회차 전체 보기</a></p>
+  <p style="margin-top:32px"><a class="btn" href="${u(`/${story.issue.issue}/`)}">이 회차 전체 보기</a></p>
 </main>`;
 
   return { title, description, content, noindex: !!story.draft };

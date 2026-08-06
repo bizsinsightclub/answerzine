@@ -10,18 +10,19 @@
  * CSS가 그 밖의 웨이트를 참조하면 test/css.test.mjs가 실패한다 (§9.8).
  */
 import { themeCSS, domainCSS } from "./theme.mjs";
+import { getBase } from "./site.mjs";
 
 const FONTS = `
 @font-face { font-family: "Paperlogy"; font-weight: 400; font-display: swap;
-  src: url("/assets/fonts/Paperlogy-400.ttf") format("truetype"); }
+  src: url("__BASE__/assets/fonts/Paperlogy-400.ttf") format("truetype"); }
 @font-face { font-family: "Paperlogy"; font-weight: 700; font-display: swap;
-  src: url("/assets/fonts/Paperlogy-700.ttf") format("truetype"); }
+  src: url("__BASE__/assets/fonts/Paperlogy-700.ttf") format("truetype"); }
 @font-face { font-family: "Paperlogy"; font-weight: 900; font-display: swap;
-  src: url("/assets/fonts/Paperlogy-900.ttf") format("truetype"); }
+  src: url("__BASE__/assets/fonts/Paperlogy-900.ttf") format("truetype"); }
 @font-face { font-family: "NanumMyeongjo"; font-weight: 400; font-display: swap;
-  src: url("/assets/fonts/NanumMyeongjo.otf") format("opentype"); }
+  src: url("__BASE__/assets/fonts/NanumMyeongjo.otf") format("opentype"); }
 @font-face { font-family: "NanumMyeongjo"; font-weight: 700; font-display: swap;
-  src: url("/assets/fonts/NanumMyeongjoBold.otf") format("opentype"); }
+  src: url("__BASE__/assets/fonts/NanumMyeongjoBold.otf") format("opentype"); }
 `;
 
 const BASE = `
@@ -332,7 +333,9 @@ const MOTION = `
 `;
 
 export function stylesheet(domains = []) {
-  return [FONTS, themeCSS(), domainCSS(domains), BASE, TYPE, CHROME, LAYOUT, COMPONENTS, ZINE, PRINT, MOTION]
+  // GitHub Pages 프로젝트 사이트는 /<저장소명>/ 하위에 놓인다. 폰트 경로도 접두사가 필요하다.
+  const fonts = FONTS.replaceAll("__BASE__", getBase());
+  return [fonts, themeCSS(), domainCSS(domains), BASE, TYPE, CHROME, LAYOUT, COMPONENTS, ZINE, PRINT, MOTION]
     .join("\n")
     .trim() + "\n";
 }

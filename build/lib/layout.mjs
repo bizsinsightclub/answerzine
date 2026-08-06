@@ -5,19 +5,16 @@
  * 테마는 첫 페인트 전에 인라인 스크립트로 적용해 깜빡임을 막는다.
  */
 import { h, raw, escapeHTML } from "./html.mjs";
+import { SITE, u, absolute } from "./site.mjs";
 
-export const SITE = {
-  name: "ANSWER ZINE",
-  tagline: "순위 말고, 팔린 이유.",
-  origin: "https://answerzine.kr",
-};
+export { SITE };
 
 /** 첫 페인트 전에 저장된 테마를 적용한다. Night가 기본이라 paper일 때만 속성을 건다. */
 const THEME_BOOT = `try{if(localStorage.getItem("az-theme")==="paper")document.documentElement.setAttribute("data-theme","paper")}catch(e){}`;
 
 export function page({ title, description, url, content, noindex = false, bodyClass = "", showChrome = true }) {
   const full = title === SITE.name ? title : `${title} — ${SITE.name}`;
-  const canonical = SITE.origin + (url ?? "/");
+  const canonical = absolute(url ?? "/");
 
   return `<!doctype html>
 <html lang="ko">
@@ -28,21 +25,21 @@ export function page({ title, description, url, content, noindex = false, bodyCl
 <meta name="description" content="${escapeHTML(description)}">
 ${noindex ? '<meta name="robots" content="noindex">' : ""}
 <link rel="canonical" href="${escapeHTML(canonical)}">
-<link rel="icon" href="/assets/img/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="${u("/assets/img/favicon.svg")}" type="image/svg+xml">
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="${escapeHTML(SITE.name)}">
 <meta property="og:title" content="${escapeHTML(title)}">
 <meta property="og:description" content="${escapeHTML(description)}">
 <meta property="og:url" content="${escapeHTML(canonical)}">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="stylesheet" href="/assets/style.css">
+<link rel="stylesheet" href="${u("/assets/style.css")}">
 <script>${THEME_BOOT}</script>
 </head>
 <body class="${escapeHTML(bodyClass)}">
 ${showChrome ? header() : ""}
 ${content}
 ${showChrome ? footer() : ""}
-<script src="/assets/app.js" defer></script>
+<script src="${u("/assets/app.js")}" defer></script>
 </body>
 </html>
 `;
@@ -52,7 +49,7 @@ function header() {
   return h`<header class="site-header shell" style="padding-bottom:0">
   <div class="masthead">
     <div class="masthead-top">
-      <a class="wordmark" href="/">${SITE.name}</a>
+      <a class="wordmark" href="${u("/")}">${SITE.name}</a>
       <div style="display:flex;align-items:center;gap:16px">
         <span class="tagline">${SITE.tagline}</span>
         <button class="theme-toggle" data-theme-toggle type="button" aria-label="테마 전환">Paper</button>

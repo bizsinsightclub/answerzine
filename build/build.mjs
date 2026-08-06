@@ -21,6 +21,7 @@ import { renderStory } from "./lib/render-story.mjs";
 import { renderIndex, renderIssue } from "./lib/render-index.mjs";
 import { renderZinePreview } from "./lib/render-zine.mjs";
 import { copyAssets, usedCharset, UI_CHARS, writeFile } from "./lib/assets.mjs";
+import { setBase, getBase, u } from "./lib/site.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, "..");
@@ -60,10 +61,14 @@ async function loadSubsetter() {
   }
 }
 
-export async function build({ root = ROOT, out = join(ROOT, "dist"), quiet = false } = {}) {
+export async function build({ root = ROOT, out = join(ROOT, "dist"), quiet = false, base = process.env.BASE_PATH ?? "" } = {}) {
   const log = (...a) => { if (!quiet) console.log(...a); };
   const warnings = [];
   const files = [];
+
+  // GitHub Pages 프로젝트 사이트는 /<저장소명>/ 하위에 놓인다.
+  // 모든 내부 링크가 이 값을 앞에 달고 나간다.
+  setBase(base);
 
   rmSync(out, { recursive: true, force: true });
   mkdirSync(out, { recursive: true });
@@ -110,7 +115,7 @@ export async function build({ root = ROOT, out = join(ROOT, "dist"), quiet = fal
     noindex: true,
     content: `<main class="shell"><h1>찾는 페이지가 없다.</h1>
 <p class="teaser">주소를 다시 확인하거나 전체 아카이브로 돌아간다.</p>
-<p><a class="btn" href="/">전체 아카이브</a></p></main>`,
+<p><a class="btn" href="${u("/")}">전체 아카이브</a></p></main>`,
   }));
 
   /* ── 폰트 ── */
@@ -158,6 +163,7 @@ export async function build({ root = ROOT, out = join(ROOT, "dist"), quiet = fal
   warnings.push(...assetResult.warnings);
 
   log(`\n  회차 ${issues.length}개 · 스토리 ${stories.length}편 · 파일 ${files.length}개`);
+  if (getBase()) log(`  기본 경로 ${getBase()}`);
   log(`  폰트 ${assetResult.fonts.length}벌 ${(assetResult.bytes / 1048576).toFixed(2)}MB` +
       (assetResult.subset ? ` (서브셋 ${charset.size}자)` : " (원본)"));
   for (const w of warnings) log(`  ! ${w}`);
@@ -174,9 +180,11 @@ const MIME = {
   ".png": "image/png", ".jpg": "image/jpeg", ".json": "application/json; charset=utf-8",
 };
 
-function serve(dir, port = 8080) {
+function serve(dir, port = 8080, base = "") {
   createServer((req, res) => {
     let p = decodeURIComponent(req.url.split("?")[0]);
+    // 기본 경로로 빌드했다면 로컬 서버도 같은 접두사를 벗겨야 실제 배포와 같아진다.
+    if (base && p.startsWith(base)) p = p.slice(base.length) || "/";
     let file = join(dir, p);
     try {
       if (existsSync(file) && statSync(file).isDirectory()) file = join(file, "index.html");
@@ -186,10 +194,10 @@ function serve(dir, port = 8080) {
     } catch (e) {
       res.writeHead(500).end(String(e.message));
     }
-  }).listen(port, "127.0.0.1", () => console.log(`  미리보기: http://127.0.0.1:${port}\n`));
+  }).listen(port, "127.0.0.1", () => console.log(`  미리보기: http://127.0.0.1:${port}${base}/\n`));
 }
 
 if (import.meta.url.startsWith("file:") && process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   const r = await build();
-  if (process.argv.includes("--serve")) serve(r.out, Number(process.env.PORT ?? 8080));
+  if (process.argv.includes("--serve")) serve(r.out, Number(process.env.PORT ?? 8080), getBase());
 }

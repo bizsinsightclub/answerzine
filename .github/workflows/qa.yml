@@ -30,11 +30,17 @@ jobs:
       - name: 데이터 검증 (tools/qa.mjs)
         run: node tools/qa.mjs
 
-      - name: 빌드
+      # 배포와 같은 조건으로 검증한다. 기본 경로가 빠지면 자산이 전부 404다.
+      - name: 빌드 (배포 조건)
         run: node build/build.mjs
+        env:
+          BASE_PATH: ${{ github.event.repository.name }}
+          SITE_ORIGIN: https://${{ github.repository_owner }}.github.io
 
       - name: 산출물 검증 (build/verify.mjs)
         run: node build/verify.mjs
+        env:
+          BASE_PATH: ${{ github.event.repository.name }}
 
   links:
     name: 출처 링크 생존 확인
@@ -95,8 +101,13 @@ jobs:
           node-version: "20"
           cache: npm
       - run: npm ci
+      # GitHub Pages 프로젝트 사이트는 /<저장소명>/ 하위에 놓인다.
+      # 접두사 없이 빌드하면 모든 자산이 404가 난다.
       - name: 빌드
         run: node build/build.mjs
+        env:
+          BASE_PATH: ${{ github.event.repository.name }}
+          SITE_ORIGIN: https://${{ github.repository_owner }}.github.io
       # 대시보드·제작기는 저장소 JSON을 읽으므로 함께 올린다.
       - name: 운영 도구 동봉
         run: |

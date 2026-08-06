@@ -9,6 +9,7 @@
  * 헤드라인·티저는 웹과 같은 값을 참조하므로 CLAUDE.md §8 QA #17은 위반이 불가능하다.
  */
 import { h, raw } from "./html.mjs";
+import { u } from "./site.mjs";
 import { blocksOf } from "./data.mjs";
 import { dateline, SITE } from "./layout.mjs";
 
@@ -80,7 +81,7 @@ export function renderZinePage(issue, stories, registry = {}) {
 
   <footer class="zine-footer-bar">
     <div class="zine-footer-qr">
-      <img class="zine-qr" src="/assets/img/qr-${raw(issue.issue)}.svg" alt="QR 코드" width="60" height="60">
+      <img class="zine-qr" src="${u(`/assets/img/qr-${issue.issue}.svg`)}" alt="QR 코드" width="60" height="60">
       <div class="zine-qr-caption">전체 글 읽기 →<span>answerzine.kr/${issue.issue}</span></div>
     </div>
   </footer>

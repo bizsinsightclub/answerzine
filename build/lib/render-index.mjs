@@ -5,6 +5,7 @@
  * 필터는 data 속성 + 이벤트 위임이라 onclick 문자열 보간이 없다 (§9.7).
  */
 import { h, raw } from "./html.mjs";
+import { u } from "./site.mjs";
 import { blocksOf, parseRange } from "./data.mjs";
 import { dateline, SITE } from "./layout.mjs";
 
@@ -16,14 +17,14 @@ function leadBlock(s) {
   return h`<article class="index-lead" data-domain="${s.slug}" style="--dc: var(--dc-${raw(s.slug)})">
   <p class="meta">${raw(tag(s))} · ${s.range}${s.draft ? raw(' <span class="draft-flag">작업 중</span>') : ""}</p>
   ${s.kicker ? raw(h`<p class="kicker">${s.kicker}</p>`) : ""}
-  <h2 style="font-size:clamp(30px,4.6vw,46px)"><a href="${s.url}" style="text-decoration:none">${s.headline}</a></h2>
+  <h2 style="font-size:clamp(30px,4.6vw,46px)"><a href="${u(s.url)}" style="text-decoration:none">${s.headline}</a></h2>
   <p class="teaser">${s.teaser}</p>
   ${stat ? raw(h`<p class="label">${stat.label} <strong style="font-size:15px">${stat.value}</strong></p>`) : ""}
 </article>`;
 }
 
 const rowBlock = (s) => h`<article class="row" data-domain="${s.slug}" style="--dc: var(--dc-${raw(s.slug)})">
-  <a href="${s.url}">
+  <a href="${u(s.url)}">
     <p class="meta">${raw(tag(s))} · ${s.range}${s.draft ? raw(' <span class="draft-flag">작업 중</span>') : ""}</p>
     ${s.kicker ? raw(h`<p class="kicker">${s.kicker}</p>`) : ""}
     <h3 class="row-headline">${s.headline}</h3>
@@ -56,8 +57,8 @@ export function renderIndex(issues, stories, registry) {
 
   <p class="empty-state" data-empty hidden>이 카테고리는 아직 신호가 없다.</p>
 
-  ${latest ? raw(h`<p style="margin-top:40px"><a class="btn" href="/${latest.issue}/">이번 호 전체 보기</a>
-    <a class="btn" href="/${latest.issue}/print/" style="margin-left:8px">인쇄용 A4</a></p>`) : ""}
+  ${latest ? raw(h`<p style="margin-top:40px"><a class="btn" href="${u(`/${latest.issue}/`)}">이번 호 전체 보기</a>
+    <a class="btn" href="${u(`/${latest.issue}/print/`)}" style="margin-left:8px">인쇄용 A4</a></p>`) : ""}
 
   ${older.length
     ? raw(h`<section style="margin-top:80px">
@@ -90,8 +91,8 @@ export function renderIssue(issue, stories, registry) {
   </div>
 
   <p style="margin-top:40px">
-    <a class="btn" href="/${issue.issue}/print/">인쇄용 A4 진</a>
-    <a class="btn" href="/" style="margin-left:8px">전체 아카이브</a>
+    <a class="btn" href="${u(`/${issue.issue}/print/`)}">인쇄용 A4 진</a>
+    <a class="btn" href="${u("/")}" style="margin-left:8px">전체 아카이브</a>
   </p>
 </main>`;
 
