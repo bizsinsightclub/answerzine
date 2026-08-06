@@ -1,8 +1,8 @@
 {
   "$schema": "https://answerzine.kr/schema/whitelist-1.json",
-  "version": "2026-w32",
-  "updated": "2026-08-07",
-  "note": "수집 소스 화이트리스트. tools/zine-builder.html이 이 파일을 읽어 sourceUrl을 판정한다. 운영 규칙은 sources/README.md 참조.",
+  "version": "2026-w32b",
+  "updated": "2026-08-06",
+  "note": "수집 소스 화이트리스트. tools/zine-builder.html이 이 파일을 읽어 sourceUrl을 판정한다. 운영 규칙은 sources/README.md 참조. 각 출처의 series는 “지난 주 값을 지금 다시 읽을 수 있는가”다 — stat.trend 허용 여부를 이 값이 결정한다. seriesKinds 참조.",
   "tiers": {
     "primary": {
       "label": "1차 출처",
@@ -45,17 +45,24 @@
       ],
       "reads": "종합/분야 베스트셀러 순위, 전주 대비 판매 지수, 구매자 연령·성별 분포",
       "url": "https://www.yes24.com/24/category/bestseller",
-      "sourceLabel": "예스24 베스트셀러 확인하기"
+      "sourceLabel": "예스24 베스트셀러 확인하기",
+      "series": "snapshot",
+      "seriesNote": "판매지수와 순위를 서버에서 그대로 내려주지만 조회 시점의 주간분만 남는다. 지난 주 목록은 사후에 열리지 않는다."
     },
     {
       "host": "kyobobook.co.kr",
       "name": "교보문고",
-      "tier": "secondary",
+      "tier": "primary",
       "market": "KR",
       "domains": [
         "book"
       ],
-      "reads": "베스트셀러 순위 (서점 편향 교차 확인용)"
+      "reads": "종합 주간 베스트 TOP100 순위 (온·오프라인 판매 합산), 집계 기간",
+      "url": "https://store.kyobobook.co.kr/bestseller/total/weekly",
+      "sourceLabel": "교보문고 주간 베스트셀러 확인하기",
+      "series": "snapshot",
+      "seriesNote": "주간 TOP100을 자사 집계로 직접 공개한다. 다만 집계 기간이 현재 주 하나뿐이고(2026.07.29 ~ 08.04 형태) 과거 주차를 고르는 장치가 없다. 순위 목록 자체도 클라이언트에서 그려지므로 사람이 눈으로 확인한다.",
+      "note": "예스24와 달리 판매지수를 공개하지 않는다. 순위만 쓴다. 두 서점의 순위가 갈리면 그 자체가 소재다 — 한쪽을 정답으로 두지 않는다."
     },
     {
       "host": "aladin.co.kr",
@@ -65,7 +72,8 @@
       "domains": [
         "book"
       ],
-      "reads": "베스트셀러 순위 (서점 편향 교차 확인용)"
+      "reads": "베스트셀러 순위 (서점 편향 교차 확인용)",
+      "series": "snapshot"
     },
     {
       "host": "kpipa.or.kr",
@@ -75,7 +83,8 @@
       "domains": [
         "book"
       ],
-      "reads": "출판 산업 통계, 발행 부수"
+      "reads": "출판 산업 통계, 발행 부수",
+      "series": "archived"
     },
     {
       "host": "melon.com",
@@ -87,7 +96,9 @@
       ],
       "reads": "TOP100 순위, 순위 변동, 서비스 내 검색량 증감",
       "url": "https://www.melon.com/chart/index.htm",
-      "sourceLabel": "멜론 차트 확인하기"
+      "sourceLabel": "멜론 차트 확인하기",
+      "series": "snapshot",
+      "seriesNote": "실시간·일간·주간 모두 조회 시점 스냅숏이다. 그 주에 수집하지 않으면 사라진다."
     },
     {
       "host": "circlechart.kr",
@@ -98,7 +109,10 @@
         "music"
       ],
       "reads": "국내 통합 음원·음반 집계",
-      "note": "플랫폼 편향이 없는 국내 통합 집계. 멜론 단독 수치를 검증할 때 우선 사용."
+      "note": "플랫폼 편향이 없는 국내 통합 집계. 멜론 단독 수치를 검증할 때 우선 사용.",
+      "series": "archived",
+      "urlStatus": "broken-2026-w32",
+      "seriesNote": "주차를 지정해 과거 차트를 다시 여는 국내 유일의 음악 집계다. 다만 2026-w32 확인 시점에 기존 page_chart 경로가 404였다 — 사이트 개편으로 보인다. 새 경로를 확인하기 전에는 sourceUrl로 쓰지 않는다."
     },
     {
       "host": "genie.co.kr",
@@ -108,7 +122,8 @@
       "domains": [
         "music"
       ],
-      "reads": "차트 순위 (플랫폼 편향 확인용)"
+      "reads": "차트 순위 (플랫폼 편향 확인용)",
+      "series": "snapshot"
     },
     {
       "host": "bugs.co.kr",
@@ -118,7 +133,8 @@
       "domains": [
         "music"
       ],
-      "reads": "차트 순위 (플랫폼 편향 확인용)"
+      "reads": "차트 순위 (플랫폼 편향 확인용)",
+      "series": "snapshot"
     },
     {
       "host": "kobis.or.kr",
@@ -131,7 +147,9 @@
       "reads": "일별/주간 관객수, 누적, 스크린·상영 횟수, 국내 개봉일",
       "url": "https://www.kobis.or.kr/kobis/business/stat/boxs/findDailyBoxOfficeList.do",
       "sourceLabel": "KOBIS 박스오피스 확인하기",
-      "note": "국내 유일의 공식 전수 집계. 국내 개봉일 확인도 여기서 한다."
+      "note": "국내 유일의 공식 전수 집계. 국내 개봉일 확인도 여기서 한다.",
+      "series": "archived",
+      "seriesNote": "날짜를 지정해 과거 일별·주간 집계를 그대로 다시 받는다. 오픈API도 같은 값을 낸다. 추세선을 그려도 되는 출처다."
     },
     {
       "host": "kofic.or.kr",
@@ -141,7 +159,8 @@
       "domains": [
         "movie"
       ],
-      "reads": "영화 산업 통계, 배급·상영 자료"
+      "reads": "영화 산업 통계, 배급·상영 자료",
+      "series": "archived"
     },
     {
       "host": "cgv.co.kr",
@@ -151,7 +170,8 @@
       "domains": [
         "movie"
       ],
-      "reads": "특별관 회차 매진 여부, 관람평 (정황용)"
+      "reads": "특별관 회차 매진 여부, 관람평 (정황용)",
+      "series": "none"
     },
     {
       "host": "lottecinema.co.kr",
@@ -161,7 +181,8 @@
       "domains": [
         "movie"
       ],
-      "reads": "예매 현황, 관람평 (정황용)"
+      "reads": "예매 현황, 관람평 (정황용)",
+      "series": "none"
     },
     {
       "host": "megabox.co.kr",
@@ -171,7 +192,8 @@
       "domains": [
         "movie"
       ],
-      "reads": "예매 현황, 관람평 (정황용)"
+      "reads": "예매 현황, 관람평 (정황용)",
+      "series": "none"
     },
     {
       "host": "youtube.com",
@@ -183,7 +205,9 @@
         "music"
       ],
       "reads": "영상 게시일, 조회수 (계기 측 증거 전용)",
-      "note": "조회수는 '봤다'의 증거이지 '샀다'의 증거가 아니다. 결과 측 sourceUrl로 절대 사용 불가. domains/youtube.md §2 참조."
+      "note": "조회수는 '봤다'의 증거이지 '샀다'의 증거가 아니다. 결과 측 sourceUrl로 절대 사용 불가. domains/youtube.md §2 참조.",
+      "series": "none",
+      "seriesNote": "2025년 7월 21일 Trending 페이지와 Trending Now 목록이 폐지됐다. 후속인 YouTube Charts는 카테고리별 차트를 보여주지만 과거 주차 내보내기가 없고 목록이 전부 클라이언트 렌더다. 유튜브발 소비를 다루더라도 결과 측 수치는 파는 쪽에서 가져온다."
     },
     {
       "host": "datalab.naver.com",
@@ -197,7 +221,8 @@
         "movie"
       ],
       "reads": "쇼핑인사이트 카테고리 검색·클릭 추이",
-      "note": "검색·클릭이지 판매가 아니다. 결과 측 보조 근거로만."
+      "note": "검색·클릭이지 판매가 아니다. 결과 측 보조 근거로만.",
+      "series": "archived"
     },
     {
       "host": "oliveyoung.co.kr",
@@ -208,7 +233,8 @@
         "youtube"
       ],
       "reads": "랭킹, 품절 표기",
-      "note": "공식 보도자료에 수치가 명시된 경우에만 primary로 승격 가능."
+      "note": "공식 보도자료에 수치가 명시된 경우에만 primary로 승격 가능.",
+      "series": "snapshot"
     },
     {
       "host": "daiso.co.kr",
@@ -218,7 +244,8 @@
       "domains": [
         "youtube"
       ],
-      "reads": "상품 페이지, 품절 표기"
+      "reads": "상품 페이지, 품절 표기",
+      "series": "none"
     },
     {
       "host": "kostat.go.kr",
@@ -228,7 +255,8 @@
       "domains": [
         "*"
       ],
-      "reads": "소매판매액, 소비 통계"
+      "reads": "소매판매액, 소비 통계",
+      "series": "archived"
     },
     {
       "host": "korea.kr",
@@ -238,7 +266,8 @@
       "domains": [
         "*"
       ],
-      "reads": "부처 공식 발표·보도자료"
+      "reads": "부처 공식 발표·보도자료",
+      "series": "none"
     },
     {
       "host": "yna.co.kr",
@@ -248,7 +277,8 @@
       "domains": [
         "*"
       ],
-      "note": "기사 안에 수치의 출처 기관이 명시된 경우에만 sourceUrl 허용. 가능하면 원 기관 페이지를 직접 쓴다."
+      "note": "기사 안에 수치의 출처 기관이 명시된 경우에만 sourceUrl 허용. 가능하면 원 기관 페이지를 직접 쓴다.",
+      "series": "none"
     },
     {
       "host": "news1.kr",
@@ -257,7 +287,8 @@
       "market": "KR",
       "domains": [
         "*"
-      ]
+      ],
+      "series": "none"
     },
     {
       "host": "asiae.co.kr",
@@ -267,7 +298,8 @@
       "domains": [
         "*"
       ],
-      "note": "2026-w31-youtube가 이 출처를 사용했다. 결과 측 단독 근거로는 부족하다."
+      "note": "2026-w31-youtube가 이 출처를 사용했다. 결과 측 단독 근거로는 부족하다.",
+      "series": "none"
     },
     {
       "host": "mk.co.kr",
@@ -276,7 +308,8 @@
       "market": "KR",
       "domains": [
         "*"
-      ]
+      ],
+      "series": "none"
     },
     {
       "host": "hankyung.com",
@@ -285,7 +318,8 @@
       "market": "KR",
       "domains": [
         "*"
-      ]
+      ],
+      "series": "none"
     },
     {
       "host": "boxofficemojo.com",
@@ -296,7 +330,8 @@
         "movie"
       ],
       "reads": "북미·글로벌 박스오피스",
-      "note": "⚠️ 해외 시장. 국내 서사에 섞지 않는다. market-scope.md §6의 세 조건 충족 시에만."
+      "note": "⚠️ 해외 시장. 국내 서사에 섞지 않는다. market-scope.md §6의 세 조건 충족 시에만.",
+      "series": "archived"
     },
     {
       "host": "the-numbers.com",
@@ -306,7 +341,8 @@
       "domains": [
         "movie"
       ],
-      "note": "⚠️ 해외 시장."
+      "note": "⚠️ 해외 시장.",
+      "series": "archived"
     },
     {
       "host": "billboard.com",
@@ -316,7 +352,8 @@
       "domains": [
         "music"
       ],
-      "note": "⚠️ 해외 시장. 빌보드 순위로 국내 음원 소비를 설명하지 않는다."
+      "note": "⚠️ 해외 시장. 빌보드 순위로 국내 음원 소비를 설명하지 않는다.",
+      "series": "archived"
     },
     {
       "host": "charts.spotify.com",
@@ -326,7 +363,8 @@
       "domains": [
         "music"
       ],
-      "note": "⚠️ 글로벌/국가별 구분 주의. 글로벌 차트를 국내 인기로 쓰지 않는다."
+      "note": "⚠️ 글로벌/국가별 구분 주의. 글로벌 차트를 국내 인기로 쓰지 않는다.",
+      "series": "archived"
     },
     {
       "host": "kopis.or.kr",
@@ -337,9 +375,12 @@
         "stage"
       ],
       "reads": "공연별 예매 관객수·매출액·상연 횟수, 장르별 통계, 개막일",
-      "url": "https://www.kopis.or.kr/por/db/pblprfr/pblprfrList.do",
+      "url": "https://kopis.or.kr/por/main/main.do",
       "sourceLabel": "KOPIS 공연 통계 확인하기",
-      "note": "예술경영지원센터가 운영하는 정부 전수 집계. 오픈API 제공. KOBIS와 같은 급이다."
+      "note": "예술경영지원센터가 운영하는 정부 전수 집계. 오픈API 제공. KOBIS와 같은 급이다.",
+      "series": "archived",
+      "urlStatus": "broken-2026-w32",
+      "seriesNote": "정부 전수 집계이고 오픈API는 기간 지정 조회를 지원한다. 다만 2026-w32 확인 시점에 포털이 전면 개편을 거쳐 pblprfrList.do와 rankBoxOfficeList.do가 모두 404였고, 남은 화면도 서버 렌더 데이터가 없다. 오픈API 키 없이는 수치를 읽을 수 없다."
     },
     {
       "host": "sac.or.kr",
@@ -349,7 +390,8 @@
       "domains": [
         "stage"
       ],
-      "reads": "공연 일정·회차 매진 여부 (정황용)"
+      "reads": "공연 일정·회차 매진 여부 (정황용)",
+      "series": "none"
     },
     {
       "host": "interpark.com",
@@ -359,7 +401,8 @@
       "domains": [
         "stage"
       ],
-      "reads": "예매 순위 (플랫폼 편향 확인용). 집계 기준 비공개."
+      "reads": "예매 순위 (플랫폼 편향 확인용). 집계 기준 비공개.",
+      "series": "snapshot"
     },
     {
       "host": "bigkinds.or.kr",
@@ -372,7 +415,8 @@
       "reads": "기사 건수 추이, 키워드 트렌드, 언론사별 보도량",
       "url": "https://www.bigkinds.or.kr/",
       "sourceLabel": "빅카인즈에서 확인하기",
-      "note": "국가 지원 뉴스 빅데이터 분석 시스템. 검색 결과 URL은 시점에 따라 바뀌므로 분석 조건을 기사에 명시한다."
+      "note": "국가 지원 뉴스 빅데이터 분석 시스템. 검색 결과 URL은 시점에 따라 바뀌므로 분석 조건을 기사에 명시한다.",
+      "series": "archived"
     },
     {
       "host": "kpf.or.kr",
@@ -382,7 +426,8 @@
       "domains": [
         "news"
       ],
-      "reads": "언론수용자 조사, 뉴스 이용 통계"
+      "reads": "언론수용자 조사, 뉴스 이용 통계",
+      "series": "archived"
     },
     {
       "host": "netflix.com",
@@ -392,10 +437,13 @@
       "domains": [
         "ott"
       ],
-      "reads": "국가별 주간 Top10, 시청시간(hours viewed), 주간 순위",
+      "reads": "국가별 주간 TOP10 순위(TV·Films), 톱10 누적 체류 주차",
       "url": "https://www.netflix.com/tudum/top10/south-korea",
       "sourceLabel": "넷플릭스 Top 10 확인하기",
-      "note": "국가별 주간 집계를 넷플릭스가 직접 공개한다. ⚠️ 넷플릭스 단독 수치이므로 국내 OTT 전체로 일반화하지 않는다. 기사에 플랫폼을 명시할 것."
+      "note": "국가별 표는 순위와 체류 주차만 준다. 시청시간(hours viewed)은 글로벌 표에만 있으므로 국내 서사에 쓰지 않는다. ⚠️ 넷플릭스 단독 수치이므로 국내 OTT 전체로 일반화하지 않는다.",
+      "series": "archived",
+      "dataUrl": "https://www.netflix.com/tudum/top10/data/all-weeks-countries.tsv",
+      "seriesNote": "Tudum이 전 국가·전 주차 누적 TSV를 통째로 내려준다 (country_iso2 · week · category · weekly_rank · cumulative_weeks_in_top_10). 한 번 받으면 과거 어느 주든 같은 값이 재현된다 — 이 저장소에서 시계열 재현성이 가장 높은 출처다."
     },
     {
       "host": "datalab.visitkorea.or.kr",
@@ -408,7 +456,8 @@
       "reads": "지역별 방문자 수, 이동 통신·카드 소비 기반 관광 지표",
       "url": "https://datalab.visitkorea.or.kr/",
       "sourceLabel": "한국관광 데이터랩 확인하기",
-      "note": "한국관광공사 운영. 월 단위 갱신이라 주간 이례 판정에는 한계가 있다."
+      "note": "한국관광공사 운영. 월 단위 갱신이라 주간 이례 판정에는 한계가 있다.",
+      "series": "archived"
     },
     {
       "host": "knto.or.kr",
@@ -418,7 +467,8 @@
       "domains": [
         "travel"
       ],
-      "reads": "관광 통계, 보도자료"
+      "reads": "관광 통계, 보도자료",
+      "series": "archived"
     },
     {
       "host": "namu.wiki",
@@ -504,5 +554,22 @@
       "pattern": "search.daum.net",
       "reason": "검색 결과 페이지."
     }
-  ]
+  ],
+  "seriesKinds": {
+    "archived": {
+      "label": "주차 아카이브",
+      "trend": true,
+      "desc": "과거 주차의 같은 수치를 지금 다시 읽을 수 있다. 추세선(stat.trend)을 그려도 된다."
+    },
+    "snapshot": {
+      "label": "현재 주 스냅숏",
+      "trend": false,
+      "desc": "조회 시점의 순위·지수만 보여준다. 지난 주 값은 사후에 재현되지 않으므로 추세선을 그리면 아무도 검증할 수 없는 선이 된다."
+    },
+    "none": {
+      "label": "시계열 없음",
+      "trend": false,
+      "desc": "연속된 주간 수치를 내지 않는다. 기사·단발 발표가 여기 해당한다."
+    }
+  }
 }
