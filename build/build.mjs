@@ -116,13 +116,23 @@ export async function build({ root = ROOT, out = join(ROOT, "dist"), quiet = fal
   /* ── 폰트 ── */
   const subsetter = await loadSubsetter();
   const charset = usedCharset(issues, UI_CHARS);
+  const { FONTS } = await import("./lib/assets.mjs");
+
+  // 폰트가 없으면 폴백 서체로 렌더된 사이트가 조용히 나간다.
+  // 서브셋 도구가 없는 것(선택)과 폰트 파일이 없는 것(치명)은 다르다.
+  const missing = FONTS.filter((f) => !existsSync(join(root, "assets/fonts", f.file)));
+  if (missing.length) {
+    throw new Error(
+      `필수 폰트가 없다: ${missing.map((f) => f.file).join(", ")}\n` +
+      `  assets/fonts/에 있어야 한다. design.md §3 참조.`
+    );
+  }
+
   let assetResult;
   if (subsetter) {
     assetResult = { fonts: [], images: [], subset: true, bytes: 0, warnings: [] };
-    const { FONTS } = await import("./lib/assets.mjs");
     for (const f of FONTS) {
       const src = join(root, "assets/fonts", f.file);
-      if (!existsSync(src)) { assetResult.warnings.push(`폰트 없음: ${f.file}`); continue; }
       const orig = readFileSync(src);
       let buf = orig;
       try {

@@ -112,3 +112,14 @@ test("빌드 경고는 실제 데이터 문제만 담는다", () => {
     assert.match(w, /미니 슬롯|리드 스토리가 없다/, `예상 못한 경고: ${w}`);
   }
 });
+
+test("필수 폰트가 없으면 빌드가 실패한다 — 폴백 렌더 방지", async () => {
+  // 폰트 없이 만들어진 사이트는 폴백 서체로 조용히 나간다. 경고가 아니라 실패여야 한다.
+  const empty = "dist-test-nofonts";
+  rmSync(empty, { recursive: true, force: true });
+  await assert.rejects(
+    () => build({ root: "test/fixtures/no-fonts", out: empty, quiet: true }),
+    /필수 폰트가 없다|no such file|ENOENT/,
+  );
+  rmSync(empty, { recursive: true, force: true });
+});

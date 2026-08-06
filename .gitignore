@@ -10,9 +10,11 @@ dist/
 !.claude/agents/
 !.claude/agents/**
 
-# 폰트 원본 — 55MB. 실제 쓰는 2벌만 구현 시 assets/fonts/로 옮긴다.
-# NotoSerif-*.ttf 72종은 한글 0자라 이 프로젝트에서 쓰지 않는다.
-Fonts/
+# 폰트 원본 55MB — 그중 NotoSerif-*.ttf 72종은 한글 0자라 쓰지 않는다.
+# 실제 쓰는 5벌은 assets/fonts/에 커밋한다.
+# 맨 앞 슬래시가 없으면 경로 어디서든 매칭돼 assets/fonts/까지 무시된다
+# (윈도우는 대소문자를 구분하지 않아 Fonts == fonts).
+/Fonts/
 .omc/
 
 # 빌드 산출물

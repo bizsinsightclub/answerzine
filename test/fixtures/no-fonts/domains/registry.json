@@ -1,0 +1,111 @@
+{
+  "$schema": "https://answerzine.kr/schema/registry-1.json",
+  "version": "2026-w32",
+  "updated": "2026-08-06",
+  "note": "도메인 단일 소스. Answer_Zine.html의 DOMAIN_META, tools/zine-builder.html, tools/qa.mjs가 모두 이 파일을 참조한다. 색상은 여기서만 정의한다.",
+
+  "colorRules": {
+    "background": "#16150F",
+    "backgroundPaper": "#F4F1E7",
+    "minContrast": 4.5,
+    "minHueDistance": 40,
+    "openHueWindows": [[75, 95], [250, 309]],
+    "note": "신규 도메인은 minContrast와 minHueDistance를 모두 충족해야 한다. design.md §6.2 참조.",
+    "noteThemes": "color는 Night 테마(#16150F)용, colorPaper는 Paper 테마(#F4F1E7)용이다. 둘 다 4.5:1을 넘겨야 하고 hue는 서로 같아야 한다. 배경이 #222222에서 #16150F로 바뀌면서 movie/youtube의 기존 AA 미달(4.36:1)이 5.01:1로 해소됐다.",
+    "recommendedNext": { "hex": "#BF5AF2", "name": "systemPurple", "hue": 280, "contrast": 4.52 }
+  },
+
+  "domains": [
+    {
+      "key": "movie",
+      "name": "영화",
+      "color": "#0A84FF",
+      "colorName": "Apple systemBlue (Night)",
+      "colorPaper": "#006BD7",
+      "colorPaperName": "systemBlue 명도 보정 (Paper)",
+      "hue": 210,
+      "contrast": 5.01,
+      "contrastPaper": 4.55,
+      "contrastPass": true,
+      "doc": "domains/movie.md",
+      "status": "active",
+      "order": 1,
+      "anchorType": "국내 개봉일",
+      "primarySources": ["kobis.or.kr", "kofic.or.kr"]
+    },
+    {
+      "key": "music",
+      "name": "음악",
+      "color": "#FF9500",
+      "colorName": "Apple systemOrange (Night)",
+      "colorPaper": "#A15E00",
+      "colorPaperName": "systemOrange 명도 보정 (Paper)",
+      "hue": 35,
+      "contrast": 8.32,
+      "contrastPaper": 4.51,
+      "contrastPass": true,
+      "doc": "domains/music.md",
+      "status": "active",
+      "order": 2,
+      "anchorType": "국내 음원 발매일 또는 계기 발생일",
+      "primarySources": ["melon.com", "circlechart.kr"]
+    },
+    {
+      "key": "youtube",
+      "name": "유튜브",
+      "color": "#FF2D55",
+      "colorName": "Apple systemPink (Night)",
+      "colorPaper": "#DD002A",
+      "colorPaperName": "systemPink 명도 보정 (Paper)",
+      "hue": 349,
+      "contrast": 5.01,
+      "contrastPaper": 4.52,
+      "contrastPass": true,
+      "doc": "domains/youtube.md",
+      "status": "active",
+      "order": 3,
+      "anchorType": "영상 게시일 (KST)",
+      "primarySources": [],
+      "warning": "결과 측 1차 출처가 없다. domains/youtube.md §2, §8 참조."
+    },
+    {
+      "key": "book",
+      "name": "도서",
+      "color": "#34C759",
+      "colorName": "Apple systemGreen (Night)",
+      "colorPaper": "#217E38",
+      "colorPaperName": "systemGreen 명도 보정 (Paper)",
+      "hue": 135,
+      "contrast": 8.24,
+      "contrastPaper": 4.53,
+      "contrastPass": true,
+      "doc": "domains/book.md",
+      "status": "active",
+      "order": 4,
+      "anchorType": "국내 출간일 또는 사건 발생일",
+      "primarySources": ["yes24.com", "kpipa.or.kr"]
+    }
+  ],
+
+  "budget": {
+    "note": "design.md §4.1 — Chromium 헤드리스 실측으로 도출. [권장, 절대상한]",
+    "kicker": [22, 26],
+    "headline": [24, 32],
+    "teaser": [78, 104],
+    "text": [180, 240],
+    "quote": [40, 48],
+    "concept": [30, 34],
+    "note_": [125, 140],
+    "statLabel": [22, 26],
+    "statValue": [18, 22],
+    "axisCaption": [52, 60],
+    "trendPoints": [4, 5],
+    "a4UsedPx": [940, 1050]
+  },
+
+  "zineLayout": {
+    "leadSlots": 1,
+    "miniSlots": 3,
+    "note": "도메인이 5개 이상이 되면 미니 슬롯이 모자란다. domains/README.md §3의 세 선택지 중 하나를 사용자가 결정해야 한다."
+  }
+}
