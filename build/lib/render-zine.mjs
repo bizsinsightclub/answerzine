@@ -96,7 +96,7 @@ export function renderZinePreview(issue, stories, registry) {
   <span class="label">인쇄용 요약 페이지 (A4 1장)</span>
   <p style="font-size:14px;color:var(--secondary);margin:0 0 24px">카페 등에 배포할 실물 진이다. QR로 웹의 전체 글로 이어진다.</p>
   <button class="btn print-btn" type="button" data-print>인쇄하기</button>
-  <div style="margin-top:32px">${raw(z.content)}</div>
+  <div class="zine-mount" style="margin-top:32px">${raw(z.content)}</div>
 </main>`;
 
   return {

@@ -305,13 +305,20 @@ const ZINE = `
 const PRINT = `
 @media print {
   @page { size: A4; margin: 0; }
-  body { background: #fff; letter-spacing: 0; }
+  html, body { margin: 0; padding: 0; background: #fff; letter-spacing: 0; }
   .site-header, .site-footer, .statement-wrap, .shell, .seg,
   .theme-toggle, .print-btn, .zine-preview .label, .zine-preview > p {
     display: none !important;
   }
-  .zine-preview { padding: 0; max-width: none; }
-  .zine-page { box-shadow: none; margin: 0 auto; }
+  .zine-preview { padding: 0; margin: 0; max-width: none; }
+
+  /* 지면을 감싼 여백이 남아 있으면 297mm 박스가 인쇄 지면을 넘겨 2페이지가 된다.
+     페이지 상자는 @page가 정하므로, 여기서는 크기를 강제하지 않고 흐르게 둔다. */
+  .zine-mount { margin: 0 !important; padding: 0 !important; }
+  .zine-page {
+    box-shadow: none; margin: 0; width: 100%;
+    min-height: 0; height: auto; break-inside: avoid; page-break-inside: avoid;
+  }
 }
 `;
 
