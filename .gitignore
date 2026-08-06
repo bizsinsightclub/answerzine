@@ -14,3 +14,7 @@ dist/
 # NotoSerif-*.ttf 72종은 한글 0자라 이 프로젝트에서 쓰지 않는다.
 Fonts/
 .omc/
+
+# 빌드 산출물
+dist/
+dist-test/

@@ -134,8 +134,23 @@ runs/*.json             에이전트 작업 기록
 ```
 tools/dashboard.html    진행 상황 보는 화면
 tools/zine-builder.html 기사 다듬고 미리보는 화면
-tools/qa.mjs            자동 검사 프로그램
+tools/qa.mjs            자동 검사 프로그램 — 기사 데이터를 봅니다
+tools/kobis.mjs         영화 박스오피스·국내 개봉일 조회 (공식 API)
+build/build.mjs         웹진을 만드는 프로그램
+build/verify.mjs        만들어진 웹진을 검사합니다 — 인쇄 1장인지까지 실제로 재봅니다
 ```
+
+### 웹진을 직접 만들어보시려면
+
+Node 20 이상이면 됩니다.
+
+```bash
+npm install          # 처음 한 번만
+npm run check        # 검사 → 빌드 → 산출물 검사를 순서대로
+npm run serve        # http://127.0.0.1:8080 에서 열어보기
+```
+
+`npm install`을 건너뛰셔도 빌드는 됩니다. 폰트 용량 최적화와 인쇄 검사만 생략됩니다.
 
 ### 값을 고치실 때
 

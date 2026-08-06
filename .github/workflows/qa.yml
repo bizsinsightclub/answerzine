@@ -8,7 +8,7 @@ on:
 
 jobs:
   validate:
-    name: 회차·룰셋 검증
+    name: 테스트 · 데이터 검증 · 빌드
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -16,9 +16,25 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
+          cache: npm
+
+      - name: 의존성 설치
+        run: npm ci
+
+      - name: 브라우저 설치 (A4·콘솔 실측용)
+        run: npx playwright install --with-deps chromium
+
+      - name: 단위 테스트
+        run: node --test test/*.test.mjs
 
       - name: 데이터 검증 (tools/qa.mjs)
         run: node tools/qa.mjs
+
+      - name: 빌드
+        run: node build/build.mjs
+
+      - name: 산출물 검증 (build/verify.mjs)
+        run: node build/verify.mjs
 
   links:
     name: 출처 링크 생존 확인
@@ -62,7 +78,7 @@ jobs:
           })'
 
   pages:
-    name: 제작기 배포
+    name: 웹진 배포
     needs: validate
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
@@ -74,9 +90,22 @@ jobs:
       url: ${{ steps.deploy.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+      - run: npm ci
+      - name: 빌드
+        run: node build/build.mjs
+      # 대시보드·제작기는 저장소 JSON을 읽으므로 함께 올린다.
+      - name: 운영 도구 동봉
+        run: |
+          mkdir -p dist/tools
+          cp tools/dashboard.html tools/zine-builder.html dist/tools/
+          cp -r domains sources issues runs dist/
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: .
+          path: dist
       - id: deploy
         uses: actions/deploy-pages@v4

@@ -59,11 +59,19 @@ tools: Read, Grep, Glob, Edit, Write, Bash
 
 **`status`는 `draft`로 둔다.** `ready`로 바꾸는 것은 사람의 승인 후다.
 
-### 5. 검증
+### 5. 검증과 빌드
+
+네 단계를 순서대로 돌린다. `npm run check` 한 줄로도 된다.
 
 ```bash
-node tools/qa.mjs issues/<week>.json
+node --test test/*.test.mjs   # 단위 테스트
+node tools/qa.mjs             # 입력 검증 — 회차 데이터
+node build/build.mjs          # dist/ 생성
+node build/verify.mjs         # 산출물 검증 — A4 페이지 수·콘솔·링크·폰트
 ```
+
+**인쇄 진을 손으로 만들지 않는다.** `issues/<week>.json`에서 자동 생성된다.
+`stories` 배열의 맨 앞이 리드고 나머지가 미니다. 순서를 바꾸려면 배열을 바꾼다.
 
 실패가 하나라도 있으면 **발행 제안을 하지 않는다.** 어느 단계로 돌려보내야 하는지 판단한다.
 
@@ -72,11 +80,17 @@ node tools/qa.mjs issues/<week>.json
 | 출처 등급·시장 불일치·기준일·시간 순서 | `az-verify` |
 | 분량 예산·문장 규칙·개념 중복 | `az-write` |
 | 블록 구조·id·range 형식 | 직접 고친다 |
+| `verify.mjs`의 A4 2페이지 초과 | `az-write`에 축약 요청. **폰트·여백 조정은 불변식 위반이다** |
+| 빌드 경고 "미니 슬롯이 N개다" | 결번 판정 결과다. 정상이면 그대로 두고 발행 보고에 적는다 |
 
-### 6. 인쇄 진 예산 확인
+### 6. 눈으로 확인
 
-`design.md` §4.2 기준으로 A4 사용 높이를 가늠한다. 권장 940px, 절대 상한 1050px.
-초과가 예상되면 **`az-write`에 축약을 요청한다.** 폰트·여백 조정은 불변식 위반이다.
+```bash
+node build/build.mjs --serve   # http://127.0.0.1:8080
+```
+
+`verify.mjs`가 A4 페이지 수·콘솔 에러·가로 넘침·폰트 커버리지를 자동으로 잡으므로,
+사람이 볼 것은 **읽히는가**뿐이다. Night와 Paper 양쪽을 본다.
 
 ## 출력
 
