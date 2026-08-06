@@ -40,17 +40,39 @@ test("인쇄 페이지에 statement-wrap이 없다", () => {
   assert.ok(!html.includes("statement-wrap"));
 });
 
-test("스토리 페이지의 이전/다음이 시간을 거스르지 않는다 — §9.2", () => {
-  // 배열은 최신순: w31-book, w31-youtube, w27-music
-  const html = readFileSync(join(OUT, "2026-w31/youtube/index.html"), "utf8");
-  const prevIdx = html.indexOf('class="nav-prev"');
-  const nextIdx = html.indexOf('class="nav-next"');
-  assert.ok(prevIdx > -1 && nextIdx > -1 && prevIdx < nextIdx);
-  // prev는 더 옛날인 w27-music, next는 더 최근인 w31-book이어야 한다
-  const prevPart = html.slice(prevIdx, nextIdx);
-  const nextPart = html.slice(nextIdx, html.indexOf("</nav>", nextIdx));
-  assert.match(prevPart, /2026-w27\/music/, "prev가 더 옛날 회차를 가리켜야 한다");
-  assert.match(nextPart, /2026-w31\/book/, "next가 더 최근 회차를 가리켜야 한다");
+test("스토리 페이지의 이전/다음이 시간을 거스르지 않는다 — §9.2", async () => {
+  // 특정 스토리에 묶지 않는다. 콘텐츠가 바뀌어도 규칙 자체를 검사해야 한다.
+  const { loadIssues, loadRegistry, allStories, neighbors } = await import("../build/lib/data.mjs");
+  const list = allStories(loadIssues("."), loadRegistry("."));
+  assert.ok(list.length >= 2, "스토리가 2편 이상이어야 의미 있는 검사가 된다");
+
+  for (const s of list) {
+    const html = readFileSync(join(OUT, `${s.issue.issue}/${s.slug}/index.html`), "utf8");
+    const pi = html.indexOf('class="nav-prev"');
+    const ni = html.indexOf('class="nav-next"');
+    assert.ok(pi > -1 && ni > -1 && pi < ni, `${s.id}: 내비 블록이 없다`);
+
+    const { prev, next } = neighbors(list, s.id);
+    const prevPart = html.slice(pi, ni);
+    const nextPart = html.slice(ni, html.indexOf("</nav>", ni));
+
+    if (prev) assert.ok(prevPart.includes(prev.url), `${s.id}: prev가 ${prev.url}이어야 한다`);
+    else assert.match(prevPart, /이전 회차 없음/, `${s.id}: prev가 없어야 한다`);
+
+    if (next) assert.ok(nextPart.includes(next.url), `${s.id}: next가 ${next.url}이어야 한다`);
+    else assert.match(nextPart, /다음 회차 없음/, `${s.id}: next가 없어야 한다`);
+  }
+});
+
+test("이웃 관계가 실제로 시간순이다 — §9.2", async () => {
+  const { loadIssues, loadRegistry, allStories, neighbors, parseRange } = await import("../build/lib/data.mjs");
+  const list = allStories(loadIssues("."), loadRegistry("."));
+  for (const s of list) {
+    const { prev, next } = neighbors(list, s.id);
+    const t = parseRange(s.range).start;
+    if (prev) assert.ok(parseRange(prev.range).start <= t, `${s.id}의 prev(${prev.id})가 더 최근이다`);
+    if (next) assert.ok(parseRange(next.range).start >= t, `${s.id}의 next(${next.id})가 더 옛날이다`);
+  }
 });
 
 test("draft 회차 페이지는 noindex다", () => {
