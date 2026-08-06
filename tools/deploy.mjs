@@ -12,7 +12,7 @@
  * Pages 설정은 `build_type=legacy`, `source.branch=gh-pages`, `source.path=/`다.
  */
 import { execSync } from "node:child_process";
-import { rmSync, cpSync, mkdirSync, writeFileSync, existsSync } from "node:fs";
+import { rmSync, cpSync, mkdirSync, writeFileSync, readdirSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -32,7 +32,13 @@ const quiet = (cmd, cwd = ROOT) =>
 const dry = process.argv.includes("--dry");
 
 console.log("\n── 1. 검증 ──────────────────────────────────────");
-run("node --test test/*.test.mjs");
+// 글롭을 셸에 맡기지 않는다. 윈도우 cmd.exe는 확장하지 않아 파일이 0개가 되고,
+// node --test는 그걸 "테스트 없음"이 아니라 모듈 못 찾음으로 처리해 조용히 실패한다.
+const testFiles = readdirSync(join(ROOT, "test"))
+  .filter((f) => f.endsWith(".test.mjs"))
+  .map((f) => `test/${f}`);
+if (!testFiles.length) throw new Error("test/에 테스트 파일이 없다.");
+run(`node --test ${testFiles.join(" ")}`);
 run("node tools/qa.mjs");
 
 console.log("\n── 2. 빌드 (배포 조건) ───────────────────────────");

@@ -25,7 +25,7 @@ jobs:
         run: npx playwright install --with-deps chromium
 
       - name: 단위 테스트
-        run: node --test test/*.test.mjs
+        run: node tools/test.mjs
 
       - name: 데이터 검증 (tools/qa.mjs)
         run: node tools/qa.mjs

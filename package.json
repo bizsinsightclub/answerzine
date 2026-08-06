@@ -7,10 +7,10 @@
   "scripts": {
     "build": "node build/build.mjs",
     "serve": "node build/build.mjs --serve",
-    "test": "node --test test/*.test.mjs",
+    "test": "node tools/test.mjs",
     "qa": "node tools/qa.mjs",
     "verify": "node build/verify.mjs",
-    "check": "node --test test/*.test.mjs && node tools/qa.mjs && node build/build.mjs && node build/verify.mjs",
+    "check": "node tools/test.mjs && node tools/qa.mjs && node build/build.mjs && node build/verify.mjs",
     "deploy": "node tools/deploy.mjs",
     "deploy:dry": "node tools/deploy.mjs --dry"
   },

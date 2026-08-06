@@ -11,7 +11,10 @@ let result;
 
 before(async () => {
   rmSync(OUT, { recursive: true, force: true });
-  result = await build({ root: ".", out: OUT, quiet: true });
+  // base를 명시한다. build()의 기본값은 process.env.BASE_PATH라, 배포 스크립트처럼
+  // 환경변수가 설정된 상태에서 돌리면 링크에 접두사가 붙어 이 파일의 검사가 어긋난다.
+  // 접두사 동작은 test/site.test.mjs가 따로 검사한다.
+  result = await build({ root: ".", out: OUT, quiet: true, base: "" });
 });
 
 test("빌드가 기대한 파일을 만든다", () => {

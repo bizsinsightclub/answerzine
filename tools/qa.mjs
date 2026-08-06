@@ -16,6 +16,12 @@ import { fileURLToPath } from "node:url";
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const read = p => JSON.parse(readFileSync(join(ROOT, p), "utf8"));
 
+/* 줄바꿈을 LF로 통일해서 읽는다.
+   JS 정규식에서 `.`는 \r을 매치하지 않으므로(줄 종결자), CRLF 파일에서
+   `(.+)$` 형태가 전부 조용히 실패한다. .gitattributes로도 막지만,
+   클론 설정이 다른 환경에서도 같은 결과가 나와야 한다. */
+const readText = p => readFileSync(join(ROOT, p), "utf8").replace(/\r\n?/g, "\n");
+
 let fails = 0, warns = 0, drafts = 0;
 let draftMode = false;   // status:"draft" 회차는 실패를 경고로 낮춘다 (CI를 막지 않음)
 const C = { r:"\x1b[31m", y:"\x1b[33m", g:"\x1b[32m", d:"\x1b[2m", x:"\x1b[0m" };
@@ -94,7 +100,7 @@ let lessons = [];
 if (!existsSync(join(ROOT, "LESSONS.md"))) {
   warn("LESSONS.md", "파일이 없다. 학습 기록 없이 운영하면 같은 실수가 반복된다.");
 } else {
-  const md = readFileSync(join(ROOT, "LESSONS.md"), "utf8")
+  const md = readText("LESSONS.md")
     .replace(/^```[\s\S]*?^```/gm, "");   // 코드 펜스 안의 예시 형식은 제외
   for (const b of md.split(/^### /m).slice(1)) {
     const m = b.match(/^(L-\d+)\s*·\s*(.+)$/m);
