@@ -36,6 +36,9 @@ import { fileURLToPath } from "node:url";
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const UA = "Mozilla/5.0 (compatible; answerzine-collector/1.0)";
 
+/** KOBIS 오픈API 무료 공개 키. 사용자 승인 하에 저장소에 포함한다 (§7.3). */
+const KOBIS_PUBLIC_KEY = "6538d672a685ea3c074387778481e686";
+
 const C = { r: "\x1b[31m", y: "\x1b[33m", g: "\x1b[32m", d: "\x1b[2m", x: "\x1b[0m" };
 const ok = (m) => console.log(`${C.g}  ✓ ${C.x}${m}`);
 const skip = (m) => console.log(`${C.d}  – ${m}${C.x}`);
@@ -225,9 +228,11 @@ const ADAPTERS = {
      https://www.kobis.or.kr/kobisopenapi/homepg/apiservice/searchServiceInfo.do */
   kobis: {
     domains: ["movie"],
-    needs: "KOBIS_API_KEY",
+    needs: null,
     async run({ end }) {
-      const key = process.env.KOBIS_API_KEY;
+      // KOBIS 오픈API는 무료 공개 키다. 저장소에 박아 두면 아무 설정 없이 바로 돈다.
+      // 쿼터는 키 단위라 소진되면 KOBIS에서 재발급해 여기를 바꾸거나 환경변수로 덮어쓴다.
+      const key = process.env.KOBIS_API_KEY || KOBIS_PUBLIC_KEY;
       // 주간(월~일) 박스오피스: weekGb=0. targetDt는 그 주에 속한 아무 날.
       const url = "https://www.kobis.or.kr/kobisopenapi/webservice/rest/boxoffice/searchWeeklyBoxOfficeList.json"
         + `?key=${key}&targetDt=${compact(end)}&weekGb=0&itemPerPage=10`;

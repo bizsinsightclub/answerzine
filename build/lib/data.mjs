@@ -61,11 +61,29 @@ export function allStories(issues, registry) {
   return out;
 }
 
-/** 배열은 최신순이므로 prev(시간상 이전)는 뒤쪽, next(시간상 다음)는 앞쪽이다. */
+/**
+ * 스토리 단위 이웃. 이전/다음 회차 내비게이션이 쓴다.
+ *
+ * `allStories`가 주는 배열은 **편집 순서**다 — 회차 안에서 맨 앞이 리드이고 점수순이다.
+ * 그 순서를 시간순이라고 가정하면 안 된다. 스토리마다 자기 출처의 집계 기간을 선언하므로
+ * 한 회차 안에서도 range가 다르다 (예: 도서 07.24~07.30, 영화 07.27~08.02).
+ * 프로토타입이 배열 순서를 시간순으로 착각해 내비게이션이 시간을 거슬렀다 (§9.2).
+ *
+ * 그래서 여기서 **range 기준으로 다시 정렬한 배열을 만들고 그 위에서만 인덱싱한다.**
+ * 편집 순서(리드 선정)와 시간 순서(내비게이션)는 서로 다른 축이고, 섞으면 둘 다 틀린다.
+ */
 export function neighbors(list, id) {
-  const i = list.findIndex((s) => s.id === id);
+  // range가 없거나 형식이 깨진 항목이 섞여도 내비게이션이 죽으면 안 된다.
+  // 읽을 수 없는 것은 원래 자리에 둔다 — 형식 검사는 tools/qa.mjs의 일이다.
+  const startOf = (s) => { try { return parseRange(s.range).start.getTime(); } catch { return null; } };
+  const byTime = [...list].sort((a, b) => {
+    const [x, y] = [startOf(a), startOf(b)];
+    if (x === null || y === null || x === y) return list.indexOf(a) - list.indexOf(b);
+    return y - x;
+  });
+  const i = byTime.findIndex((s) => s.id === id);
   if (i === -1) return { prev: null, next: null };
-  return { prev: list[i + 1] ?? null, next: list[i - 1] ?? null };
+  return { prev: byTime[i + 1] ?? null, next: byTime[i - 1] ?? null };
 }
 
 /**

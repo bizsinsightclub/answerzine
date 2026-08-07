@@ -163,6 +163,8 @@ const LAYOUT = `
   .index-grid { display: grid; grid-template-columns: repeat(8, 1fr); gap: var(--s5); }
   .index-lead { grid-column: 1 / -1; }
   .index-rest { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--s5); }
+  /* 3단으로 펼쳐질 때 라벨이 첫 칸을 차지하면 안 된다. 층 전체를 여는 말이다. */
+  .rest-label { grid-column: 1 / -1; }
 }
 
 @media (min-width: 1200px) {
@@ -184,6 +186,19 @@ const LAYOUT = `
 `;
 
 const COMPONENTS = `
+/* 리드와 나머지 사이의 층 구분. PC에서는 레일의 세로줄이 하던 일을
+   모바일에서는 이 라벨이 대신한다 (한 칼럼으로 접히면 세로줄이 사라진다). */
+.rest-label {
+  font-family: var(--sans); font-size: 11px; font-weight: 700;
+  letter-spacing: .1em; color: var(--tertiary);
+  margin: 0 0 var(--s3); padding-top: var(--s3);
+  border-top: 3px solid var(--rule);
+}
+@media (min-width: 1200px) {
+  /* 레일 안에서는 세로줄이 이미 층을 말하므로 굵은 괘선을 뺀다. */
+  .rest-label { border-top: none; padding-top: 0; }
+}
+
 .row { border-top: 1px solid var(--divider); padding-top: var(--s3); }
 .row a { text-decoration: none; display: block; }
 .row a:hover .row-headline { text-decoration: underline; text-underline-offset: 3px; }
