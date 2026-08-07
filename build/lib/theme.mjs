@@ -1,27 +1,30 @@
 /**
- * 세 테마의 값. 역할 이름은 같고 값만 다르다.
+ * 테마 값. 역할 이름은 같고 값은 하나뿐이다.
  *
- * Night가 기본이다. prefers-color-scheme로 자동 전환하지 않는다 — 브랜드 기본값을
- * 우선한 결정이고, 마스트헤드 토글로 Paper로 바꿀 수 있다 (스펙 §5.2).
+ * 다크/라이트 토글은 없다 — 사이트는 항상 이 하나의(Paper 계열) 밝은 테마로 읽힌다.
+ * 진입 화면(.intro, .statement-wrap)만 예외로, 항상 어두운 스플래시를 쓴다 —
+ * 그 부분은 layout.mjs·css.mjs에서 로컬 변수로 따로 덮어쓴다.
+ * 인쇄 진(.zine-page)은 별도 값을 쓴다(흰 서피스로 종이 느낌을 낸다).
  * 대비 수치는 test/theme.test.mjs가 매번 실제로 계산해 검증한다.
  */
 
-export const THEMES = {
-  night: {
-    bg: "#16150F", ink: "#F2EFE4", secondary: "#A8A192", tertiary: "#8A8375",
-    rule: "#F2EFE4", surface: "#1E1D16", divider: "rgba(242,239,228,.22)",
-    "rule-soft": "rgba(242,239,228,.28)",
-  },
-  paper: {
-    bg: "#F4F1E7", ink: "#17150F", secondary: "#5C574A", tertiary: "#726C5E",
-    rule: "#17150F", surface: "#EDEADE", divider: "rgba(23,21,15,.24)",
-    "rule-soft": "rgba(23,21,15,.3)",
-  },
-  zine: {
-    bg: "#F4F1E7", ink: "#17150F", secondary: "#5C574A", tertiary: "#726C5E",
-    rule: "#17150F", surface: "#FFFFFF", divider: "rgba(23,21,15,.35)",
-    "rule-soft": "rgba(23,21,15,.4)",
-  },
+export const THEME = {
+  bg: "#F4F1E7", ink: "#17150F", secondary: "#5C574A", tertiary: "#726C5E",
+  rule: "#17150F", surface: "#EDEADE", divider: "rgba(23,21,15,.24)",
+  "rule-soft": "rgba(23,21,15,.3)",
+};
+
+export const ZINE_THEME = {
+  bg: "#F4F1E7", ink: "#17150F", secondary: "#5C574A", tertiary: "#726C5E",
+  rule: "#17150F", surface: "#FFFFFF", divider: "rgba(23,21,15,.35)",
+  "rule-soft": "rgba(23,21,15,.4)",
+};
+
+/** 진입 화면(.intro, .statement-wrap)과 OG 카드가 함께 쓰는 고정 다크 팔레트.
+    사이트 기본 테마와 무관하게 항상 이 값이다 — css.mjs가 로컬 변수로 덮어쓴다. */
+export const INTRO_THEME = {
+  bg: "#16150F", ink: "#F2EFE4", secondary: "#A8A192", tertiary: "#8A8375",
+  rule: "#F2EFE4", divider: "rgba(242,239,228,.22)",
 };
 
 /** 도메인 색은 registry.json이 단일 소스다. 여기는 폴백일 뿐이다. */
@@ -36,19 +39,17 @@ const vars = (t) => Object.entries(t).map(([k, v]) => `  --${k}: ${v};`).join("\
 
 export function themeCSS() {
   return [
-    `:root {\n${vars(THEMES.night)}\n  color-scheme: dark;\n}`,
-    `[data-theme="paper"] {\n${vars(THEMES.paper)}\n  color-scheme: light;\n}`,
-    `.zine-page {\n${vars(THEMES.zine)}\n  color-scheme: light;\n}`,
+    `:root {\n${vars(THEME)}\n  color-scheme: light;\n}`,
+    `.zine-page {\n${vars(ZINE_THEME)}\n  color-scheme: light;\n}`,
   ].join("\n\n");
 }
 
-/** 도메인 색을 테마별 CSS 변수로 낸다. Night는 --dc, Paper는 재정의한다. */
+/** 도메인 색을 CSS 변수로 낸다. 밝은 배경 하나뿐이라 Paper 보정색만 쓴다. */
 export function domainCSS(domains) {
-  const night = domains.map((d) => `  --dc-${d.key}: ${d.color};`).join("\n");
-  const paper = domains
+  const decl = domains
     .map((d) => `  --dc-${d.key}: ${d.colorPaper ?? DOMAIN_FALLBACK[d.key]?.colorPaper ?? d.color};`)
     .join("\n");
-  return `:root {\n${night}\n}\n\n[data-theme="paper"] {\n${paper}\n}`;
+  return `:root {\n${decl}\n}`;
 }
 
 const hex2rgb = (h) => {

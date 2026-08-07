@@ -9,28 +9,6 @@
   "use strict";
 
   var root = document.documentElement;
-  var KEY = "az-theme";
-
-  /* ── 테마 ── */
-  function currentTheme() {
-    return root.getAttribute("data-theme") === "paper" ? "paper" : "night";
-  }
-
-  function applyTheme(name) {
-    if (name === "paper") root.setAttribute("data-theme", "paper");
-    else root.removeAttribute("data-theme");
-    try { localStorage.setItem(KEY, name); } catch (e) {}
-    syncToggleLabels();
-  }
-
-  function syncToggleLabels() {
-    var next = currentTheme() === "paper" ? "Night" : "Paper";
-    var btns = document.querySelectorAll("[data-theme-toggle]");
-    for (var i = 0; i < btns.length; i++) {
-      btns[i].textContent = next;
-      btns[i].setAttribute("aria-label", next + " 테마로 전환");
-    }
-  }
 
   /* ── 도메인 필터 ── */
   function applyFilter(key) {
@@ -52,16 +30,6 @@
     var empty = document.querySelector("[data-empty]");
     if (empty) empty.hidden = shown !== 0;
 
-    // 나머지가 전부 걸러졌으면 그 층을 여는 라벨도 함께 내린다.
-    // 안 그러면 아무것도 없는 자리에 "함께 실린 기사"만 남는다.
-    var restLabel = document.querySelector("[data-rest-label]");
-    if (restLabel) {
-      var rows = document.querySelectorAll(".index-rest [data-domain]");
-      var visible = 0;
-      for (var r = 0; r < rows.length; r++) if (!rows[r].hidden) visible++;
-      restLabel.hidden = visible === 0;
-    }
-
     var url = new URL(location.href);
     if (key === "all") url.searchParams.delete("domain");
     else url.searchParams.set("domain", key);
@@ -70,12 +38,6 @@
 
   /* ── 단일 위임 리스너 ── */
   document.addEventListener("click", function (e) {
-    var toggle = e.target.closest("[data-theme-toggle]");
-    if (toggle) {
-      applyTheme(currentTheme() === "paper" ? "night" : "paper");
-      return;
-    }
-
     var print = e.target.closest("[data-print]");
     if (print) {
       window.print();
@@ -88,35 +50,57 @@
     }
   });
 
-  /* ── 인트로 로딩 화면 ──
-     걷히는 것 자체는 CSS 애니메이션이 한다 (JS가 없어도 사라진다).
-     여기서 하는 일은 셋뿐이다 — 걷히는 동안 스크롤을 잠그고, 끝나면 DOM에서 지우고,
-     같은 세션에서는 두 번 보여주지 않도록 표시를 남긴다. */
+  /* ── 진입 화면 ──
+     로고 → 스테이트먼트 → 본문 섹션은 문서 흐름 안에 그냥 있다 (CSS 100svh + 스크롤).
+     JS가 하는 일은 하나뿐이다 — 본문(#main-content)에 닿으면 "이번 세션엔 이미
+     봤다"는 표시를 남겨서, 같은 세션의 다음 페이지부터는 건너뛰게 한다. */
   function prefersReduce() {
     return !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
   }
 
-  function endSplash(el) {
-    if (el && el.parentNode) el.parentNode.removeChild(el);
-    root.className = root.className.replace(/\s*splash-lock/g, "") + " splash-gone";
+  function markIntroSeen() {
     try { sessionStorage.setItem("az-intro", "1"); } catch (e) {}
   }
 
-  /** 인트로가 끝나면 next()를 부른다. 인트로가 없으면 즉시 부른다. */
-  function bootSplash(next) {
-    var el = document.querySelector("[data-splash]");
-    var seen = root.className.indexOf("splash-done") !== -1;
-    if (!el || seen || prefersReduce()) { endSplash(el); return next(); }
+  function bootIntro() {
+    var main = document.getElementById("main-content");
+    if (!main) return;
+    if (root.className.indexOf("intro-done") !== -1) { markIntroSeen(); return; }
 
-    root.className += " splash-lock";
-    var done = false;
-    var finish = function () { if (done) return; done = true; endSplash(el); next(); };
+    if (!("IntersectionObserver" in window)) { markIntroSeen(); return; }
+    var io = new IntersectionObserver(function (entries) {
+      for (var i = 0; i < entries.length; i++) {
+        if (!entries[i].isIntersecting) continue;
+        markIntroSeen();
+        io.disconnect();
+      }
+    }, { threshold: 0 });
+    io.observe(main);
+  }
 
-    el.addEventListener("animationend", function (e) {
-      if (e.animationName === "splash-out") finish();
-    });
-    // 애니메이션 이벤트가 오지 않는 경우(배경 탭, 애니메이션 차단)에도 잠금이 남으면 안 된다.
-    setTimeout(finish, 2600);
+  /* ── 스테이트먼트 CTA 페이드 ──
+     "아카이브 보기"는 버튼이 아니라 뜬 힌트다. 그 구간에 막 들어왔을 때만 보이고,
+     아래로 스크롤을 시작하는 순간 옅어져 사라진다. 위로 돌아오면 다시 보인다.
+     스크립트가 없으면 그냥 늘 보이는 채로 있다가 섹션과 함께 스크롤되어 나간다. */
+  function bootStatementFade() {
+    var cta = document.querySelector(".statement-cta");
+    var wrap = document.getElementById("statement");
+    if (!cta || !wrap) return;
+
+    var raf = null;
+    function update() {
+      raf = null;
+      var rect = wrap.getBoundingClientRect();
+      var inView = rect.top < window.innerHeight && rect.bottom > 0;
+      var past = inView ? Math.max(0, -rect.top) : 999;
+      var opacity = Math.max(0, 1 - past / 80);
+      cta.style.opacity = String(opacity);
+      cta.style.pointerEvents = opacity < 0.05 ? "none" : "";
+    }
+    function onScroll() { if (raf === null) raf = requestAnimationFrame(update); }
+
+    update();
+    window.addEventListener("scroll", onScroll, { passive: true });
   }
 
   /* ── 스크롤 등장 ──
@@ -150,11 +134,10 @@
     for (var m = 0; m < items.length; m++) io.observe(items[m]);
   }
 
-  /* ── 초기화 ──
-     등장은 인트로가 걷힌 뒤에 시작한다. 로고 화면 뒤에서 몰래 다 끝나 있으면
-     인트로가 걷혔을 때 이미 정지된 화면을 보게 된다. */
-  syncToggleLabels();
-  bootSplash(bootReveal);
+  /* ── 초기화 ── */
+  bootIntro();
+  bootStatementFade();
+  bootReveal();
 
   var initial = new URL(location.href).searchParams.get("domain");
   if (initial && document.querySelector(".seg button[data-domain]")) applyFilter(initial);

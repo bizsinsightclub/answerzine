@@ -12,28 +12,33 @@ export { SITE };
 /**
  * 첫 페인트 전에 실행되는 부트 스크립트.
  *
- * 세 가지를 첫 페인트 "전에" 정해야 깜빡임이 없다.
- *   1. 테마 — Night가 기본이라 paper일 때만 속성을 건다.
- *   2. 인트로를 이미 본 세션인가 — 봤으면 splash-done을 걸어 로고 화면을 아예 그리지 않는다.
- *      이걸 app.js(defer)에 두면 두 번째 페이지부터 로고가 한 번 번쩍이고 사라진다.
- *   3. JS가 도는가 — .js가 붙은 문서에서만 등장 애니메이션이 켜진다.
+ * 두 가지를 첫 페인트 "전에" 정해야 깜빡임이 없다.
+ * 다크/라이트 토글은 없다 — 사이트는 항상 하나의 밝은 테마로 읽힌다.
+ *   1. 진입 화면을 이미 본 세션인가 — 봤으면 intro-done을 걸어 인트로·스테이트먼트
+ *      섹션을 아예 그리지 않고 본문부터 보여준다. 페이지를 넘길 때마다 로고
+ *      스크롤 구간이 다시 나오면 로딩이 아니라 방해다.
+ *   2. JS가 도는가 — .js가 붙은 문서에서만 등장 애니메이션이 켜진다.
  *      스크립트가 죽어도 본문은 그냥 보인다. 콘텐츠는 이미 빌드에서 렌더돼 있다.
  */
 const BOOT = `(function(d){var r=d.documentElement;try{
-if(localStorage.getItem("az-theme")==="paper")r.setAttribute("data-theme","paper");
-if(sessionStorage.getItem("az-intro")==="1")r.className+=" splash-done";
+if(sessionStorage.getItem("az-intro")==="1")r.className+=" intro-done";
 }catch(e){}r.className+=" js";})(document);`;
 
-/** 로딩 화면. 마크업으로 심고 CSS 애니메이션으로 스스로 걷힌다 — JS가 없어도 사라진다. */
-function splash() {
-  return h`<div class="splash" data-splash role="presentation">
-  <div class="splash-inner">
-    <img class="logo logo-light" src="${u("/assets/img/logo-light.png")}" alt="" width="1970" height="860">
-    <img class="logo logo-dark" src="${u("/assets/img/logo-dark.png")}" alt="" width="1971" height="842">
-    <div class="splash-rule"></div>
-    <p class="splash-tagline">${SITE.tagline}</p>
-  </div>
-</div>`;
+/**
+ * 진입 화면. 원본 프로토타입처럼 로고 화면 → 스테이트먼트 → 본문 순으로 스크롤해 들어간다.
+ * 자동으로 걷히는 타이머 오버레이가 아니라 문서 흐름 안의 두 섹션이라, 스크립트가 없어도
+ * 그냥 스크롤하거나 링크를 누르면 다음 섹션·본문으로 넘어간다 (a href="#…" 뿐이다).
+ */
+function intro() {
+  return h`<section class="intro" id="intro" data-intro role="presentation">
+  <img class="logo logo-light" src="${u("/assets/img/logo-light.png")}" alt="${SITE.name}" width="1970" height="860">
+  <img class="logo logo-dark" src="${u("/assets/img/logo-dark.png")}" alt="" aria-hidden="true" width="1971" height="842">
+  <a class="intro-scroll" href="#statement" aria-label="아래로 스크롤"><span class="chev" aria-hidden="true">⌄</span></a>
+</section>
+<section class="statement-wrap" id="statement" data-intro>
+  <p class="statement-text">이거 왜 잘나가?<br>순위가 아니라, 팔린 이유를 본다.</p>
+  <a class="statement-cta" href="#main-content">아카이브 보기 <span class="chev" aria-hidden="true">⌄</span></a>
+</section>`;
 }
 
 /**
@@ -45,7 +50,7 @@ function splash() {
  */
 const OG_IMAGE = { path: "/assets/img/og.png", width: 1200, height: 630 };
 
-export function page({ title, description, url, content, noindex = false, bodyClass = "", showChrome = true }) {
+export function page({ title, description, url, content, noindex = false, bodyClass = "", showChrome = true, showFooter = true, printUrl = null }) {
   const full = title === SITE.name ? title : `${title} — ${SITE.name}`;
   const canonical = absolute(url ?? "/");
   const ogImage = absolute(OG_IMAGE.path);
@@ -76,17 +81,14 @@ ${noindex ? '<meta name="robots" content="noindex">' : ""}
 <script>${BOOT}</script>
 </head>
 <body class="${escapeHTML(bodyClass)}">
-${showChrome ? splash() : ""}
-${showChrome ? header() : ""}
-${content}
-${showChrome ? footer() : ""}
+${showChrome ? `${intro()}\n<div id="main-content">\n${header(printUrl)}\n${content}\n${showFooter ? footer() : ""}\n</div>` : content}
 <script src="${u("/assets/app.js")}" defer></script>
 </body>
 </html>
 `;
 }
 
-function header() {
+function header(printUrl) {
   return h`<header class="site-header shell" style="padding-bottom:0">
   <div class="masthead">
     <div class="masthead-top">
@@ -94,10 +96,7 @@ function header() {
         <img class="logo logo-light" src="${u("/assets/img/logo-light.png")}" alt="${SITE.name}" width="1970" height="860">
         <img class="logo logo-dark" src="${u("/assets/img/logo-dark.png")}" alt="" aria-hidden="true" width="1971" height="842">
       </a>
-      <div style="display:flex;align-items:center;gap:16px">
-        <span class="tagline">${SITE.tagline}</span>
-        <button class="theme-toggle" data-theme-toggle type="button" aria-label="테마 전환">Paper</button>
-      </div>
+      ${printUrl ? raw(h`<a class="header-cta" href="${u(printUrl)}">핵심 포인트 보기</a>`) : ""}
     </div>
     <div class="ruleline"></div>
   </div>

@@ -15,7 +15,7 @@
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
-import { THEMES } from "../build/lib/theme.mjs";
+import { INTRO_THEME } from "../build/lib/theme.mjs";
 import { SITE } from "../build/lib/site.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
@@ -25,7 +25,7 @@ export const OG = { width: 1200, height: 630, file: "assets/img/og.png" };
 
 /** 인트로 로딩 화면과 같은 조판이다. 링크를 누르기 전과 후가 같은 화면이어야 한다. */
 export function ogHTML({ logoDataUri }) {
-  const t = THEMES.night;
+  const t = INTRO_THEME;
   return `<!doctype html><meta charset="utf-8">
 <style>
   html, body { margin: 0; padding: 0; }

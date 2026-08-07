@@ -54,9 +54,9 @@ test("본문 측정은 45~75자 범위 안이다", () => {
   assert.ok(ch >= 45 && ch <= 75, `measure ${ch}ch가 45~75 밖이다`);
 });
 
-test("1200px 이상에서 12칼럼 그리드를 쓴다", () => {
-  assert.match(css, /min-width:\s*1200px/);
-  assert.match(css, /grid-template-columns:\s*repeat\(12,/);
+test("넓은 화면에서도 리드/레일로 쪼개지 않는다 — 원본처럼 한 칼럼이다", () => {
+  assert.ok(!/grid-template-columns:\s*repeat\(12,/.test(css), "12칼럼 그리드가 남아 있다");
+  assert.ok(!/position:\s*sticky/.test(css), "sticky 레일이 남아 있다");
 });
 
 test("768px 브레이크포인트가 있다", () => {
@@ -84,9 +84,9 @@ test("prefers-reduced-motion에서 애니메이션이 멈춘다", () => {
   assert.match(css, /prefers-reduced-motion:\s*reduce/);
 });
 
-test("도메인 색 변수가 테마별로 나온다", () => {
-  assert.match(css, /--dc-book:\s*#34C759/);
-  assert.match(css, /\[data-theme="paper"\][\s\S]*--dc-book:\s*#217E38/);
+test("도메인 색 변수는 Paper 보정색 하나뿐이다 — 토글이 없다", () => {
+  assert.match(css, /--dc-book:\s*#217E38/);
+  assert.ok(!css.includes("data-theme"), "domainCSS에 테마 토글 분기가 남아 있다");
 });
 
 test("킥커는 모노스페이스가 아니다 — craft-floor", () => {

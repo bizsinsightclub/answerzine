@@ -96,11 +96,11 @@ test("page는 OG 태그와 canonical을 넣는다", () => {
   assert.match(html, /rel="icon"/);
 });
 
-test("page는 첫 페인트 전에 테마를 적용한다", () => {
+test("page는 첫 페인트 전에 진입 화면 세션 판정을 적용한다", () => {
   const html = page({ title: "t", description: "d", url: "/", content: "" });
   const headEnd = html.indexOf("</head>");
-  const themeScript = html.indexOf("localStorage");
-  assert.ok(themeScript > -1 && themeScript < headEnd, "테마 스크립트가 head 안에 있어야 한다");
+  const bootScript = html.indexOf("sessionStorage");
+  assert.ok(bootScript > -1 && bootScript < headEnd, "부트 스크립트가 head 안에 있어야 한다");
 });
 
 test("page는 제목과 설명을 이스케이프한다", () => {

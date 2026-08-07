@@ -103,12 +103,12 @@ test("진 본문도 이스케이프된다", () => {
 
 /* --- 인덱스·회차 --- */
 
-test("인덱스는 첫 스토리를 리드로 크게 낸다", () => {
+test("인덱스는 모든 스토리를 위계 없는 카드 리스트로 낸다", () => {
   const { content } = renderIndex([ISSUE], stories, REG);
-  const iLead = content.indexOf("부고 다음날, 서점이 붐볐다.");
-  const iMini = content.indexOf("매진, 또 매진.");
-  assert.ok(iLead > -1 && iMini > -1 && iLead < iMini);
-  assert.match(content, /class="index-lead"/);
+  const iFirst = content.indexOf("부고 다음날, 서점이 붐볐다.");
+  const iOther = content.indexOf("매진, 또 매진.");
+  assert.ok(iFirst > -1 && iOther > -1 && iFirst < iOther);
+  assert.match(content, /class="row"/);
 });
 
 test("인덱스에 도메인 필터가 전부 나온다", () => {

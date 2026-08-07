@@ -21,7 +21,7 @@ import { renderStory } from "./lib/render-story.mjs";
 import { renderIndex, renderIssue } from "./lib/render-index.mjs";
 import { renderZinePreview } from "./lib/render-zine.mjs";
 import { copyAssets, usedCharset, UI_CHARS, writeFile } from "./lib/assets.mjs";
-import { setBase, getBase, u } from "./lib/site.mjs";
+import { setBase, getBase, u, absolute } from "./lib/site.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, "..");
@@ -35,7 +35,7 @@ const FAVICON = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
 </svg>
 `;
 
-/** QR은 외부 의존 없이 만들 수 없으므로 URL을 읽을 수 있게 적은 플레이스홀더를 둔다. */
+/** qrcode가 없을 때만 쓰는 자리표시자 — URL을 읽을 수 있게 적어만 둔다. */
 function qrPlaceholder(issueId) {
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 60" width="60" height="60">
 <rect width="60" height="60" fill="#fff"/>
@@ -43,9 +43,24 @@ function qrPlaceholder(issueId) {
 <rect x="42" y="4" width="14" height="14" fill="none" stroke="#000" stroke-width="3"/>
 <rect x="4" y="42" width="14" height="14" fill="none" stroke="#000" stroke-width="3"/>
 <text x="30" y="34" font-size="5" text-anchor="middle" font-family="monospace">${issueId}</text>
-<text x="30" y="40" font-size="3.4" text-anchor="middle" font-family="monospace">answerzine.kr</text>
+<text x="30" y="40" font-size="3" text-anchor="middle" font-family="monospace">플레이스홀더</text>
 </svg>
 `;
+}
+
+/**
+ * 실제로 스캔되는 QR. 2026-08-07 사용자 승인으로 qrcode를 devDependency에 추가했다
+ * (§7.3) — 종이로 나가는 코드가 자리표시자면 안 된다는 이유였다.
+ * `npm install` 없이도 빌드는 성공해야 하므로(§2.2) 없으면 조용히 플레이스홀더로 접는다.
+ */
+async function loadQR() {
+  try {
+    const mod = await import("qrcode");
+    const QRCode = mod.default ?? mod;
+    return async (text) => QRCode.toString(text, { type: "svg", margin: 1 });
+  } catch {
+    return null;
+  }
 }
 
 async function loadSubsetter() {
@@ -78,6 +93,8 @@ export async function build({ root = ROOT, out = join(ROOT, "dist"), quiet = fal
   const stories = allStories(issues, registry);
 
   const write = (rel, content) => { writeFile(join(out, rel), content); files.push(rel); };
+  const genQR = await loadQR();
+  if (!genQR) warnings.push("qrcode가 없어 QR을 플레이스홀더로 남겼다. `npm install`로 설치하면 실제 스캔되는 코드가 나온다.");
 
   /* ── 스타일·스크립트·파비콘 ── */
   write("assets/style.css", stylesheet(registry.domains));
@@ -99,7 +116,10 @@ export async function build({ root = ROOT, out = join(ROOT, "dist"), quiet = fal
     write(`${issue.issue}/print/index.html`, page({ ...zine, url: `/${issue.issue}/print/`, showChrome: false }));
     for (const w of zine.warnings) warnings.push(`${issue.issue}: ${w}`);
 
-    write(`assets/img/qr-${issue.issue}.svg`, qrPlaceholder(issue.issue));
+    // QR은 그 회차의 실제 배포 주소를 가리킨다 — SITE_ORIGIN·BASE_PATH로 계산한 절대 URL이라
+    // 로컬 빌드(answerzine.kr 기본값)와 CI 배포(bizsinsightclub.github.io/answerzine)가 각자 맞는 값을 낸다.
+    const qrTarget = absolute(`/${issue.issue}/`);
+    write(`assets/img/qr-${issue.issue}.svg`, genQR ? await genQR(qrTarget) : qrPlaceholder(issue.issue));
 
     for (const s of mine) {
       const st = renderStory(s, neighbors(stories, s.id));

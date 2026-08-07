@@ -9,9 +9,12 @@
  * 헤드라인·티저는 웹과 같은 값을 참조하므로 CLAUDE.md §8 QA #17은 위반이 불가능하다.
  */
 import { h, raw } from "./html.mjs";
-import { u } from "./site.mjs";
+import { u, absolute } from "./site.mjs";
 import { blocksOf } from "./data.mjs";
 import { dateline, SITE } from "./layout.mjs";
+
+/** QR 옆 캡션에 적을 사람이 읽는 주소. "https://" 없이, 실제 배포 도메인 그대로. */
+const displayUrl = (issueId) => absolute(`/${issueId}/`).replace(/^https?:\/\//, "").replace(/\/$/, "");
 
 /** 인쇄 본문. zineBody가 있으면 그대로, 없으면 text 블록 셋을 쓴다. */
 export function zineBodyFor(story) {
@@ -86,7 +89,7 @@ export function renderZinePage(issue, stories, registry = {}) {
   <footer class="zine-footer-bar">
     <div class="zine-footer-qr">
       <img class="zine-qr" src="${u(`/assets/img/qr-${issue.issue}.svg`)}" alt="QR 코드" width="60" height="60">
-      <div class="zine-qr-caption">전체 글 읽기 →<span>answerzine.kr/${issue.issue}</span></div>
+      <div class="zine-qr-caption">전체 글 읽기 →<span>${displayUrl(issue.issue)}</span></div>
     </div>
   </footer>
 </div>`;
@@ -94,13 +97,12 @@ export function renderZinePage(issue, stories, registry = {}) {
   return { title: `${issue.issue} 인쇄용 A4`, content, lead, minis, warnings };
 }
 
-/** 인쇄 진을 감싸는 미리보기 페이지. */
+/** 인쇄 진을 감싸는 미리보기 페이지. 설명 없이 "인쇄하기" 하나만 가운데 둔다 —
+   무엇인지는 여기 오기 전(홈의 미리보기 섹션)에 이미 설명했다. */
 export function renderZinePreview(issue, stories, registry) {
   const z = renderZinePage(issue, stories, registry);
   const content = h`<main class="zine-preview">
-  <span class="label">인쇄용 요약 페이지 (A4 1장)</span>
-  <p style="font-size:14px;color:var(--secondary);margin:0 0 24px">카페 등에 배포할 실물 진이다. QR로 웹의 전체 글로 이어진다.</p>
-  <button class="btn print-btn" type="button" data-print>인쇄하기</button>
+  <div class="zine-preview-cta"><button class="btn print-btn" type="button" data-print>인쇄하기</button></div>
   <div class="zine-mount" style="margin-top:32px">${raw(z.content)}</div>
 </main>`;
 

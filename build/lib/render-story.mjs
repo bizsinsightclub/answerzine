@@ -1,9 +1,9 @@
 /**
  * 스토리 페이지.
  *
- * 본문은 45~75자 한 칼럼(col 1–7), 숫자와 인사이트는 오른쪽 sticky 레일(col 9–12)에 붙는다.
- * 스탯이 본문 옆에 상주하므로 "근거는 늘 옆에 있다"는 태도가 레이아웃으로 표현되고,
- * hover에 의존하던 출처 노출(§9.9)이 구조적으로 해소된다.
+ * 원본 프로토타입처럼 폭 전체에서 한 칼럼이다 — 리드/레일로 쪼개지 않는다.
+ * 스탯은 본문 흐름 안의 둥근 패널이고, 출처 링크는 항상 보인다 —
+ * hover에 의존하던 프로토타입의 출처 노출(§9.9)은 그대로 해소돼 있다.
  */
 import { h, raw, escapeHTML } from "./html.mjs";
 import { u } from "./site.mjs";
@@ -32,16 +32,14 @@ function statCard(stat, story) {
       ? h`<p class="stat-basis"><span class="stat-basis-label">비교 기준</span>${stat.basis}</p>`
       : "";
 
-  return h`<aside class="rail" data-reveal style="${raw(dcVar(story))}">
-  <div class="stat-card${hasTrend ? "" : " is-single"}">
+  return h`<div class="stat-card${hasTrend ? "" : " is-single"}" data-reveal style="${raw(dcVar(story))}">
     <div class="label">${stat.label}</div>
     <div class="stat-value">${stat.value}</div>
     ${raw(figure)}
     ${stat.sourceUrl
       ? raw(h`<a class="stat-source" href="${stat.sourceUrl}" target="_blank" rel="noopener noreferrer">${stat.sourceLabel ?? "출처 확인하기"} &#8599;</a>`)
       : ""}
-  </div>
-</aside>`;
+</div>`;
 }
 
 function pullquote(quote, story) {
@@ -76,7 +74,7 @@ export function renderStory(story, { prev, next } = {}) {
       : h`<div class="nav-label" style="opacity:.4">${kind === "prev" ? "← 이전 회차 없음" : "다음 회차 없음 →"}</div>`;
 
   const content = h`<main class="shell" style="${raw(dcVar(story))}">
-  <article class="story-grid">
+  <article class="story">
     <header class="story-head" data-reveal>
       <p class="meta"><span class="domain-tag">${story.domain}</span> · ${story.range}${story.draft ? raw(' <span class="draft-flag">작업 중</span>') : ""}</p>
       ${story.kicker ? raw(h`<p class="kicker">${story.kicker}</p>`) : ""}
@@ -99,5 +97,10 @@ ${raw(statCard(stat, story))}
   <p style="margin-top:32px"><a class="btn" href="${u(`/${story.issue.issue}/`)}">이 회차 전체 보기</a></p>
 </main>`;
 
-  return { title, description, content, noindex: !!story.draft };
+  // 이전/다음 회차 + 전체 보기가 페이지의 진짜 바닥이다 — 그 아래 사이트 공통 설명
+  // (footer)이 또 붙으면 "최하단"이 아니게 된다. 스토리 페이지에서만 footer를 뺀다.
+  return {
+    title, description, content, noindex: !!story.draft, showFooter: false,
+    printUrl: `/${story.issue.issue}/print/`,
+  };
 }
