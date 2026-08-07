@@ -83,6 +83,7 @@ issues/
   2026-w27.json  2026-w31.json
 tools/
   collect.mjs           ★ 주간 원본 수집 — 오픈API·fetch·Playwright 어댑터
+  make-og.mjs           링크 미리보기 이미지 생성 (결과물은 커밋한다)
   dashboard.html        운영 대시보드 — 파이프라인·사람 대기·학습 현황
   zine-builder.html     제작기 (registry/whitelist를 저장소에서 읽는다)
   qa.mjs                자동 검증 — CI와 로컬 공용
@@ -472,6 +473,7 @@ node build/build.mjs --serve  # 눈으로 확인
 12. 이전/다음 내비게이션이 **시간순**으로 움직이는가 (§9.2 수정 전이면 실패한다).
 13. `insight` 툴팁이 hover와 키보드 `Tab` 양쪽에서 뜨는가.
 14. 콘솔 에러 0건. `[자동]`
+14-1. 링크 미리보기가 뜨는가 — `og:image`가 **절대 URL**이고 그 파일이 실재하는가. `[자동]`
 
 ### 인쇄
 

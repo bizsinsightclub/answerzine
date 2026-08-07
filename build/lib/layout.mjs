@@ -36,9 +36,19 @@ function splash() {
 </div>`;
 }
 
+/**
+ * 링크 미리보기 이미지.
+ *
+ * `tools/make-og.mjs`가 구워 커밋해 둔 PNG다. 카카오톡·슬랙·X가 이걸 받는다.
+ * 반드시 **절대 URL**이어야 한다 — 스크래퍼는 우리 페이지 밖에서 이 값을 읽으므로
+ * 상대 경로를 주면 아무것도 못 가져간다. 이게 미리보기가 안 뜨는 가장 흔한 이유다.
+ */
+const OG_IMAGE = { path: "/assets/img/og.png", width: 1200, height: 630 };
+
 export function page({ title, description, url, content, noindex = false, bodyClass = "", showChrome = true }) {
   const full = title === SITE.name ? title : `${title} — ${SITE.name}`;
   const canonical = absolute(url ?? "/");
+  const ogImage = absolute(OG_IMAGE.path);
 
   return `<!doctype html>
 <html lang="ko">
@@ -55,7 +65,13 @@ ${noindex ? '<meta name="robots" content="noindex">' : ""}
 <meta property="og:title" content="${escapeHTML(title)}">
 <meta property="og:description" content="${escapeHTML(description)}">
 <meta property="og:url" content="${escapeHTML(canonical)}">
+<meta property="og:image" content="${escapeHTML(ogImage)}">
+<meta property="og:image:width" content="${OG_IMAGE.width}">
+<meta property="og:image:height" content="${OG_IMAGE.height}">
+<meta property="og:image:alt" content="${escapeHTML(`${SITE.name} — ${SITE.tagline}`)}">
+<meta property="og:image:type" content="image/png">
 <meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="${escapeHTML(ogImage)}">
 <link rel="stylesheet" href="${u("/assets/style.css")}">
 <script>${BOOT}</script>
 </head>

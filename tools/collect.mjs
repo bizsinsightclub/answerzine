@@ -91,7 +91,10 @@ async function withPage(fn) {
   if (!browserPromise) {
     browserPromise = (async () => {
       const { chromium } = await import("playwright");
-      return chromium.launch();
+      return chromium.launch({
+        // 환경에 이미 깔린 크로미움을 쓰고 싶을 때 경로를 지정할 수 있다.
+        executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE || undefined,
+      });
     })();
   }
   const browser = await browserPromise;
