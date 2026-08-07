@@ -13,7 +13,8 @@
     "check": "node tools/test.mjs && node tools/qa.mjs && node build/build.mjs && node build/verify.mjs",
     "deploy": "node tools/deploy.mjs",
     "deploy:dry": "node tools/deploy.mjs --dry",
-    "collect": "node tools/collect.mjs"
+    "collect": "node tools/collect.mjs",
+    "og": "node tools/make-og.mjs"
   },
   "devDependencies": {
     "playwright": "^1.62.1",

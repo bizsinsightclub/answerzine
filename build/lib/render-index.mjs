@@ -23,6 +23,19 @@ function leadBlock(s) {
 </article>`;
 }
 
+/**
+ * 리드 아래의 나머지 기사들.
+ *
+ * PC에서는 오른쪽 레일에 세로줄로 붙어 "리드와는 다른 층"이라는 게 배치로 보인다.
+ * 그런데 모바일에서 한 칼럼으로 접히면 그 단서가 통째로 사라져서, 큰 글 하나 뒤에
+ * 작은 글이 붙은 모양이 위계가 아니라 서식 오류처럼 읽힌다.
+ * 그래서 층이 바뀐다는 것을 글자로도 말한다 — 배치가 사라져도 남는다.
+ */
+const restBlock = (rest) => h`<div class="index-rest">
+  <p class="rest-label" data-rest-label>이번 호에 함께 실린 기사</p>
+  ${rest.map((s) => raw(rowBlock(s)))}
+</div>`;
+
 const rowBlock = (s) => h`<article class="row" data-reveal data-domain="${s.slug}" style="--dc: var(--dc-${raw(s.slug)})">
   <a href="${u(s.url)}">
     <p class="meta">${raw(tag(s))} · ${s.range}${s.draft ? raw(' <span class="draft-flag">작업 중</span>') : ""}</p>
@@ -52,7 +65,7 @@ export function renderIndex(issues, stories, registry) {
 
   <div class="index-grid">
     ${lead ? raw(leadBlock(lead)) : ""}
-    ${rest.length ? raw(h`<div class="index-rest">${rest.map((s) => raw(rowBlock(s)))}</div>`) : ""}
+    ${rest.length ? raw(restBlock(rest)) : ""}
   </div>
 
   <p class="empty-state" data-empty hidden>이 카테고리는 아직 신호가 없다.</p>
@@ -118,7 +131,7 @@ export function renderIssue(issue, stories, registry, issues = [issue]) {
 
   <div class="index-grid">
     ${lead ? raw(leadBlock(lead)) : ""}
-    ${rest.length ? raw(h`<div class="index-rest">${rest.map((s) => raw(rowBlock(s)))}</div>`) : ""}
+    ${rest.length ? raw(restBlock(rest)) : ""}
   </div>
 
   <p style="margin-top:40px">

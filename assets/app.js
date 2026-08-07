@@ -52,6 +52,16 @@
     var empty = document.querySelector("[data-empty]");
     if (empty) empty.hidden = shown !== 0;
 
+    // 나머지가 전부 걸러졌으면 그 층을 여는 라벨도 함께 내린다.
+    // 안 그러면 아무것도 없는 자리에 "함께 실린 기사"만 남는다.
+    var restLabel = document.querySelector("[data-rest-label]");
+    if (restLabel) {
+      var rows = document.querySelectorAll(".index-rest [data-domain]");
+      var visible = 0;
+      for (var r = 0; r < rows.length; r++) if (!rows[r].hidden) visible++;
+      restLabel.hidden = visible === 0;
+    }
+
     var url = new URL(location.href);
     if (key === "all") url.searchParams.delete("domain");
     else url.searchParams.set("domain", key);

@@ -78,8 +78,32 @@ test("이웃 관계가 실제로 시간순이다 — §9.2", async () => {
   }
 });
 
-test("draft 회차 페이지는 noindex다", () => {
-  assert.match(readFileSync(join(OUT, "2026-w31/index.html"), "utf8"), /noindex/);
+test("draft 회차는 noindex고, 발행된 회차는 색인된다", async () => {
+  // 특정 회차를 못 박으면 그 회차가 발행되는 날 테스트가 거짓으로 실패한다.
+  // 검사할 것은 "w31이 draft인가"가 아니라 status가 색인 여부를 정하는가다.
+  const { loadIssues } = await import("../build/lib/data.mjs");
+  const issues = loadIssues(".");
+  let checked = 0;
+  for (const iss of issues) {
+    const html = readFileSync(join(OUT, iss.issue, "index.html"), "utf8");
+    if (iss.status === "draft") assert.match(html, /noindex/, `${iss.issue}는 draft인데 색인된다`);
+    else assert.ok(!html.includes("noindex"), `${iss.issue}는 발행됐는데 noindex가 걸려 있다`);
+    checked++;
+  }
+  assert.ok(checked >= 1, "검사할 회차가 없다");
+  // draft 표본이 있어야 한다고 못 박으면, 전부 발행된 좋은 상태에서 테스트가 실패한다.
+  // 검사할 것은 표본의 존재가 아니라 status와 색인 여부가 늘 붙어 다니는가다.
+});
+
+test("작업 중 배지는 draft 회차에만 붙는다", async () => {
+  // 배지와 noindex는 같은 신호(status)에서 나와야 한다. 갈리면 독자가 보는 상태와
+  // 검색엔진이 보는 상태가 달라진다.
+  const { loadIssues } = await import("../build/lib/data.mjs");
+  for (const iss of loadIssues(".")) {
+    const html = readFileSync(join(OUT, iss.issue, "index.html"), "utf8");
+    const badged = html.includes("작업 중");
+    assert.equal(badged, iss.status === "draft", `${iss.issue}: 배지(${badged})와 status(${iss.status})가 어긋난다`);
+  }
 });
 
 test("내부 링크가 전부 실제 파일로 해석된다", () => {

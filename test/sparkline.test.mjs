@@ -75,3 +75,25 @@ test("실제 회차 데이터 전부에서 NaN이 없다", async () => {
     }
   }
 });
+
+test("순위 추이는 y축을 뒤집어 그린다 — 1위로 갈수록 위", () => {
+  // 순위는 작을수록 좋은 값이다. 그대로 그리면 1위에 오른 곡의 선이 아래로 흐르고,
+  // 눈은 그것을 하락으로 읽는다. 그림이 문장과 반대로 말하면 없는 것보다 나쁘다.
+  const y = (svg) => [...svg.matchAll(/[ML] [\d.]+,([\d.]+)/g)].map((m) => Number(m[1]));
+  const rising = [5, 3, 1, 1, 1];
+
+  const plain = y(sparklineSVG(rising, "#FF9500", { label: "순위" }));
+  const flipped = y(sparklineSVG(rising, "#FF9500", { label: "순위", invert: true }));
+
+  // SVG는 y가 클수록 아래다.
+  assert.ok(plain.at(-1) > plain[0], "뒤집지 않으면 1위 쪽이 아래로 간다");
+  assert.ok(flipped.at(-1) < flipped[0], "뒤집으면 1위 쪽이 위로 가야 한다");
+});
+
+test("순위 추이의 대체 텍스트가 방향을 뒤집어 읽는다", () => {
+  const up = trendSentence([5, 3, 1, 1, 1], "멜론 주간 순위", true);
+  assert.match(up, /상승/);
+  assert.match(up, /값이 작을수록 위/);
+  // 같은 배열을 정방향으로 읽으면 반대말이 나온다 — 이게 뒤집기가 필요한 이유다.
+  assert.match(trendSentence([5, 3, 1, 1, 1], "순위"), /하락/);
+});

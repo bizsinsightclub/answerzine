@@ -68,6 +68,29 @@ head("내부 링크");
   if (broken.length) for (const b of broken) fail("링크", b);
   else ok(`HTML ${htmlFiles.length}개의 내부 링크 전부 해석됨${BASE ? ` (기본 경로 ${BASE})` : ""}`);
 
+  /* og:image는 절대 URL이라 위 검사(`/`로 시작하는 것만)에 안 걸린다.
+     그런데 여기가 깨지면 사이트는 멀쩡한 채로 링크 미리보기만 죽고,
+     화면을 아무리 봐도 발견되지 않는다. 절대 URL을 벗겨 실제 파일을 확인한다. */
+  const ogBroken = [];
+  let ogChecked = 0;
+  for (const file of htmlFiles) {
+    const html = readFileSync(file, "utf8");
+    for (const m of html.matchAll(/<meta (?:property|name)="(?:og:image|twitter:image)" content="([^"]+)"/g)) {
+      ogChecked++;
+      const src = m[1];
+      if (!/^https?:\/\//.test(src)) {
+        ogBroken.push(`${file.replace(DIST, "")} → 절대 URL이 아니다: ${src}`);
+        continue;
+      }
+      const path = strip(new URL(src).pathname);
+      if (!existsSync(join(DIST, path)))
+        ogBroken.push(`${file.replace(DIST, "")} → ${src} (dist${path} 없음)`);
+    }
+  }
+  if (!ogChecked) fail("미리보기", "og:image가 어느 페이지에도 없다. 링크가 맨몸으로 공유된다.");
+  else if (ogBroken.length) for (const b of ogBroken) fail("미리보기", b);
+  else ok(`og:image·twitter:image ${ogChecked}건이 실재하는 파일을 가리킨다`);
+
   // CSS의 폰트 경로도 확인한다. 여기가 깨지면 폴백 서체로 조용히 렌더된다.
   const css = readFileSync(join(DIST, "assets/style.css"), "utf8");
   const cssBroken = [];
@@ -140,7 +163,8 @@ if (!chromium) {
 } else {
   const MIME = { ".html": "text/html; charset=utf-8", ".css": "text/css; charset=utf-8",
     ".js": "text/javascript; charset=utf-8", ".svg": "image/svg+xml",
-    ".ttf": "font/ttf", ".otf": "font/otf" };
+    ".ttf": "font/ttf", ".otf": "font/otf",
+    ".png": "image/png", ".jpg": "image/jpeg", ".webp": "image/webp" };
   const server = createServer((req, res) => {
     // GitHub Pages가 /<저장소명>/ 접두사를 벗겨 서빙하는 것과 같게 맞춘다.
     let p = decodeURIComponent(req.url.split("?")[0]);
@@ -157,7 +181,10 @@ if (!chromium) {
   const port = server.address().port;
   const base = `http://127.0.0.1:${port}`;
 
-  const browser = await chromium.launch();
+  const browser = await chromium.launch({
+    // 환경에 이미 깔린 크로미움을 쓰고 싶을 때 경로를 지정할 수 있다.
+    executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE || undefined,
+  });
   try {
     const issues = loadIssues(ROOT);
 

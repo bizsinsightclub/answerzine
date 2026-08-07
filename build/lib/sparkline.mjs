@@ -14,11 +14,15 @@ const W = 160;
 const H = 56;
 const PAD = 6;
 
-export function trendSentence(points, label) {
+export function trendSentence(points, label, invert = false) {
   const first = points[0];
   const last = points[points.length - 1];
-  const dir = last > first ? "상승" : last < first ? "하락" : "보합";
-  return `${label} 추이. 데이터 ${points.length}개, ${first}에서 ${last}로 ${dir}. 전체 값: ${points.join(", ")}.`;
+  // 순위는 작을수록 좋은 값이다. 숫자가 줄어든 걸 "하락"이라 읽으면 뜻이 뒤집힌다.
+  const up = invert ? last < first : last > first;
+  const down = invert ? last > first : last < first;
+  const dir = up ? "상승" : down ? "하락" : "보합";
+  return `${label} 추이. 데이터 ${points.length}개, ${first}에서 ${last}로 ${dir}.`
+    + (invert ? " 값이 작을수록 위다." : "") + ` 전체 값: ${points.join(", ")}.`;
 }
 
 export function sparklineSVG(points, color, opts = {}) {
@@ -41,7 +45,11 @@ export function sparklineSVG(points, color, opts = {}) {
   else if (baseline >= max) max = baseline + (baseline - min) * HEADROOM;
 
   const span = max - min || 1;
-  const norm = (v) => H - PAD - ((v - min) / span) * (H - PAD * 2);
+  /* 순위처럼 작을수록 좋은 값은 y축을 뒤집는다.
+     그리지 않으면 1위로 올라간 곡의 선이 아래로 흐르고, 눈은 그걸 하락으로 읽는다.
+     그림이 문장과 반대로 말하는 건 없는 것보다 나쁘다. */
+  const raw_ = (v) => H - PAD - ((v - min) / span) * (H - PAD * 2);
+  const norm = opts.invert ? (v) => H - raw_(v) : raw_;
 
   const step = W / (points.length - 1);
   const d = rel
@@ -50,7 +58,7 @@ export function sparklineSVG(points, color, opts = {}) {
   const lastY = +norm(rel[rel.length - 1]).toFixed(2);
   const baseY = +norm(baseline).toFixed(2);
 
-  const title = opts.label ? escapeHTML(trendSentence(points, opts.label)) : "";
+  const title = opts.label ? escapeHTML(trendSentence(points, opts.label, !!opts.invert)) : "";
 
   return (
     `<svg class="sparkline" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="img"` +
