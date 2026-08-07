@@ -132,10 +132,15 @@ if (!existsSync(join(ROOT, "LESSONS.md"))) {
       fail(l.id, `상태 "${l.상태}"는 ${LESSON_STATES.join("/")} 중 하나여야 한다.`);
     if (l.분류 && !LESSON_CATS.includes(l.분류))
       fail(l.id, `분류 "${l.분류}"는 ${LESSON_CATS.join("/")} 중 하나여야 한다.`);
-    if (l.상태 === "자동화" && !/qa\.mjs|제작기|빌더/.test(l.탐지 ?? ""))
-      fail(l.id, `상태가 "자동화"인데 탐지에 검사 주체(qa.mjs / 제작기)가 적혀 있지 않다. 실제로 자동화됐는지 확인할 것.`);
-    if (l.상태 !== "자동화" && /^qa\.mjs\s*—/.test(l.탐지 ?? ""))
-      warn(l.id, `탐지가 qa.mjs인데 상태가 "${l.상태}"다. 졸업 후보일 수 있다.`);
+    /* "자동화"라고 적으려면 실제로 도는 검사 주체를 이름으로 대야 한다.
+       qa.mjs만 인정하던 규칙은 오래됐다 — collect.mjs(수집 단계)·verify.mjs(산출물)·
+       단위 테스트도 사람 손이 필요 없는 검사다. 대신 아무 말이나 적는 건 여전히 막는다. */
+    const DETECTORS = /qa\.mjs|verify\.mjs|collect\.mjs|test\/[\w.-]+\.test\.mjs|제작기|빌더/;
+    if (l.상태 === "자동화" && !DETECTORS.test(l.탐지 ?? ""))
+      fail(l.id, `상태가 "자동화"인데 탐지에 검사 주체가 없다. ` +
+                 `qa.mjs / verify.mjs / collect.mjs / test/*.test.mjs / 제작기 중 무엇이 잡는지 적는다.`);
+    if (l.상태 !== "자동화" && /^(qa|verify|collect)\.mjs\s*—/.test(l.탐지 ?? ""))
+      warn(l.id, `탐지가 자동 검사인데 상태가 "${l.상태}"다. 졸업 후보일 수 있다.`);
   }
   const auto = lessons.filter(l => l.상태 === "자동화").length;
   const rate = lessons.length ? Math.round(auto / lessons.length * 100) : 0;
