@@ -70,6 +70,7 @@ runs/
   README.md             실행 로그 형식
   YYYY-wNN.json         에이전트 과정 기록 (lessonsApplied 필수)
   index.json            qa.mjs가 생성
+  raw/                  ★ 주간 원본 스냅숏 — collect.mjs가 만든다
 domains/
   registry.json         ★ 도메인·색상·분량 예산 단일 소스
   README.md  _TEMPLATE.md
@@ -81,6 +82,7 @@ issues/
   README.md             회차 파일 형식
   2026-w27.json  2026-w31.json
 tools/
+  collect.mjs           ★ 주간 원본 수집 — 오픈API·fetch·Playwright 어댑터
   dashboard.html        운영 대시보드 — 파이프라인·사람 대기·학습 현황
   zine-builder.html     제작기 (registry/whitelist를 저장소에서 읽는다)
   qa.mjs                자동 검증 — CI와 로컬 공용
@@ -198,6 +200,17 @@ dist/2026-w31/print/index.html A4 인쇄 진
 
 `tools/qa.mjs`가 셋 다 검사한다. 등록 URL이 죽은 출처(`urlStatus: "broken-*"`)는 `sourceUrl`로도 못 쓴다.
 
+**예외 하나 — 우리가 뜬 스냅숏.** `snapshot` 출처라도 `tools/collect.mjs`가 매주 떠서 커밋한
+`runs/raw/`가 4주치 쌓이면 그 선은 재현된다. 각 점이 커밋된 파일을 가리키기 때문이다.
+
+```js
+trend: [98, 101, 100, 426],
+trendSnapshots: ["runs/raw/2026-w29/yes24.json", "…w30…", "…w31…", "…w32…"],
+```
+
+점 수와 파일 수가 같아야 하고, 파일이 실제로 있어야 한다. qa가 확인한다.
+**과거로 소급해서는 못 만든다** — 그 주에 뜨지 않았으면 그 점은 영영 없다.
+
 ---
 
 ## 4. 주간 파이프라인
@@ -212,7 +225,28 @@ S1 수집 → S2 선별 → S3 검증 → S4 집필 → S5 해석 → S6 빌드 
 
 ### S1. 신호 수집
 
-각 도메인 문서의 `데이터 출처` 절에 있는 1차 소스를 연다. 도메인당 **후보 3개 이상**을 확보한다.
+**먼저 수집기를 돌린다. 그 주 원본이 `runs/raw/`에 남는다.**
+
+```bash
+npm run collect 2026-w32          # 전 어댑터
+npm run collect 2026-w32 -- --only=netflix,yes24
+```
+
+| 어댑터 | 방법 | 필요한 것 |
+|---|---|---|
+| `netflix` | 전 주차 TSV 직접 | — |
+| `yes24` | fetch (서버 렌더) | — |
+| `kobis` | 공식 오픈API | `KOBIS_API_KEY` (무료) |
+| `kopis` | 공식 오픈API | `KOPIS_API_KEY` (무료) |
+| `kyobo` · `circlechart` | Playwright | `npm install` |
+
+**수집을 거른 주는 영영 복구되지 않는다.** 스냅숏 출처는 과거를 되돌려주지 않으므로,
+수집기는 스냅숏 어댑터에 대해 **현재 주가 아니면 수집을 거부한다.** 화요일 이후에 돈다.
+
+쌓인 스냅숏은 그 자체가 아카이브다 — 4주치가 모이면 스냅숏 출처에서도 추세선을 그릴 수 있다
+(`stat.trendSnapshots`, §3.4). `runs/raw/README.md` 참조.
+
+그 다음 각 도메인 문서의 `데이터 출처` 절을 열어 도메인당 **후보 3개 이상**을 확보한다.
 
 기록할 것: 항목명 · 현재 순위 · 직전 4주 수치 · 눈에 띄는 변동.
 아직 이야기를 만들지 않는다. **숫자만 모은다.**

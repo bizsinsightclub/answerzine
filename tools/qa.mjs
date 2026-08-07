@@ -323,10 +323,30 @@ for (const f of files) {
     } else if (!Array.isArray(tr)) {
       fail(at, "trend는 배열이어야 한다.");
     } else {
-      if (!seriesOk)
+      /* 스냅숏 출처라도 우리가 매주 떠 둔 스냅숏이 커밋돼 있으면 그 선은 재현된다.
+         각 점이 runs/raw/의 실제 파일을 가리켜야 하고, 점 수와 파일 수가 같아야 한다.
+         tools/collect.mjs가 그 파일을 만든다. */
+      const snaps = b1?.trendSnapshots;
+      let snapOk = false;
+      if (Array.isArray(snaps) && snaps.length) {
+        const missing = snaps.filter(s => !existsSync(join(ROOT, s)));
+        if (missing.length)
+          fail(at, `trendSnapshots에 없는 파일이 있다: ${missing.join(", ")}. ` +
+                   `커밋되지 않은 스냅숏은 근거가 아니다.`);
+        else if (snaps.length !== tr.length)
+          fail(at, `trend ${tr.length}점인데 trendSnapshots는 ${snaps.length}개다. 점마다 하나씩 있어야 한다.`);
+        else if (!snaps.every(s => s.startsWith("runs/raw/")))
+          fail(at, "trendSnapshots는 runs/raw/ 아래의 수집 스냅숏이어야 한다.");
+        else snapOk = true;
+      }
+
+      if (!seriesOk && !snapOk)
         fail(at, `추세선을 그렸는데 출처 ${j.name ?? j.host}의 series가 "${j.series}"다. ` +
                  `과거 주차를 다시 읽을 수 없는 출처에서 뽑은 선은 재현·검증이 불가능하다. ` +
-                 `trend를 지우고 stat.basis로 바꾸거나, 아카이브가 있는 출처로 옮긴다.`);
+                 `trend를 지우고 stat.basis로 바꾸거나, 매주 tools/collect.mjs로 뜬 스냅숏을 ` +
+                 `trendSnapshots로 대거나, 아카이브가 있는 출처로 옮긴다.`);
+      else if (!seriesOk && snapOk)
+        ok(`${st.id} — 스냅숏 출처지만 ${snaps.length}주치 수집본으로 추세선이 재현된다`);
       if (tr.length < 2) fail(at, "trend가 있는데 값이 2개 미만이라 선을 그릴 수 없다. 빈 배열이면 필드를 지운다.");
       else if (tr.length < BUDGET.trendPoints[0] || tr.length > BUDGET.trendPoints[1])
         warn(at, `trend ${tr.length}점 — ${BUDGET.trendPoints.join("~")}점 권장.`);

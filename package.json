@@ -12,7 +12,8 @@
     "verify": "node build/verify.mjs",
     "check": "node tools/test.mjs && node tools/qa.mjs && node build/build.mjs && node build/verify.mjs",
     "deploy": "node tools/deploy.mjs",
-    "deploy:dry": "node tools/deploy.mjs --dry"
+    "deploy:dry": "node tools/deploy.mjs --dry",
+    "collect": "node tools/collect.mjs"
   },
   "devDependencies": {
     "playwright": "^1.62.1",
