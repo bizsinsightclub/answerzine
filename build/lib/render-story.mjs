@@ -26,7 +26,7 @@ function statCard(stat, story) {
   const hasTrend = Array.isArray(stat.trend) && stat.trend.length >= 2;
 
   const figure = hasTrend
-    ? h`<div class="stat-spark" style="color:var(--dc,currentColor)">${raw(sparklineSVG(stat.trend, color, { label: stat.label ?? "추이" }))}</div>
+    ? h`<div class="stat-spark" style="color:var(--dc,currentColor)">${raw(sparklineSVG(stat.trend, color, { label: stat.label ?? "추이", invert: !!stat.trendInvert }))}</div>
     <p class="stat-axis">${stat.axisCaption}</p>`
     : stat.basis
       ? h`<p class="stat-basis"><span class="stat-basis-label">비교 기준</span>${stat.basis}</p>`

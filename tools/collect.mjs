@@ -23,7 +23,7 @@
  * 여기서 쓰는 건 셋뿐이고 전부 원본에 직접 닿는다.
  *
  *   1. 공식 오픈API  — KOBIS · KOPIS (무료 키, 환경변수)
- *   2. 그냥 fetch    — 넷플릭스 TSV · 예스24 (서버가 값을 그대로 내려준다)
+ *   2. 그냥 fetch    — 넷플릭스 TSV · 예스24 · 가이섬 (서버가 값을 그대로 내려준다)
  *   3. Playwright    — 써클차트 · 교보문고 (목록이 클라이언트 렌더라 이 방법뿐)
  *
  * Playwright는 이미 승인된 devDependency다 (`package.json` comment, CLAUDE.md §7.3).
@@ -221,6 +221,39 @@ const ADAPTERS = {
           note: `디지털 종합(국내). 써클차트 ${y}년 ${Number(w)}주차(일~토)다. ISO 주(월~일)와 하루 어긋나므로 스토리 range는 화면의 기간 표기를 그대로 옮긴다.`,
         };
       });
+    },
+  },
+
+  /* 가이섬 — 멜론 주간차트를 주차별로 보관하는 제3자 아카이브.
+     멜론 자신은 지난 주를 열어주지 않으므로 과거 주차를 확인할 유일한 경로다.
+     2차 가공이라 사이트가 사라지면 링크도 죽는다. 그래서 매주 떠서 우리 저장소에 남긴다. */
+  guyso: {
+    domains: ["music"],
+    needs: null,
+    async run({ id }) {
+      const [, y, w] = /^(\d{4})-w(\d{2})$/.exec(id);
+      const url = `https://xn--o39an51b2re.com/chart/melon/weekly/${y}/${Number(w)}`;
+      const html = await (await get(url)).text();
+      const body = html.slice(html.indexOf('id="chart-table-content"'));
+      const re = /<td class="ranking">\s*<p>\s*<span[^>]*>(\d+)<\/span>\s*<\/p>\s*<p class="change">([\s\S]*?)<\/p>\s*<\/td>[\s\S]*?<td class="subject">\s*<p title="([^"]*)">[\s\S]*?<p class="singer" title="([^"]*)"/g;
+      const rows = [];
+      for (const m of body.matchAll(re)) {
+        rows.push({
+          rank: Number(m[1]),
+          change: m[2].replace(/<[^>]+>/g, "").trim(),
+          title: m[3], artist: m[4],
+        });
+      }
+      // 순위가 1부터 빠짐없이 이어지지 않으면 파서가 깨진 것이다. 반쪽짜리를 남기지 않는다.
+      const contiguous = rows.length === 100 && rows.every((r, i) => r.rank === i + 1);
+      if (!contiguous)
+        throw new Error(`${rows.length}행만 읽혔다(순위 연속 ${contiguous}). 마크업이 바뀌었을 수 있다.`);
+      const period = /(\d{4}\.\d{2}\.\d{2}~\d{4}\.\d{2}\.\d{2}) \(${y}년 ${Number(w)}주차\)/.exec(html);
+      return {
+        method: "fetch", url, rows,
+        note: `멜론 주간 TOP100. 집계 기간 ${period?.[1] ?? "확인 실패"}. `
+          + "가이섬은 집계 주체가 아니라 아카이브다 — 본문에는 '멜론 주간 차트'라고 원 출처를 밝힌다.",
+      };
     },
   },
 

@@ -215,6 +215,20 @@ trendSnapshots: ["runs/raw/2026-w29/yes24.json", "…w30…", "…w31…", "…w
 점 수와 파일 수가 같아야 하고, 파일이 실제로 있어야 한다. qa가 확인한다.
 **과거로 소급해서는 못 만든다** — 그 주에 뜨지 않았으면 그 점은 영영 없다.
 
+### 3.5 순위를 그릴 때는 축을 뒤집는다
+
+순위는 **작을수록 좋은 값**이다. 그대로 그리면 1위로 올라간 곡의 선이 아래로 흐르고,
+독자의 눈은 그것을 하락으로 읽는다. **그림이 문장과 반대로 말하는 건 없는 것보다 나쁘다.**
+
+```js
+trend: [5, 3, 1, 1, 1],
+trendInvert: true,                                    // 1위 쪽이 위로 간다
+axisCaption: "X축: 6월 5주~8월 1주 · Y축: 멜론 주간 순위(위가 상위)",
+```
+
+`trendInvert`는 스파크라인의 y축과 SVG 대체 텍스트를 함께 뒤집는다.
+`axisCaption`에도 방향을 적는다 — 소리로 듣는 독자에게는 축 캡션이 그림이다.
+
 ---
 
 ## 4. 주간 파이프라인
@@ -359,7 +373,7 @@ node build/build.mjs --serve  # 눈으로 확인
 | OTT | `ott` | `#E212D8` | `domains/ott.md` | 넷플릭스 Tudum | `archived` | ✅ **전 주차 TSV 한 방** |
 | 영화 | `movie` | `#0A84FF` | `domains/movie.md` | KOBIS | `archived` | ✅ 날짜 지정 재조회 |
 | 도서 | `book` | `#34C759` | `domains/book.md` | 예스24·**교보문고** | `snapshot` | ⚠️ 현재 주만 — 추세선 불가 |
-| 음악 | `music` | `#FF9500` | `domains/music.md` | 멜론 / 써클차트 | `snapshot` / `archived` | ⚠️ 써클차트 개편, 목록이 JS 렌더 |
+| 음악 | `music` | `#FF9500` | `domains/music.md` | 멜론 (가이섬 아카이브 경유) | `archived` | ✅ 2012년~ 주차별 |
 | 뉴스 | `news` | `#8B66F3` | `domains/news.md` | 빅카인즈 | `archived` | ⚠️ 분석 UI 조작 필요 |
 | 여행 | `travel` | `#59900C` | `domains/travel.md` | 한국관광 데이터랩 | `archived` | ⚠️ 월 단위 — 주간 판정 어려움 |
 | 공연 | `stage` | `#0C907E` | `domains/stage.md` | KOPIS | `archived` | 💤 **휴면** — 서비스키 받으면 복귀 |
@@ -368,7 +382,7 @@ node build/build.mjs --serve  # 눈으로 확인
 **도메인이 8개인 이유는 지면을 채우기 위해서가 아니라, 결번이 나도 4편을 확보하기 위해서다.**
 지면은 여전히 리드 1 + 미니 3이고 그 주 통과분 중 **점수 상위 4편만** 싣는다. 나머지는 웹에만 실린다.
 
-**결번이 났을 때 먼저 파볼 도메인은 `ott` → `movie` → `book` 순이다.** 이 셋만 오늘 확실히 읽힌다.
+**결번이 났을 때 먼저 파볼 도메인은 `ott` → `movie` → `music` → `book` 순이다.** 이 넷이 오늘 확실히 읽힌다.
 
 읽을 수 없는 도메인은 `status`를 `dormant`로 내린다. 활성으로 두면 매주 결번만 쌓이고, 필터에는 늘 비어 있는 칸이 남는다. `stage`가 그래서 휴면이다 — `KOPIS_API_KEY`를 발급해 `tools/collect.mjs`의 kopis 어댑터가 실제로 값을 받아오는 것을 확인한 뒤 되돌린다.
 
