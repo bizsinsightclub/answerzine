@@ -130,17 +130,21 @@ const CHROME = `
 .theme-toggle {
   font-family: var(--sans); font-size: 11px; font-weight: 700; letter-spacing: .08em;
   text-transform: uppercase; background: none; color: var(--secondary);
-  border: 1px solid var(--divider); padding: 6px 10px; cursor: pointer;
+  border: 1px solid var(--divider); border-radius: 8px; padding: 6px 10px; cursor: pointer;
 }
 .theme-toggle:hover { color: var(--ink); border-color: var(--ink); }
 
-.seg { display: flex; flex-wrap: wrap; gap: var(--s3); margin: 0 0 var(--s5); padding: 0; list-style: none; }
+.seg {
+  display: inline-flex; flex-wrap: wrap; gap: 2px; margin: 0 0 var(--s5);
+  padding: 4px; list-style: none; background: var(--surface); border-radius: 12px;
+  max-width: 100%;
+}
 .seg button {
   font-family: var(--sans); font-size: 12px; font-weight: 700; letter-spacing: .08em;
-  text-transform: uppercase; background: none; border: none; cursor: pointer;
-  color: var(--tertiary); padding: 4px 0; border-bottom: 2px solid transparent;
+  text-transform: uppercase; background: none; border: none; border-radius: 9px;
+  cursor: pointer; color: var(--tertiary); padding: 7px 14px; white-space: nowrap;
 }
-.seg button[aria-pressed="true"] { color: var(--ink); border-bottom-color: var(--ink); }
+.seg button[aria-pressed="true"] { color: var(--ink); background: var(--bg); }
 
 .site-footer { border-top: 1px solid var(--rule); margin-top: var(--s9); padding-top: var(--s4); }
 .site-footer p { font-family: var(--sans); font-size: 12px; color: var(--secondary); margin: 0 0 var(--s2); }
@@ -148,7 +152,7 @@ const CHROME = `
 .draft-flag {
   display: inline-block; font-family: var(--sans); font-size: 10px; font-weight: 700;
   letter-spacing: .1em; text-transform: uppercase; border: 1px solid var(--divider);
-  padding: 2px 6px; color: var(--tertiary); vertical-align: middle;
+  border-radius: 4px; padding: 2px 6px; color: var(--tertiary); vertical-align: middle;
 }
 `;
 
@@ -163,6 +167,8 @@ const LAYOUT = `
   .index-grid { display: grid; grid-template-columns: repeat(8, 1fr); gap: var(--s5); }
   .index-lead { grid-column: 1 / -1; }
   .index-rest { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--s5); }
+  /* 그리드일 때는 gap이 간격을 맡는다 — 세로쌓임 전용 margin은 카드를 어긋나게 한다. */
+  .index-rest .row + .row { margin-top: 0; }
   /* 3단으로 펼쳐질 때 라벨이 첫 칸을 차지하면 안 된다. 층 전체를 여는 말이다. */
   .rest-label { grid-column: 1 / -1; }
 }
@@ -199,7 +205,8 @@ const COMPONENTS = `
   .rest-label { border-top: none; padding-top: 0; }
 }
 
-.row { border-top: 1px solid var(--divider); padding-top: var(--s3); }
+.row { background: var(--surface); border: 1px solid var(--divider); border-radius: 16px; padding: var(--s4); }
+.row + .row { margin-top: var(--s4); }
 .row a { text-decoration: none; display: block; }
 .row a:hover .row-headline { text-decoration: underline; text-underline-offset: 3px; }
 .row-headline { font-weight: 900; font-size: 19px; line-height: 1.2; letter-spacing: -.025em; margin: 0 0 var(--s1); }
@@ -248,6 +255,10 @@ const COMPONENTS = `
 }
 
 .domain-tag { font-family: var(--sans); font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--dc, var(--secondary)); }
+.domain-tag::before {
+  content: ""; display: inline-block; width: 6px; height: 6px; margin-right: 6px;
+  border-radius: 999px; background: var(--dc, var(--secondary)); vertical-align: middle;
+}
 
 .nav-row { display: grid; gap: var(--s5); border-top: 1px solid var(--rule); margin-top: var(--s8); padding-top: var(--s4); }
 @media (min-width: 768px) { .nav-row { grid-template-columns: 1fr 1fr; } .nav-next { text-align: right; } }
@@ -294,10 +305,11 @@ const COMPONENTS = `
 
 /* 주차별 호 목록 */
 .issue-list { list-style: none; padding: 0; margin: var(--s4) 0 0; counter-reset: issue; }
-.issue-item { border-top: 1px solid var(--divider); }
+.issue-item + .issue-item { margin-top: var(--s3); }
+.issue-item { background: var(--surface); border: 1px solid var(--divider); border-radius: 16px; }
 .issue-item a {
   display: grid; grid-template-columns: 8rem 1fr; gap: var(--s2) var(--s4);
-  padding: var(--s3) 0; text-decoration: none; align-items: baseline;
+  padding: var(--s4); text-decoration: none; align-items: baseline;
 }
 @media (max-width: 640px) { .issue-item a { grid-template-columns: 1fr; } }
 .issue-week { font-family: var(--sans); font-weight: 900; font-size: 17px; letter-spacing: -.02em; color: var(--ink); }
@@ -309,7 +321,7 @@ const COMPONENTS = `
 
 .btn {
   display: inline-block; font-size: 12px; font-weight: 700; letter-spacing: .08em;
-  text-transform: uppercase; border: 1px solid var(--ink); padding: 9px 16px;
+  text-transform: uppercase; border: 1px solid var(--ink); border-radius: 10px; padding: 9px 16px;
   text-decoration: none; color: var(--ink); background: none; cursor: pointer;
 }
 .btn:hover { background: var(--ink); color: var(--bg); }
