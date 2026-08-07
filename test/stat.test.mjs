@@ -78,3 +78,12 @@ test("출처 링크는 추세선 유무와 무관하게 항상 나온다", () =>
     assert.match(content, /class="stat-source"/, `${stat.label}에 출처 링크가 없다`);
   }
 });
+
+test("헤드라인에서 감춘 이름이 본문에 있는지는 qa가 본다 — 렌더러는 꺾쇠를 깨지 않는다", () => {
+  // 〈 〉(U+3008/3009)는 HTML 태그로 먹히지 않는다. escapeHTML을 통과해도 그대로 남아야
+  // 독자가 작품명을 읽을 수 있다. <>로 쓰면 통째로 사라진다 — CLAUDE.md §6 표기 규칙.
+  const story = withStat(SNAPSHOT);
+  story.blocks[0].text = "〈모태솔로 애프터서비스〉 6화가 올라왔다.";
+  const { content } = renderStory(story, {});
+  assert.match(content, /〈모태솔로 애프터서비스〉/);
+});
