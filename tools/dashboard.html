@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ANSWER ZINE — 운영 대시보드</title>
+<style>
+  :root{
+    --ink:#F5F5F5; --secondary:#A1A1A6; --tertiary:#8E8E93;
+    --divider:#3A3A3C; --bg:#222222; --surface:#2C2C2E; --accent:#409CFF; --seg-bg:#1A1A1A;
+    --ok:#34C759; --warn:#FF9500; --err:#FF453A; --idle:#4A4A4C;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Helvetica Neue",sans-serif;font-size:14px}
+  header{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;
+    padding:16px 24px;border-bottom:1px solid var(--divider);background:var(--seg-bg);position:sticky;top:0;z-index:10}
+  header h1{font-size:15px;font-weight:700;margin:0;letter-spacing:-.01em}
+  header .sub{font-size:11.5px;color:var(--tertiary)}
+  header select{background:var(--surface);color:var(--ink);border:1px solid var(--divider);
+    border-radius:8px;padding:5px 9px;font-family:inherit;font-size:12.5px}
+  main{padding:24px;max-width:1240px;margin:0 auto}
+  section{margin-bottom:34px}
+  h2{font-size:12px;font-weight:700;color:var(--accent);letter-spacing:.04em;
+     text-transform:uppercase;margin:0 0 12px;padding-bottom:8px;border-bottom:1px solid var(--divider)}
+  .muted{color:var(--tertiary);font-size:12px;line-height:1.6}
+
+  /* 파이프라인 그리드 */
+  .grid{display:grid;grid-template-columns:110px repeat(5,1fr);gap:8px;min-width:640px}
+  .gh{font-size:10.5px;font-weight:700;color:var(--tertiary);letter-spacing:.05em;
+      text-transform:uppercase;padding:0 0 6px;text-align:center}
+  .gh.l{text-align:left}
+  .dname{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:600;padding:11px 0}
+  .dot{width:8px;height:8px;border-radius:99px;flex-shrink:0}
+  .cell{border-radius:9px;padding:9px 8px;text-align:center;font-size:11px;font-weight:600;
+        background:var(--surface);color:var(--idle);border:1px solid var(--divider);min-height:40px;
+        display:flex;align-items:center;justify-content:center;cursor:default}
+  .cell.done{background:rgba(52,199,89,.14);border-color:rgba(52,199,89,.4);color:#7DE29A}
+  .cell.blocked{background:rgba(255,69,58,.14);border-color:rgba(255,69,58,.45);color:#FFB3AD}
+  .cell.skipped{background:rgba(142,142,147,.12);border-color:var(--divider);color:var(--tertiary)}
+  .cell.human{background:rgba(255,149,0,.15);border-color:rgba(255,149,0,.45);color:#FFCF8A}
+  .scroll{overflow-x:auto}
+
+  /* 카드 */
+  .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px}
+  .card{background:var(--surface);border:1px solid var(--divider);border-radius:12px;padding:14px 15px}
+  .card .k{font-size:10.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--tertiary)}
+  .card .v{font-size:26px;font-weight:800;letter-spacing:-.02em;margin:5px 0 2px;font-variant-numeric:tabular-nums}
+  .card .d{font-size:11.5px;color:var(--secondary);line-height:1.5}
+
+  /* 알림 */
+  .alert{display:flex;gap:11px;padding:12px 14px;border-radius:10px;margin-bottom:8px;
+         background:rgba(255,149,0,.11);border:1px solid rgba(255,149,0,.32);font-size:13px;line-height:1.55}
+  .alert.stop{background:rgba(255,69,58,.12);border-color:rgba(255,69,58,.35)}
+  .alert .ic{font-weight:800;flex-shrink:0;color:var(--warn)}
+  .alert.stop .ic{color:var(--err)}
+  .alert b{display:block;margin-bottom:2px}
+  .alert .who{font-size:11px;color:var(--tertiary);margin-top:3px}
+
+  /* 표 */
+  table{width:100%;border-collapse:collapse;font-size:12.5px}
+  th{text-align:left;font-size:10.5px;font-weight:700;color:var(--tertiary);letter-spacing:.05em;
+     text-transform:uppercase;padding:0 10px 8px;border-bottom:1px solid var(--divider)}
+  td{padding:10px;border-bottom:1px solid var(--divider);vertical-align:top;line-height:1.55}
+  tr:last-child td{border-bottom:none}
+  .pill{display:inline-block;padding:2px 8px;border-radius:99px;font-size:10.5px;font-weight:700;white-space:nowrap}
+  .p-auto{background:rgba(52,199,89,.18);color:#7DE29A}
+  .p-manual{background:rgba(255,149,0,.18);color:#FFCF8A}
+  .p-watch{background:rgba(142,142,147,.18);color:var(--secondary)}
+  .p-pass{background:rgba(52,199,89,.18);color:#7DE29A}
+  .p-fail{background:rgba(255,69,58,.18);color:#FFB3AD}
+  .score{font-variant-numeric:tabular-nums;font-weight:700}
+
+  /* 진행 바 */
+  .bar{height:8px;border-radius:99px;background:var(--seg-bg);overflow:hidden;display:flex;margin:9px 0 4px}
+  .bar i{display:block;height:100%}
+  .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:11px;color:var(--secondary);margin-top:7px}
+  .legend span{display:flex;align-items:center;gap:5px}
+  .legend i{width:9px;height:9px;border-radius:2px;display:inline-block}
+
+  .err{background:rgba(255,69,58,.12);border:1px solid rgba(255,69,58,.35);
+       border-radius:10px;padding:14px 16px;font-size:13px;line-height:1.6}
+  code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px;
+       background:var(--seg-bg);padding:1px 5px;border-radius:4px}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>ANSWER ZINE 운영 대시보드</h1>
+  <select id="weekSel"></select>
+  <span class="sub" id="src">읽는 중…</span>
+</header>
+
+<main id="app"><p class="muted">불러오는 중…</p></main>
+
+<script>
+/* =========================================================================
+   데이터 출처 — 같은 저장소의 상대 경로. GitHub Pages에서 동작한다.
+   로컬 file://로 열면 브라우저가 fetch를 막으므로 안내를 띄운다.
+   ========================================================================= */
+const CONFIG = { dataBase: "" };
+const BASE = CONFIG.dataBase || "../";
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+// LESSONS.md 값에 들어 있는 최소 마크다운(**굵게**, `코드`)만 변환한다
+const md = s => esc(s).replace(/\*\*(.+?)\*\*/g, "<b>$1</b>").replace(/`(.+?)`/g, "<code>$1</code>");
+
+const STAGES = [
+  { key:"S1+S2",  label:"수집·선별", agent:"az-scout" },
+  { key:"S3",     label:"검증",      agent:"az-verify" },
+  { key:"S4+S5",  label:"집필·해석", agent:"az-write" },
+  { key:"S6+S7",  label:"조립·QA",   agent:"az-editor" },
+  { key:"retro",  label:"회고",      agent:"az-retro" },
+];
+
+async function grab(path, asText){
+  const r = await fetch(BASE + path, { cache:"no-store" });
+  if(!r.ok) throw new Error(`${path} → ${r.status}`);
+  return asText ? r.text() : r.json();
+}
+
+/* ---------- LESSONS.md 파서 ---------- */
+function parseLessons(md){
+  const out = [];
+  const blocks = md.replace(/^```[\s\S]*?^```/gm, "")   // 코드 펜스 안 예시 제외
+                   .split(/^### /m).slice(1);
+  for(const b of blocks){
+    const m = b.match(/^(L-\d+)\s*·\s*(.+)$/m);
+    if(!m) continue;
+    const item = { id:m[1], title:m[2].trim() };
+    for(const line of b.split("\n")){
+      const kv = line.match(/^-\s+\*\*(.+?)\*\*:\s*(.+)$/);
+      if(kv) item[kv[1].trim()] = kv[2].trim();
+    }
+    out.push(item);
+  }
+  return out;
+}
+
+/* ---------- 렌더 ---------- */
+function pipelineGrid(domains, run){
+  const byDom = {};
+  for(const s of run.stages ?? []){
+    const d = s.domain ?? "_all";
+    (byDom[d] ??= {})[s.stage] = s;
+  }
+  const rows = domains.map(d => {
+    const cells = STAGES.map(st => {
+      const s = byDom[d.key]?.[st.key] ?? byDom["_all"]?.[st.key];
+      if(!s) return `<div class="cell">–</div>`;
+      const cls = s.needsHuman ? "human" : s.status;
+      const txt = s.needsHuman ? "사람 대기"
+        : s.status === "done" ? "완료" : s.status === "blocked" ? "중단" : "건너뜀";
+      return `<div class="cell ${cls}" title="${esc(s.summary ?? "")}">${txt}</div>`;
+    }).join("");
+    return `<div class="dname"><span class="dot" style="background:${d.color}"></span>${esc(d.name)}</div>${cells}`;
+  }).join("");
+
+  return `<div class="scroll"><div class="grid">
+    <div class="gh l">도메인</div>${STAGES.map(s=>`<div class="gh">${s.label}</div>`).join("")}
+    ${rows}
+  </div></div>
+  <p class="muted" style="margin-top:10px">각 칸에 마우스를 올리면 에이전트 요약이 뜬다.
+  단계별 담당: ${STAGES.map(s=>`<code>${s.agent}</code>`).join(" → ")}</p>`;
+}
+
+function alerts(run){
+  const items = (run.stages ?? []).filter(s => s.needsHuman || s.status === "blocked");
+  if(!items.length) return `<p class="muted">사람 판단을 기다리는 항목이 없다.</p>`;
+  return items.map(s => `
+    <div class="alert ${s.status === "blocked" ? "stop" : ""}">
+      <span class="ic">${s.status === "blocked" ? "■" : "!"}</span>
+      <div>
+        <b>${esc(s.domain ?? "전역")} · ${esc(s.stage)}</b>
+        ${esc(s.humanNote || s.summary)}
+        <div class="who">${esc(s.agent)} · ${esc((s.at ?? "").slice(0,16).replace("T"," "))}</div>
+      </div>
+    </div>`).join("");
+}
+
+function candidateTable(run, domains){
+  const c = run.candidates ?? [];
+  if(!c.length) return `<p class="muted">아직 수집된 후보가 없다.</p>`;
+  const dm = Object.fromEntries(domains.map(d=>[d.key,d]));
+  const verdictOf = t => (run.verdicts ?? []).find(v => v.candidate === t);
+  return `<table><thead><tr>
+      <th>도메인</th><th>후보</th><th>이례</th><th>인과</th><th>검증</th><th>합계</th><th>판정</th><th>사유</th>
+    </tr></thead><tbody>` + c.map(x => {
+    const v = verdictOf(x.title);
+    const tot = x.score?.total ?? 0;
+    const badge = v ? `<span class="pill ${v.verdict==="pass"?"p-pass":"p-fail"}">${v.verdict==="pass"?"통과":"탈락"}</span>`
+      : tot < 4 ? `<span class="pill p-fail">결번</span>`
+      : x.recommended ? `<span class="pill p-watch">검증 대기</span>` : `<span class="pill p-watch">미추천</span>`;
+    const why = x.rejectReason || v?.failedOn?.length ? esc(x.rejectReason || v.checks?.[v.failedOn[0]]?.detail || "") : "";
+    return `<tr>
+      <td><span class="dot" style="display:inline-block;background:${dm[x.domain]?.color ?? "#666"};margin-right:6px"></span>${esc(dm[x.domain]?.name ?? x.domain)}</td>
+      <td><b>${esc(x.title)}</b><div class="muted">${esc(x.metric?.value ?? "")}</div></td>
+      <td class="score">${x.score?.anomaly ?? "–"}</td>
+      <td class="score">${x.score?.cause ?? "–"}</td>
+      <td class="score">${x.score?.verify ?? "–"}</td>
+      <td class="score" style="color:${tot>=4?"var(--ok)":"var(--err)"}">${tot}</td>
+      <td>${badge}</td>
+      <td class="muted">${why}</td>
+    </tr>`;
+  }).join("") + `</tbody></table>
+  <p class="muted" style="margin-top:10px">3조건 합계 4점 미만이거나 0점 항목이 있으면 결번이다 — <code>CLAUDE.md §4.2</code></p>`;
+}
+
+function lessonsSection(lessons, runs){
+  const S = { "자동화":"auto", "수동":"manual", "관찰":"watch" };
+  const cnt = { 자동화:0, 수동:0, 관찰:0 };
+  lessons.forEach(l => { if(cnt[l.상태] !== undefined) cnt[l.상태]++; });
+  const total = lessons.length || 1;
+  const rate = Math.round(cnt.자동화 / total * 100);
+
+  // 적용 횟수 집계 (전 회차)
+  const applied = {};
+  for(const r of runs) for(const s of [...(r.stages??[]), ...(r.verdicts??[])])
+    for(const id of (s.lessonsApplied ?? [])) applied[id] = (applied[id] ?? 0) + 1;
+
+  const pct = k => (cnt[k] / total * 100).toFixed(1);
+  const grad = lessons
+    .filter(l => l.상태 !== "자동화")
+    .map(l => ({ ...l, n: applied[l.id] ?? 0 }))
+    .sort((a,b) => b.n - a.n);
+
+  return `
+  <div class="cards" style="margin-bottom:18px">
+    <div class="card"><div class="k">자동화율</div><div class="v" style="color:${rate>=70?"var(--ok)":rate>=40?"var(--warn)":"var(--err)"}">${rate}%</div>
+      <div class="d">${cnt.자동화} / ${lessons.length}건이 기계로 막힌다</div></div>
+    <div class="card"><div class="k">졸업 대기</div><div class="v">${cnt.수동}</div>
+      <div class="d">규칙은 있으나 사람이 확인해야 한다</div></div>
+    <div class="card"><div class="k">관찰 중</div><div class="v">${cnt.관찰}</div>
+      <div class="d">사례가 부족해 규칙화 전 단계</div></div>
+  </div>
+
+  <div class="bar">
+    <i style="width:${pct("자동화")}%;background:var(--ok)"></i>
+    <i style="width:${pct("수동")}%;background:var(--warn)"></i>
+    <i style="width:${pct("관찰")}%;background:var(--idle)"></i>
+  </div>
+  <div class="legend">
+    <span><i style="background:var(--ok)"></i>자동화 ${cnt.자동화}</span>
+    <span><i style="background:var(--warn)"></i>수동 ${cnt.수동}</span>
+    <span><i style="background:var(--idle)"></i>관찰 ${cnt.관찰}</span>
+  </div>
+
+  <h2 style="margin-top:26px">졸업 후보 — 적용 횟수 순</h2>
+  <table><thead><tr><th>ID</th><th>제목</th><th>분류</th><th>상태</th><th>적용</th><th>탐지</th></tr></thead><tbody>
+  ${grad.map(l => `<tr>
+    <td><code>${esc(l.id)}</code></td>
+    <td><b>${esc(l.title)}</b><div class="muted">${md(l.규칙 ?? "")}</div></td>
+    <td>${esc(l.분류 ?? "")}</td>
+    <td><span class="pill p-${S[l.상태] ?? "watch"}">${esc(l.상태 ?? "")}</span></td>
+    <td class="score">${l.n}회</td>
+    <td class="muted">${md(l.탐지 ?? "")}</td>
+  </tr>`).join("")}
+  </tbody></table>
+  <p class="muted" style="margin-top:10px">적용 횟수가 많은 <b>수동</b> 항목일수록 자동화 가치가 크다.
+  <code>az-retro</code>가 매주 이 순위로 졸업 후보를 고른다 — <code>AGENTS.md §6</code></p>`;
+}
+
+/* ---------- 부팅 ---------- */
+(async () => {
+  let reg, lessons, runFiles = [];
+  try {
+    reg = await grab("domains/registry.json");
+    lessons = parseLessons(await grab("LESSONS.md", true));
+  } catch(e) {
+    $("src").textContent = "";
+    $("app").innerHTML = `<div class="err">
+      <b>저장소 파일을 읽지 못했다.</b> — ${esc(e.message)}<br><br>
+      로컬 파일(<code>file://</code>)로 열면 브라우저가 보안상 fetch를 막는다. 둘 중 하나로 연다.
+      <ul style="margin:10px 0 0;padding-left:20px;line-height:1.9">
+        <li>GitHub Pages 주소로 접속 — <code>https://&lt;계정&gt;.github.io/answer-zine/tools/dashboard.html</code></li>
+        <li>저장소 폴더에서 <code>python3 -m http.server 8000</code> 실행 후
+            <code>localhost:8000/tools/dashboard.html</code></li>
+      </ul></div>`;
+    return;
+  }
+
+  // runs 탐색 — 정적 호스팅에는 디렉터리 목록이 없다.
+  // qa.mjs가 만드는 runs/index.json을 쓰고, 없으면 최근 주차를 훑는다.
+  let weeks = [];
+  try { weeks = (await grab("runs/index.json")).weeks ?? []; }
+  catch {
+    const [yy, ww] = (reg.version.match(/(\d{4})-w(\d+)/) ?? [null, "2026", "32"]).slice(1);
+    for (let i = 0; i < 12; i++) {
+      const n = Number(ww) - i;
+      if (n < 1) break;
+      weeks.push(`${yy}-w${String(n).padStart(2, "0")}`);
+    }
+  }
+  for (const w of weeks) {
+    try { runFiles.push(await grab(`runs/${w}.json`)); } catch {}
+  }
+
+  const domains = reg.domains.filter(d => d.status === "active").sort((a,b)=>(a.order??99)-(b.order??99));
+  $("src").textContent = `● 저장소 · 레지스트리 ${reg.version} · 실행 로그 ${runFiles.length}개 · 교훈 ${lessons.length}건`;
+  $("src").style.color = "var(--ok)";
+
+  $("weekSel").innerHTML = runFiles.length
+    ? runFiles.map((r,i) => `<option value="${i}">${r.week}</option>`).join("")
+    : `<option>회차 없음</option>`;
+
+  function render(){
+    const run = runFiles[Number($("weekSel").value) || 0];
+    if(!run){
+      $("app").innerHTML = `<p class="muted">실행 로그가 없다. <code>runs/YYYY-wNN.json</code>을 만들면 여기에 뜬다 —
+        형식은 <code>runs/README.md</code>.</p>` +
+        `<section><h2>학습 현황</h2>${lessonsSection(lessons, runFiles)}</section>`;
+      return;
+    }
+    const need = (run.stages ?? []).filter(s => s.needsHuman || s.status === "blocked").length;
+    const done = (run.stages ?? []).filter(s => s.status === "done").length;
+    const passed = (run.verdicts ?? []).filter(v => v.verdict === "pass").length;
+
+    $("app").innerHTML = `
+      ${run.seeded ? `<div class="alert"><span class="ic">i</span><div><b>형식 예시 데이터</b>
+        ${esc(run.note ?? "")}</div></div>` : ""}
+
+      <section>
+        <h2>이번 주 — ${esc(run.week)} · ${esc(run.range ?? "")}</h2>
+        <div class="cards">
+          <div class="card"><div class="k">상태</div><div class="v" style="font-size:18px;padding-top:6px">${
+            run.status === "done" ? "완료" : run.status === "blocked" ? "중단" : "진행 중"}</div>
+            <div class="d">완료 단계 ${done}개</div></div>
+          <div class="card"><div class="k">사람 대기</div>
+            <div class="v" style="color:${need?"var(--warn)":"var(--ok)"}">${need}</div>
+            <div class="d">${need ? "아래 항목을 확인해야 진행된다" : "막힌 것이 없다"}</div></div>
+          <div class="card"><div class="k">후보</div><div class="v">${(run.candidates??[]).length}</div>
+            <div class="d">검증 통과 ${passed}건</div></div>
+          <div class="card"><div class="k">활성 도메인</div><div class="v">${domains.length}</div>
+            <div class="d">진 슬롯 리드 ${reg.zineLayout.leadSlots} + 미니 ${reg.zineLayout.miniSlots}</div></div>
+        </div>
+      </section>
+
+      <section><h2>사람 판단 대기</h2>${alerts(run)}</section>
+      <section><h2>파이프라인</h2>${pipelineGrid(domains, run)}</section>
+      <section><h2>후보와 판정</h2>${candidateTable(run, domains)}</section>
+      <section><h2>학습 현황</h2>${lessonsSection(lessons, runFiles)}</section>`;
+  }
+
+  $("weekSel").onchange = render;
+  render();
+})();
+</script>
+</body>
+</html>
