@@ -96,10 +96,10 @@ test("page는 OG 태그와 canonical을 넣는다", () => {
   assert.match(html, /rel="icon"/);
 });
 
-test("page는 첫 페인트 전에 진입 화면 세션 판정을 적용한다", () => {
+test("page는 첫 페인트 전에 부트 스크립트로 .js를 붙인다", () => {
   const html = page({ title: "t", description: "d", url: "/", content: "" });
   const headEnd = html.indexOf("</head>");
-  const bootScript = html.indexOf("sessionStorage");
+  const bootScript = html.indexOf('className+=" js"');
   assert.ok(bootScript > -1 && bootScript < headEnd, "부트 스크립트가 head 안에 있어야 한다");
 });
 

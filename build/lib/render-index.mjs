@@ -9,7 +9,6 @@ import { h, raw } from "./html.mjs";
 import { u } from "./site.mjs";
 import { blocksOf, parseRange, issueNeighbors, issueLabel } from "./data.mjs";
 import { dateline, SITE } from "./layout.mjs";
-import { renderZinePage } from "./render-zine.mjs";
 
 const tag = (s) =>
   h`<span class="domain-tag" style="--dc: var(--dc-${raw(s.slug)})">${s.domain}</span>`;
@@ -27,25 +26,10 @@ const rowBlock = (s) => h`<article class="row" data-reveal data-domain="${s.slug
   </a>
 </article>`;
 
-/* 홈 필터 탭에는 안 올린다 — 기존 스토리·도메인 데이터는 그대로 두고
-   목록 UI에서만 뺀다 (registry.json은 건드리지 않는다). */
-const HIDDEN_FILTERS = new Set(["뉴스", "OTT", "여행"]);
-
-/* 원본 프로토타입은 아카이브 밑에 A4 인쇄 지면의 축소 미리보기를 실제로 보여줬다.
-   지금 홈은 "인쇄용 A4" 버튼으로 별도 페이지(/print/)에 링크만 걸어서, 뭘 인쇄하는지
-   클릭 전엔 안 보였다. 여기서 같은 렌더러(renderZinePage)로 실물 지면을 만들고
-   축소해 붙인다 — 정본은 하나(render-zine.mjs)고 홈은 그걸 작게 보여줄 뿐이다. */
-function zinePreviewEmbed(latest, stories, registry) {
-  const z = renderZinePage(latest, stories, registry);
-  if (!z.lead) return "";
-  return h`<section class="zine-thumb-wrap" data-reveal>
-  <p class="label">인쇄용 요약 페이지 (A4)</p>
-  <p class="zine-thumb-note">카페 등에 배포할 실물 진이다. QR로 웹의 전체 글로 이어진다.</p>
-  <a class="zine-thumb-link" href="${u(`/${latest.issue}/print/`)}" aria-label="인쇄용 A4 페이지 열기">
-    <div class="zine-thumb">${raw(z.content)}</div>
-  </a>
-</section>`;
-}
+/* 홈 필터 탭에는 안 올린다 — 뉴스·여행은 데이터가 아직 안 읽혀서 UI에서만 뺐다
+   (registry.json은 그대로). OTT는 registry.json에서 status를 dormant로 내려
+   이미 활성 도메인 목록에서 빠지므로 여기 다시 적을 필요가 없다. */
+const HIDDEN_FILTERS = new Set(["뉴스", "여행"]);
 
 export function renderIndex(issues, stories, registry) {
   const latest = issues[0];
@@ -70,8 +54,6 @@ export function renderIndex(issues, stories, registry) {
 
   ${latest ? raw(h`<p style="margin-top:40px"><a class="btn" href="${u(`/${latest.issue}/`)}">이번 호 전체 보기</a>
     <a class="btn" href="${u(`/${latest.issue}/print/`)}" style="margin-left:8px">인쇄용 A4</a></p>`) : ""}
-
-  ${latest ? raw(zinePreviewEmbed(latest, stories, registry)) : ""}
 </main>`;
 
   return {
@@ -80,6 +62,7 @@ export function renderIndex(issues, stories, registry) {
     content,
     noindex: false,
     printUrl: latest ? `/${latest.issue}/print/` : null,
+    showIntro: true,
   };
 }
 
@@ -105,6 +88,7 @@ export function renderIssue(issue, stories, registry, issues = [issue]) {
   const mine = stories.filter((s) => s.issue.issue === issue.issue);
 
   const content = h`<main class="shell">
+  <a class="back-link" href="${u("/")}">← 아카이브로</a>
   ${raw(issuePager(issue, issues))}
 
   <p class="dateline" style="margin-top:24px">${dateline(issue.range)}</p>

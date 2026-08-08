@@ -74,6 +74,7 @@ export function renderStory(story, { prev, next } = {}) {
       : h`<div class="nav-label" style="opacity:.4">${kind === "prev" ? "← 이전 회차 없음" : "다음 회차 없음 →"}</div>`;
 
   const content = h`<main class="shell" style="${raw(dcVar(story))}">
+  <a class="back-link" href="${u(`/${story.issue.issue}/`)}">← 목록으로</a>
   <article class="story">
     <header class="story-head" data-reveal>
       <p class="meta"><span class="domain-tag">${story.domain}</span> · ${story.range}${story.draft ? raw(' <span class="draft-flag">작업 중</span>') : ""}</p>

@@ -28,6 +28,12 @@
 | 써클차트(구 가온차트) | 국내 통합 집계 교차 확인 |
 | 유튜브 뮤직 / 스포티파이 국내 차트 | 플랫폼 편향 여부 확인 |
 | 아티스트 공식 채널·SNS | 계기의 날짜 특정 |
+| 한터차트(`hanteochart.com`) | 음반 실물 판매량 — primary, archived. 케이팝 실 구매의 핵심 지표. `sourceUrl`로 쓸 수 있다 |
+| 지니뮤직(`geniemusic.co.kr`) | 실시간·일간·주간 음원 차트. secondary — genie.co.kr과 같은 서비스의 다른 도메인 |
+| Spotify for Artists(`artists.spotify.com`, 해외) | 아티스트 로그인 전용이라 독자가 확인할 수 없다 — `sourceUrl` 불가 |
+| 가이섬(`guyso.me`) | 멜론 주간 차트 아카이브. 기존 `xn--o39an51b2re.com`과 같은 서비스로 보인다 — conditional 4조건 그대로 적용 |
+
+(2026-08-07 사용자 제공 화이트리스트로 등록. `sources/whitelist.json` 참고)
 
 ### 이 도메인의 고유 자산 — 검색량
 

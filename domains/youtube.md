@@ -72,6 +72,15 @@
 개인 블로그, 커뮤니티 글, 인플루언서 주장, 매장 직원의 구두 발언.
 매장 직원 발언은 **본문의 정황 묘사로는 쓸 수 있지만 `sourceUrl`이 될 수 없다.**
 
+### 계기 측 보조 출처 (2026-08-07 등록)
+
+| 출처 | 등급 | 용도 |
+|---|---|---|
+| YouTube Data API(`developers.google.com`) | primary, archived | 영상 게시일·조회수 공식 조회. `tools/collect.mjs`에 아직 자동 어댑터가 없어 사람이 콘솔에서 직접 확인한다. 조회수는 여전히 `evidence_only`와 같은 취급 — 결과 측 증거는 못 된다 |
+| 플레이보드·녹스인플루언서·Social Blade·블링·vidIQ | secondary, snapshot | 3rd-party 추정 랭킹. `sourceUrl`로 못 쓴다 — 계기 특정의 정황 참고용 |
+
+(`sources/whitelist.json` 참고. 결과 측 1차 출처는 여전히 §2·§8의 구조적 한계를 벗어나지 못했다.)
+
 ---
 
 ## 3. 이례 판정

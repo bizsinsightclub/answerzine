@@ -152,14 +152,15 @@
       "contrastPaper": 4.6,
       "contrastPass": true,
       "doc": "domains/ott.md",
-      "status": "active",
+      "status": "dormant",
       "order": 7,
       "anchorType": "국내 공개일",
       "primarySources": [
         "netflix.com"
       ],
       "warning": "국가별 표에는 순위와 톱10 체류 주차만 있다. 시청시간(hours viewed)은 글로벌 표에만 있으므로 국내 서사에 쓰지 않는다. 티빙·웨이브·쿠팡플레이는 수치를 공개하지 않으니 기사에 반드시 플랫폼을 명시한다.",
-      "note": "Tudum이 전 국가·전 주차 누적 TSV를 공개한다(all-weeks-countries.tsv). 이 저장소에서 시계열 재현성이 가장 높은 출처이고, 추세선을 그려도 되는 몇 안 되는 도메인이다. 기준선은 domains/ott.md §3에서 이 파일로 직접 계산한다."
+      "note": "Tudum이 전 국가·전 주차 누적 TSV를 공개한다(all-weeks-countries.tsv). 이 저장소에서 시계열 재현성이 가장 높은 출처이고, 추세선을 그려도 되는 몇 안 되는 도메인이다. 기준선은 domains/ott.md §3에서 이 파일로 직접 계산한다.",
+      "dormantReason": "2026-08-07 사용자 요청으로 게재 중단 — 데이터가 안 읽혀서가 아니라 편집 결정이다. 데이터는 여전히 가장 재현성이 높다(§note). 되돌리려면 status를 active로만 바꾸면 된다."
     },
     {
       "key": "travel",

@@ -8,8 +8,6 @@
 (function () {
   "use strict";
 
-  var root = document.documentElement;
-
   /* ── 도메인 필터 ── */
   function applyFilter(key) {
     var items = document.querySelectorAll("[data-domain]:not(button)");
@@ -52,30 +50,44 @@
 
   /* ── 진입 화면 ──
      로고 → 스테이트먼트 → 본문 섹션은 문서 흐름 안에 그냥 있다 (CSS 100svh + 스크롤).
-     JS가 하는 일은 하나뿐이다 — 본문(#main-content)에 닿으면 "이번 세션엔 이미
-     봤다"는 표시를 남겨서, 같은 세션의 다음 페이지부터는 건너뛰게 한다. */
+     홈에서만 나오고, 세션에 한 번 봤다고 건너뛰지 않는다 — 뒤로 가기로 돌아와도
+     매번 다시 보인다. */
   function prefersReduce() {
     return !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
   }
 
-  function markIntroSeen() {
-    try { sessionStorage.setItem("az-intro", "1"); } catch (e) {}
-  }
+  function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
 
-  function bootIntro() {
-    var main = document.getElementById("main-content");
-    if (!main) return;
-    if (root.className.indexOf("intro-done") !== -1) { markIntroSeen(); return; }
+  /* 로고 화면이 옅어지며 살짝 커지고, 스테이트먼트가 옅은 확대 상태에서 제자리로
+     줄어들며 나타난다 — 스크롤에 맞춰 두 섹션을 크로스페이드하는 장치다.
+     스크립트가 없거나 동작 최소화 환경이면 그냥 각자 100vh를 채운 채 스크롤된다. */
+  function bootIntroMotion() {
+    var introEl = document.getElementById("intro");
+    var stateEl = document.getElementById("statement");
+    var introInner = introEl && introEl.querySelector(".intro-inner");
+    var stateInner = stateEl && stateEl.querySelector(".statement-inner");
+    if (!introEl || !stateEl || !introInner || !stateInner || prefersReduce()) return;
 
-    if (!("IntersectionObserver" in window)) { markIntroSeen(); return; }
-    var io = new IntersectionObserver(function (entries) {
-      for (var i = 0; i < entries.length; i++) {
-        if (!entries[i].isIntersecting) continue;
-        markIntroSeen();
-        io.disconnect();
-      }
-    }, { threshold: 0 });
-    io.observe(main);
+    // 섹션(솔리드 배경)은 그대로 두고 안쪽 콘텐츠만 조절한다 — 그래야 배경이
+    // 옅어지며 body 배경이 비쳐 보이는 일 없이 깔끔하게 크로스페이드된다.
+    var raf = null;
+    function update() {
+      raf = null;
+      var vh = window.innerHeight || document.documentElement.clientHeight;
+
+      var p = clamp(-introEl.getBoundingClientRect().top / vh, 0, 1);
+      introInner.style.opacity = String(1 - p);
+      introInner.style.transform = "scale(" + (1 + p * 0.08) + ")";
+
+      var q = clamp(1 - stateEl.getBoundingClientRect().top / vh, 0, 1);
+      stateInner.style.opacity = String(q);
+      stateInner.style.transform = "scale(" + (1.06 - q * 0.06) + ")";
+    }
+    function onScroll() { if (raf === null) raf = requestAnimationFrame(update); }
+
+    update();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
   }
 
   /* ── 스테이트먼트 CTA 페이드 ──
@@ -135,7 +147,7 @@
   }
 
   /* ── 초기화 ── */
-  bootIntro();
+  bootIntroMotion();
   bootStatementFade();
   bootReveal();
 

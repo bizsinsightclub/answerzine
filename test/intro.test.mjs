@@ -10,8 +10,11 @@ import assert from "node:assert/strict";
 import { page } from "../build/lib/layout.mjs";
 import { stylesheet } from "../build/lib/css.mjs";
 
-const html = page({
-  title: "테스트", description: "설명", url: "/", content: "<main>본문</main>",
+const home = page({
+  title: "테스트", description: "설명", url: "/", content: "<main>본문</main>", showIntro: true,
+});
+const story = page({
+  title: "스토리", description: "설명", url: "/2026-w31/book/", content: "<main>본문</main>",
 });
 const print = page({
   title: "인쇄", description: "설명", url: "/x/print/", content: "<main>지면</main>",
@@ -19,15 +22,21 @@ const print = page({
 });
 const css = stylesheet([{ key: "book", color: "#34C759", colorPaper: "#217E38" }]);
 
-test("진입 화면은 마크업으로 심긴다 — 첫 페인트에 로고가 이미 있다", () => {
-  assert.match(html, /class="intro"/);
-  assert.match(html, /id="statement"/);
+test("진입 화면은 홈에서만 마크업으로 심긴다 — 첫 페인트에 로고가 이미 있다", () => {
+  assert.match(home, /class="intro"/);
+  assert.match(home, /id="statement"/);
+});
+
+test("진입 화면은 issue·story 페이지에는 없다 — 마스트헤드부터 바로 시작한다", () => {
+  assert.ok(!story.includes('class="intro"'), "story 페이지에 진입 화면이 들어갔다");
+  assert.ok(!story.includes('id="statement"'), "story 페이지에 스테이트먼트가 들어갔다");
+  assert.match(story, /class="site-header/, "story 페이지에 마스트헤드는 있어야 한다");
 });
 
 test("진입 화면은 문서 흐름 안에 있다 — 스크립트 없이도 스크롤·앵커로 본문에 닿는다", () => {
-  assert.match(html, /class="intro-scroll" href="#statement"/);
-  assert.match(html, /class="statement-cta" href="#main-content"/);
-  assert.match(html, /id="main-content"/);
+  assert.match(home, /class="intro-scroll" href="#statement"/);
+  assert.match(home, /class="statement-cta" href="#main-content"/);
+  assert.match(home, /id="main-content"/);
 });
 
 test("인쇄 지면에는 진입 화면이 붙지 않는다", () => {
@@ -35,8 +44,10 @@ test("인쇄 지면에는 진입 화면이 붙지 않는다", () => {
   assert.ok(!print.includes('id="main-content"'), "인쇄 페이지에 main-content 래퍼가 들어갔다");
 });
 
-test("이미 본 세션이면 진입 화면을 그리지 않는다", () => {
-  assert.match(css, /\.intro-done\s+\.intro,\s*\.intro-done\s+\.statement-wrap\s*\{\s*display:\s*none/);
+test("세션 판정으로 진입 화면을 건너뛰지 않는다 — 홈에 돌아올 때마다 다시 보인다", () => {
+  assert.ok(!css.includes("intro-done"), "진입 화면을 숨기는 세션 판정이 CSS에 남아 있다");
+  const head = home.slice(0, home.indexOf("</head>"));
+  assert.ok(!head.includes("sessionStorage"), "부트 스크립트에 세션 판정이 남아 있다");
 });
 
 test("등장 애니메이션은 .js가 붙은 문서에서만 숨긴다", () => {
@@ -49,14 +60,10 @@ test("등장 애니메이션은 .js가 붙은 문서에서만 숨긴다", () => 
   }
 });
 
-test("부트 스크립트가 첫 페인트 전에 .js와 진입 화면 세션 판정을 정한다", () => {
-  const head = html.slice(0, html.indexOf("</head>"));
-  assert.match(head, /r\.className\s*\+=\s*" js"/);
-  // 다크/라이트 토글이 없으니 테마 판정은 없다.
+test("부트 스크립트가 첫 페인트 전에 .js를 정한다", () => {
+  const head = home.slice(0, home.indexOf("</head>"));
+  assert.match(head, /className\s*\+=\s*" js"/);
   assert.ok(!head.includes("az-theme"), "테마 토글이 남아 있다");
-  // 두 번째 페이지부터 진입 화면을 다시 지나가지 않으려면 세션 판정도 head에서 끝나야 한다.
-  assert.match(head, /az-intro/);
-  assert.match(head, /intro-done/);
 });
 
 test("인쇄에서는 진입 화면이 숨고 등장 상태가 강제로 풀린다", () => {

@@ -1,31 +1,58 @@
 {
   "week": "2026-w31",
   "range": "2026.07.28 – 08.03",
-  "status": "in_progress",
-  "note": "빌드 파이프라인 도입 후 첫 실행. 영화 편은 KOBIS 오픈API로 4주치 일별 데이터를 직접 합산해 채점했다. 유튜브 편은 기존 draft에 있던 것을 S3에서 탈락시켰다.",
-
+  "status": "done",
+  "note": "빌드 파이프라인 도입 후 첫 실행. 영화 편은 KOBIS 오픈API로 4주치 일별 데이터를 직접 합산해 채점했다. 유튜브 편은 기존 draft에 있던 것을 S3에서 탈락시켰다. || 2026-08-08: 톤 벤치마크 도입에 따라 3편 전면 재집필(위 stage 참고).",
   "candidates": [
     {
       "domain": "movie",
       "title": "〈토이 스토리 5〉",
-      "metric": { "label": "6주 차 스크린당 관객수", "value": "+9.9%", "trend": [408, 287, 165, 182] },
+      "metric": {
+        "label": "6주 차 스크린당 관객수",
+        "value": "+9.9%",
+        "trend": [
+          408,
+          287,
+          165,
+          182
+        ]
+      },
       "sourceUrl": "https://www.kobis.or.kr/kobis/business/stat/boxs/findDailyBoxOfficeList.do",
       "anchorDate": "2026-06-17",
       "anchorSourceUrl": "https://www.kobis.or.kr/kobis/business/stat/boxs/findDailyBoxOfficeList.do",
       "cause": "7월 29일 대작 개봉으로 상영관 재배분 — 평균 스크린 550 → 391 (-29.0%), 상영 회차 5,978 → 3,590 (-40.0%)",
-      "score": { "anomaly": 2, "cause": 2, "verify": 2, "total": 6 },
+      "score": {
+        "anomaly": 2,
+        "cause": 2,
+        "verify": 2,
+        "total": 6
+      },
       "scoreReason": "이례성 2점 — 6주 차 관객 감소율 -21.9%로 업계 통상 -35%의 절반 수준이고, 스크린이 29% 줄어든 역풍 속의 값이다. 스크린당 관객수는 개봉 후 처음으로 +9.9% 증가해 domains/movie.md §3의 '상영관 확대' 오탐이 아님을 반증했다. 인과 2점 — 계기인 대작 개봉일이 KOBIS openDt로 2026-07-29까지 특정된다. 검증 2점 — 관객수·스크린수·상영횟수·개봉일이 전부 KOBIS 전수 집계에서 나온다.",
       "recommended": true
     },
     {
       "domain": "book",
       "title": "〈투명한 나선〉",
-      "metric": { "label": "주간 판매량 지수", "value": "+326.5%", "trend": [98, 101, 100, 426] },
+      "metric": {
+        "label": "주간 판매량 지수",
+        "value": "+326.5%",
+        "trend": [
+          98,
+          101,
+          100,
+          426
+        ]
+      },
       "sourceUrl": "https://www.yes24.com/24/category/bestseller",
       "anchorDate": "2026-07-27",
       "anchorSourceUrl": "https://www.asiae.co.kr/article/2026072718535728070",
       "cause": "7월 23일 별세, 27일 출판사 부고 공표",
-      "score": { "anomaly": 2, "cause": 2, "verify": 1, "total": 5 },
+      "score": {
+        "anomaly": 2,
+        "cause": 2,
+        "verify": 1,
+        "total": 5
+      },
       "scoreReason": "이례성 2점 — 직전 3주 지수 98~101 범위에서 426으로 명백히 이탈. 인과 2점 — 부고 공표일이 아시아경제 기사로 2026-07-27까지 특정된다. 검증 1점 — 계기는 확인됐으나 +326.5% 수치를 예스24 주간 아카이브에서 재확인하지 못했다. 사람이 눈으로 확인해야 한다.",
       "recommended": true,
       "correction": "기존 draft의 anchorDate는 2026-07-23(별세일)이었다. 판매를 움직인 계기는 사망 자체가 아니라 공표이므로 2026-07-27로 고쳤다. 본문의 '나흘 뒤'도 부고 공표 시점을 가리키도록 바로잡았다."
@@ -33,12 +60,26 @@
     {
       "domain": "youtube",
       "title": "여름 정리용품 숏폼",
-      "metric": { "label": "영상 확산 후 매장 문의·구매 지수", "value": "24시간 내 최대 15배", "trend": [100, 340, 890, 1500] },
+      "metric": {
+        "label": "영상 확산 후 매장 문의·구매 지수",
+        "value": "24시간 내 최대 15배",
+        "trend": [
+          100,
+          340,
+          890,
+          1500
+        ]
+      },
       "sourceUrl": "https://www.asiae.co.kr/article/2026072815185250430",
       "anchorDate": "2026-07-25",
       "anchorSourceUrl": "",
       "cause": "15초 숏폼 확산",
-      "score": { "anomaly": 0, "cause": 0, "verify": 0, "total": 0 },
+      "score": {
+        "anomaly": 0,
+        "cause": 0,
+        "verify": 0,
+        "total": 0
+      },
       "scoreReason": "원문 기사를 열어 확인한 결과, '24시간 내 최대 15배'라는 수치도 그 출처 기관도 기사에 없다. 매장 직원의 정황 진술만 있다. 영상 게시일도 특정되지 않아 기준일을 세울 수 없다.",
       "recommended": false,
       "rejectReason": "sources/whitelist.json의 conditional 등급 조건 미충족 — '수치의 출처 기관이 기사 안에 명시된 경우에만 sourceUrl 허용'. 결과 측 수치가 어디서도 확인되지 않는다. domains/youtube.md §2의 '조회수는 봤다의 증거이지 샀다의 증거가 아니다'에도 걸린다."
@@ -46,64 +87,114 @@
     {
       "domain": "music",
       "title": "(후보 없음)",
-      "metric": { "label": "", "value": "", "trend": [] },
+      "metric": {
+        "label": "",
+        "value": "",
+        "trend": []
+      },
       "sourceUrl": "https://www.melon.com/chart/index.htm",
       "anchorDate": "",
       "anchorSourceUrl": "",
       "cause": "",
-      "score": { "anomaly": 0, "cause": 0, "verify": 0, "total": 0 },
+      "score": {
+        "anomaly": 0,
+        "cause": 0,
+        "verify": 0,
+        "total": 0
+      },
       "scoreReason": "멜론 차트는 현재 시점 스냅숏만 제공한다. 집계 기간(07.28–08.03)의 순위를 재현할 수 없어 이례 판정 자체가 불가능하다.",
       "recommended": false,
       "rejectReason": "지난 주 차트 스냅숏 확보 실패. 주간 실행 시에는 그 주에 수집해야 한다 — 사후 재현이 안 되는 출처다."
     }
   ],
-
   "verdicts": [
     {
       "candidate": "〈토이 스토리 5〉",
       "verdict": "pass",
       "rebuttalAttempted": "① 스크린 확대로 인한 착시인가 — 반대였다. 스크린이 29% 줄었다. ② 개봉일이 맞는가 — KOBIS openDt 2026-06-17, 집계 시작일 07-28보다 앞선다. 주차 검산 (07-28 − 06-17) ÷ 7 + 1 = 6주 차로 본문 표기와 일치. ③ 유료 시사회 데이터가 섞였는가 — 개봉 6주 차라 해당 없음. 같은 주 〈오디세이〉·〈사랑의 하츄핑〉은 openDt 08-05인데 집계 기간에 관객수가 찍혀 있어(유료 시사회) 주차가 음수로 계산됐다. 두 편 모두 후보에서 제외했다. ④ 공휴일 왜곡인가 — 비교 대상 4주 모두 공휴일 없음. ⑤ 다른 작품도 같았는가 — 같은 주 〈모아나〉는 스크린당 -12.9%로 함께 하락했다. 반증 실패.",
       "failedOn": [],
-      "lessonsApplied": ["L-001", "L-007"]
+      "lessonsApplied": [
+        "L-001",
+        "L-007"
+      ]
     },
     {
       "candidate": "〈투명한 나선〉",
       "verdict": "pass",
       "rebuttalAttempted": "① 별세일과 공표일이 다른가 — 다르다. 별세 07-23, 공표 07-27. 계기는 공표이므로 기준일을 07-27로 정정했다. ② 기준일이 집계 시작일보다 앞서는가 — 07-27 < 07-28, 통과. ③ 출처가 국내 시장인가 — 아시아경제 KR, 예스24 KR. ④ +326.5% 수치를 재확인했는가 — 못 했다. 예스24는 현재 순위만 노출한다. 이 항목은 사람 확인 대기로 남긴다.",
       "failedOn": [],
-      "lessonsApplied": ["L-001"]
+      "lessonsApplied": [
+        "L-001"
+      ]
     },
     {
       "candidate": "여름 정리용품 숏폼",
       "verdict": "fail",
       "rebuttalAttempted": "원문 기사(아시아경제 2026072815185250430)를 직접 열어 본문을 확인했다. 수치·출처 기관·영상 게시일 셋 다 없다. 매장 직원 진술만 있다.",
-      "failedOn": ["출처 등급 조건 미충족", "기준일 특정 불가", "결과 측 수치 미확인"],
-      "lessonsApplied": ["L-004"]
+      "failedOn": [
+        "출처 등급 조건 미충족",
+        "기준일 특정 불가",
+        "결과 측 수치 미확인"
+      ],
+      "lessonsApplied": [
+        "L-004"
+      ]
     }
   ],
-
   "stages": [
     {
-      "stage": "S1+S2", "agent": "az-scout", "domain": "movie", "status": "done",
+      "stage": "S1+S2",
+      "agent": "az-scout",
+      "domain": "movie",
+      "status": "done",
       "note": "KOBIS 오픈API로 07.07~08.03 일별 데이터 28일치를 수집해 회차 집계 기간(화~월)에 맞춰 직접 합산했다. 주간 API는 월~일 고정이라 기간이 어긋난다.",
-      "lessonsApplied": ["L-007"]
+      "lessonsApplied": [
+        "L-007"
+      ]
     },
     {
-      "stage": "S3", "agent": "az-verify", "status": "done",
+      "stage": "S3",
+      "agent": "az-verify",
+      "status": "done",
       "note": "유튜브 편 탈락. 기존 draft에 실려 있던 수치가 원문에 없다는 것을 확인했다.",
-      "lessonsApplied": ["L-001", "L-004"]
+      "lessonsApplied": [
+        "L-001",
+        "L-004"
+      ]
     },
     {
-      "stage": "S4+S5", "agent": "az-write", "domain": "movie", "status": "done",
+      "stage": "S4+S5",
+      "agent": "az-write",
+      "domain": "movie",
+      "status": "done",
       "note": "insight 개념은 '희소성 효과'. 최근 회차의 '사후 관심 효과'와 겹치지 않는다.",
       "lessonsApplied": []
     },
     {
-      "stage": "S6+S7", "agent": "az-editor", "status": "done",
+      "stage": "S6+S7",
+      "agent": "az-editor",
+      "status": "done",
       "needsHuman": true,
       "humanNote": "① 활성 도메인 4개 중 2개가 결번이다. CLAUDE.md §7.1에 따라 한 호로 낼지 판단이 필요하다. ② 도서 편의 +326.5%를 예스24에서 눈으로 확인해야 status를 ready로 올릴 수 있다. ③ 인쇄 진 미니 슬롯이 1개뿐이라 지면 하단이 비어 있다.",
       "note": "리드는 영화(6점), 미니는 도서(5점). qa.mjs ready 기준 실패 0건, build/verify.mjs 전 항목 통과(A4 1페이지 포함).",
-      "lessonsApplied": ["L-007"]
+      "lessonsApplied": [
+        "L-007"
+      ]
+    },
+    {
+      "stage": "S6+S7",
+      "agent": "claude (S1-S5 포함 전 과정 직접 수행, az-* 서브에이전트 미경유)",
+      "status": "done",
+      "needsHuman": false,
+      "note": "사용자 요청(2026-08-07/08)으로 톤매너를 voice.md 벤치마크로 바꾸고 영화·음악·도서 3편을 전면 재집필했다. 영화=스파이더맨: 브랜드 뉴 데이(7일 만에 400만, 뉴스1·KOBIS 인용), 음악=리센느 LOVE ATTACK(원인을 '거제 야호' 밈으로 구체화, 차트 데이터는 기존 runs/raw/2026-w27~31/guyso.json 재사용), 도서=히가시노 게이고(부고 2주 차, runs/raw/2026-w32/yes24.json을 이번 세션에서 직접 수집해 근거로 씀). 유튜브는 '거제 야호'가 거제 관광객 증가로 이어졌다는 보도(한국경제 등)가 있었으나, domains/youtube.md §2가 요구하는 결과 측 1차 출처를 직접 열어 확인하지 못해 결번 처리했다 — L-004.",
+      "caveat": "이번 세션은 샌드박스 네트워크 정책상 kobis.or.kr·news1.kr 등 다수 도메인에 WebFetch로 직접 접속하지 못했다(EGRESS_BLOCKED). WebSearch가 반환한 기사 발췌로 대체 확인했고, 자체 수집 가능한 값(yes24 예스24 베스트셀러, guyso 멜론 차트)은 tools/collect.mjs로 직접 떠서 근거로 남겼다. 다음 주 실행 시에는 정상적으로 sourceUrl을 열어 §S3 rule 2를 그대로 지킬 것 — L-015.",
+      "lessonsApplied": [
+        "L-004",
+        "L-005",
+        "L-011",
+        "L-015",
+        "L-017"
+      ]
     }
   ]
 }

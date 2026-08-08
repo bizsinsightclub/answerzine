@@ -128,6 +128,13 @@ const CHROME = `
 }
 .header-cta:hover { color: var(--ink); border-color: var(--ink); }
 
+/* 어디서 왔는지로 돌아가는 링크. 지면 맨 위, 헤드라인보다 먼저 온다. */
+.back-link {
+  display: inline-block; font-family: var(--sans); font-size: 13px; font-weight: 700;
+  letter-spacing: .02em; color: var(--secondary); text-decoration: none; margin-bottom: var(--s5);
+}
+.back-link:hover { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
+
 /* 굵은 선 + 가는 선 — 신문 마스트헤드 관용구 */
 .ruleline { border-top: 3px solid var(--rule); border-bottom: 1px solid var(--rule); height: 5px; margin: var(--s3) 0 0; }
 .dateline { font-family: var(--sans); font-size: 12px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--secondary); margin-bottom: var(--s6); }
@@ -285,21 +292,6 @@ const ZINE = `
 .zine-preview { max-width: 900px; margin: 0 auto; padding: var(--s7) var(--s4) var(--s9); }
 .zine-preview-cta { text-align: center; }
 
-/* 홈에 붙는 A4 지면 축소 미리보기. 실제 .zine-page를 그대로 그려 넣고 축소한다 —
-   손으로 다시 그린 썸네일이 아니라 진짜 지면이라 정본이 둘로 갈라지지 않는다. */
-.zine-thumb-wrap { margin-top: var(--s8); }
-.zine-thumb-note { font-size: 14px; color: var(--secondary); margin: 0 0 var(--s5); }
-.zine-thumb-link { display: block; text-decoration: none; max-width: 320px; }
-.zine-thumb {
-  aspect-ratio: 210 / 297; overflow: hidden; position: relative;
-  border: 1px solid var(--divider); border-radius: 8px; box-shadow: 0 6px 24px rgba(0,0,0,.14);
-}
-.zine-thumb .zine-page {
-  position: absolute; top: 0; left: 0; width: 210mm; min-height: 297mm;
-  transform: scale(.403); transform-origin: top left; box-shadow: none; margin: 0;
-}
-.zine-thumb-link:hover .zine-thumb { box-shadow: 0 8px 30px rgba(0,0,0,.2); }
-
 .zine-page {
   width: 210mm; min-height: 297mm; margin: 0 auto; padding: 8mm 10mm;
   background: var(--bg); color: var(--ink);
@@ -373,11 +365,13 @@ const ZINE = `
 `;
 
 /* ── 진입 화면 ──────────────────────────────────────────────
-   원본 프로토타입처럼 로고 → 스테이트먼트 → 본문 순으로 스크롤해 들어간다.
-   자동으로 걷히는 타이머 오버레이가 아니라 문서 흐름 안의 두 섹션이다 —
+   홈에서만 나온다 (issue·story 페이지는 마스트헤드부터 바로 시작한다).
+   원본 프로토타입처럼 로고 → 스테이트먼트 → 본문 순으로 스크롤해 들어가고,
+   세션에 한 번 봤다고 건너뛰지 않는다 — 홈으로 돌아올 때마다 다시 보인다.
+   자동으로 걷히는 타이머 오버레이가 아니라 문서 흐름 안의 두 섹션이라
    스크립트가 죽어도 그냥 스크롤하거나 링크를 누르면 다음 섹션이 나온다.
-   같은 세션에서 두 번째 페이지부터는 <head>의 부트 스크립트가 .intro-done을 걸어
-   둘 다 건너뛴다 — 페이지를 넘길 때마다 로고 화면을 다시 지나가면 로딩이 아니라 방해다. */
+   app.js가 스크롤 위치에 맞춰 두 섹션의 opacity·scale을 조절해 크로스페이드로
+   넘어가게 한다 — 스크립트가 없으면 그냥 각자 100vh를 채운 채로 스크롤된다. */
 const INTRO = `
 /* 진입 화면은 사이트의 밝은 기본 테마와 무관하게 항상 어둡다 — 로컬 변수로
    덮어써서, 그 안의 .statement-cta 같은 컴포넌트가 이 팔레트를 그대로 물려받는다.
@@ -390,6 +384,10 @@ const INTRO = `
   align-items: center; justify-content: center; text-align: center; padding: var(--s6) var(--s5);
 }
 .intro, .statement-wrap { position: relative; }
+/* app.js가 매 스크롤 프레임마다 이 둘을 직접 조절한다. will-change로 미리 레이어를 띄워둔다. */
+/* 섹션 자체(솔리드 배경)는 그대로 두고, 로고·문장만 담긴 안쪽 래퍼를 대신 조절한다.
+   섹션 자체의 opacity를 낮추면 배경까지 옅어져 body 배경이 비쳐 보인다(§app.js). */
+.js .intro-inner, .js .statement-inner { will-change: opacity, transform; }
 .intro .logo { height: clamp(140px, 22vw, 270px); width: auto; margin: 0 auto; }
 
 .intro-scroll {
@@ -417,9 +415,6 @@ const INTRO = `
   transition: opacity .25s ease-out;
 }
 .statement-cta:hover { color: var(--ink); }
-
-/* 이미 본 세션이면 둘 다 그리지 않는다 — 본문이 첫 화면부터 바로 보인다. */
-.intro-done .intro, .intro-done .statement-wrap { display: none; }
 `;
 
 /* ── 등장 ──────────────────────────────────────────────────
