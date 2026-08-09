@@ -120,11 +120,14 @@ const CHROME = `
 .intro .logo-light { display: block; }
 .intro .logo-dark { display: none; }
 
-/* 그 회차의 인쇄 지면으로 바로 간다 — 마스트헤드 우상단, 예전 테마 토글 자리다. */
+/* 화면 우하단에 항상 떠 있는 CTA — 그 회차의 인쇄 지면으로 바로 간다.
+   position:fixed라 마크업 위치(.masthead-top 안)와 무관하게 뷰포트 우하단에 앉는다. */
 .header-cta {
+  position: fixed; right: var(--s5); bottom: var(--s5); z-index: 40;
   font-family: var(--sans); font-size: 12px; font-weight: 700; letter-spacing: .08em;
   text-transform: uppercase; color: var(--secondary); text-decoration: none;
-  border: 1px solid var(--divider); border-radius: 8px; padding: 7px 12px; white-space: nowrap;
+  background: var(--bg); border: 1px solid var(--divider); border-radius: 8px;
+  padding: 7px 12px; white-space: nowrap; box-shadow: 0 2px 12px rgba(0,0,0,.15);
 }
 .header-cta:hover { color: var(--ink); border-color: var(--ink); }
 

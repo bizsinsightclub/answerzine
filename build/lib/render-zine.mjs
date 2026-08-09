@@ -104,7 +104,7 @@ export function renderZinePage(issue, stories, registry = {}) {
 export function renderZinePreview(issue, stories, registry) {
   const z = renderZinePage(issue, stories, registry);
   const content = h`<main class="zine-preview">
-  <div class="zine-preview-cta"><button class="btn print-btn" type="button" data-print>인쇄하기</button></div>
+  <div class="zine-preview-cta"><a class="btn" href="${u("/")}">← 목록으로</a></div>
   <div class="zine-mount" style="margin-top:32px">${raw(z.content)}</div>
 </main>`;
 
