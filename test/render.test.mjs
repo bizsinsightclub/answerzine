@@ -59,15 +59,20 @@ test("onclick 문자열 보간을 쓰지 않는다 — §9.7", () => {
   assert.ok(!content.includes("onclick"), "이벤트 위임을 써야 한다");
 });
 
-test("스파크라인에 대체 텍스트가 있다", () => {
+test("차트(스파크라인)는 더 이상 렌더되지 않는다 — 2026-08-08, 라벨+수치+출처만 남긴다", () => {
   const { content } = renderStory(STORY, {});
-  assert.match(content, /<title>주간 판매량 지수 추이/);
+  assert.ok(!content.includes("stat-spark"), "차트가 여전히 나온다");
+  assert.ok(!content.includes("<svg"), "차트 SVG가 여전히 나온다");
+  assert.ok(!content.includes("X축: 최근 4주"), "축 설명이 여전히 나온다");
+  assert.match(content, /주간 판매량 지수/, "라벨은 남아 있어야 한다");
+  assert.match(content, /\+326\.5%/, "수치는 남아 있어야 한다");
 });
 
-test("인사이트가 details로 나와 터치에서도 열린다", () => {
+test("인사이트(행동경제학 개념·설명)는 더 이상 화면에 나오지 않는다 — 2026-08-08", () => {
   const { content } = renderStory(STORY, {});
-  assert.match(content, /<details class="insight">/);
-  assert.match(content, /사후 관심 효과/);
+  assert.ok(!content.includes("<details"), "인사이트 details가 여전히 나온다");
+  assert.ok(!content.includes("사후 관심 효과"), "인사이트 개념명이 여전히 나온다");
+  assert.match(content, /이건 마케팅이 만든 베스트셀러가 아니다\./, "쿼트 문장 자체는 남아 있어야 한다");
 });
 
 test("이전/다음 링크가 URL로 나간다", () => {

@@ -187,6 +187,7 @@ if (!chromium) {
   });
   try {
     const issues = loadIssues(ROOT);
+    const stories = allStories(issues, loadRegistry(ROOT));
 
     /* --- A4 페이지 수 (§8 #15) --- */
     for (const issue of issues) {
@@ -208,8 +209,10 @@ if (!chromium) {
       await page.close();
     }
 
-    /* --- 콘솔 에러 (§8 #14) --- */
-    const targets = ["/", ...issues.flatMap((i) => [`/${i.issue}/`, `/${i.issue}/print/`])];
+    /* --- 콘솔 에러 (§8 #14) ---
+       2026-08-08부터 회차 목록 페이지(/YYYY-wNN/)가 없다 — 홈과 인쇄 진, 그리고 스토리
+       페이지 전체를 대신 방문한다(예전에는 스토리 페이지가 이 목록에 아예 없었다). */
+    const targets = ["/", ...issues.map((i) => `/${i.issue}/print/`), ...stories.map((s) => s.url)];
     let consoleBad = 0;
     for (const t of targets) {
       const page = await browser.newPage();

@@ -8,51 +8,40 @@
 import { h, raw, escapeHTML } from "./html.mjs";
 import { u } from "./site.mjs";
 import { blocksOf } from "./data.mjs";
-import { sparklineSVG } from "./sparkline.mjs";
 
 const dcVar = (story) => (story.slug ? `--dc: var(--dc-${story.slug});` : "");
 
 /**
  * 스탯 카드.
  *
- * 추세선은 출처가 과거 주차를 다시 내주는 경우에만 존재한다 (whitelist.series === "archived").
- * 그렇지 않은 회차는 `trend` 자체가 데이터에 없고, 그 자리에 `basis` —
- * "이 값이 무엇과 비교한 값인가" 한 문장이 들어간다. 없는 선을 그리는 것보다
- * 비교 기준을 글자로 밝히는 쪽이 검증 가능하다. tools/qa.mjs가 둘 중 하나를 강제한다.
+ * 2026-08-08부터 차트(스파크라인)·축설명·비교기준 문장은 화면에 내지 않는다 — 사용자
+ * 피드백으로 라벨+수치+출처 링크만 남긴다. `trend`/`axisCaption`/`basis`는 데이터에는
+ * 계속 남아 있다(재현 가능한 선이라는 §3.4의 약속, `tools/qa.mjs` 검증도 그대로다) —
+ * 순수 렌더링만 뺐다.
  */
 function statCard(stat, story) {
   if (!stat) return "";
-  const color = "currentColor";
-  const hasTrend = Array.isArray(stat.trend) && stat.trend.length >= 2;
 
-  const figure = hasTrend
-    ? h`<div class="stat-spark" style="color:var(--dc,currentColor)">${raw(sparklineSVG(stat.trend, color, { label: stat.label ?? "추이", invert: !!stat.trendInvert }))}</div>
-    <p class="stat-axis">${stat.axisCaption}</p>`
-    : stat.basis
-      ? h`<p class="stat-basis"><span class="stat-basis-label">비교 기준</span>${stat.basis}</p>`
-      : "";
-
-  return h`<div class="stat-card${hasTrend ? "" : " is-single"}" data-reveal style="${raw(dcVar(story))}">
+  return h`<div class="stat-card is-single" data-reveal style="${raw(dcVar(story))}">
     <div class="label">${stat.label}</div>
     <div class="stat-value">${stat.value}</div>
-    ${raw(figure)}
     ${stat.sourceUrl
       ? raw(h`<a class="stat-source" href="${stat.sourceUrl}" target="_blank" rel="noopener noreferrer">${stat.sourceLabel ?? "출처 확인하기"} &#8599;</a>`)
       : ""}
 </div>`;
 }
 
+/**
+ * 풀쿼트.
+ *
+ * 2026-08-08부터 `insight`(행동경제학 개념·설명)는 화면에 내지 않는다 — 인용문 한 줄만
+ * 보여준다. `quote.insight`는 데이터에는 계속 남는다 — S5 집필 규율(인사이트 3문 테스트,
+ * CLAUDE.md §5.1)과 `tools/qa.mjs`의 필수값 검증은 그대로 살아 있는 내부 품질 장치다.
+ */
 function pullquote(quote, story) {
   if (!quote) return "";
-  const ins = quote.insight;
   return h`<figure class="pullquote" data-reveal style="${raw(dcVar(story))}">
   ${quote.text}
-  ${ins
-    ? raw(h`<details class="insight">
-    <summary>행동경제학 · ${ins.concept}</summary>
-    <div class="insight-body">${ins.note}</div>
-  </details>`)
-    : ""}
 </figure>`;
 }
 
@@ -74,7 +63,7 @@ export function renderStory(story, { prev, next } = {}) {
       : h`<div class="nav-label" style="opacity:.4">${kind === "prev" ? "← 이전 회차 없음" : "다음 회차 없음 →"}</div>`;
 
   const content = h`<main class="shell" style="${raw(dcVar(story))}">
-  <a class="back-link" href="${u(`/${story.issue.issue}/`)}">← 목록으로</a>
+  <a class="back-link" href="${u("/")}">← 목록으로</a>
   <article class="story">
     <header class="story-head" data-reveal>
       <p class="meta"><span class="domain-tag">${story.domain}</span> · ${story.range}${story.draft ? raw(' <span class="draft-flag">작업 중</span>') : ""}</p>
@@ -95,7 +84,7 @@ ${raw(statCard(stat, story))}
     <div class="nav-next">${raw(navLink(next, "next"))}</div>
   </nav>
 
-  <p style="margin-top:32px"><a class="btn" href="${u(`/${story.issue.issue}/`)}">이 회차 전체 보기</a></p>
+  <p style="margin-top:32px"><a class="btn" href="${u("/")}">전체 아카이브 보기</a></p>
 </main>`;
 
   // 이전/다음 회차 + 전체 보기가 페이지의 진짜 바닥이다 — 그 아래 사이트 공통 설명

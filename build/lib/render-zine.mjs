@@ -13,8 +13,9 @@ import { u, absolute } from "./site.mjs";
 import { blocksOf } from "./data.mjs";
 import { dateline, SITE } from "./layout.mjs";
 
-/** QR 옆 캡션에 적을 사람이 읽는 주소. "https://" 없이, 실제 배포 도메인 그대로. */
-const displayUrl = (issueId) => absolute(`/${issueId}/`).replace(/^https?:\/\//, "").replace(/\/$/, "");
+/** QR 옆 캡션에 적을 사람이 읽는 주소. "https://" 없이, 실제 배포 도메인 그대로.
+    QR은 홈 아카이브를 가리킨다(2026-08-08부터 회차 목록 페이지가 없다 — build.mjs 참고). */
+const displayUrl = () => absolute("/").replace(/^https?:\/\//, "").replace(/\/$/, "");
 
 /** 인쇄 본문. zineBody가 있으면 그대로, 없으면 text 블록 셋을 쓴다. */
 export function zineBodyFor(story) {
@@ -89,7 +90,7 @@ export function renderZinePage(issue, stories, registry = {}) {
   <footer class="zine-footer-bar">
     <div class="zine-footer-qr">
       <img class="zine-qr" src="${u(`/assets/img/qr-${issue.issue}.svg`)}" alt="QR 코드" width="60" height="60">
-      <div class="zine-qr-caption">전체 글 읽기 →<span>${displayUrl(issue.issue)}</span></div>
+      <div class="zine-qr-caption">전체 글 읽기 →<span>${displayUrl()}</span></div>
     </div>
   </footer>
 </div>`;

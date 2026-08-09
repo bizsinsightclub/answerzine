@@ -56,7 +56,10 @@ test("본문 측정은 45~75자 범위 안이다", () => {
 
 test("넓은 화면에서도 리드/레일로 쪼개지 않는다 — 원본처럼 한 칼럼이다", () => {
   assert.ok(!/grid-template-columns:\s*repeat\(12,/.test(css), "12칼럼 그리드가 남아 있다");
-  assert.ok(!/position:\s*sticky/.test(css), "sticky 레일이 남아 있다");
+  assert.ok(!/\.rail\b/.test(css), "레일 클래스가 남아 있다");
+  // sticky 자체는 금지가 아니다 — 인트로 크로스페이드(.intro-inner)가 정당하게 쓴다.
+  // 여기서 막는 건 예전 스탯 카드 사이드레일(≥1200px 고정)의 부활이다.
+  assert.ok(!/\.stat-card[^{]*\{[^}]*position:\s*sticky/.test(css), "스탯 카드가 다시 sticky 레일이 됐다");
 });
 
 test("768px 브레이크포인트가 있다", () => {

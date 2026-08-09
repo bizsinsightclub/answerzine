@@ -70,12 +70,20 @@
 
     // 섹션(솔리드 배경)은 그대로 두고 안쪽 콘텐츠만 조절한다 — 그래야 배경이
     // 옅어지며 body 배경이 비쳐 보이는 일 없이 깔끔하게 크로스페이드된다.
+    //
+    // 인트로는 뷰포트보다 큰 상자(css.mjs .intro { height: 160svh })라 안쪽 콘텐츠가
+    // sticky로 고정된 채 남는다. 그 "여유분"(상자 높이 − 뷰포트 높이)만큼 스크롤하는
+    // 동안 진행률을 0→1로 잡아야, 고정돼 있는 동안 실제로 옅어지고 줄어드는 게 보인다 —
+    // 그냥 뷰포트 높이로 나누면 상자가 이미 다 지나간 뒤에야 p가 1이 되어 버려서,
+    // 고정 구간 내내 화면은 그대로인 채 스크롤만 되는 것처럼 보인다(모션이 없어 보이는 원인).
     var raf = null;
     function update() {
       raf = null;
       var vh = window.innerHeight || document.documentElement.clientHeight;
+      var introBox = introEl.getBoundingClientRect();
+      var pinRange = Math.max(1, introBox.height - vh);
 
-      var p = clamp(-introEl.getBoundingClientRect().top / vh, 0, 1);
+      var p = clamp(-introBox.top / pinRange, 0, 1);
       introInner.style.opacity = String(1 - p);
       introInner.style.transform = "scale(" + (1 + p * 0.08) + ")";
 

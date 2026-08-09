@@ -23,7 +23,7 @@ export const ZINE_THEME = {
 /** 진입 화면(.intro, .statement-wrap)과 OG 카드가 함께 쓰는 고정 다크 팔레트.
     사이트 기본 테마와 무관하게 항상 이 값이다 — css.mjs가 로컬 변수로 덮어쓴다. */
 export const INTRO_THEME = {
-  bg: "#16150F", ink: "#F2EFE4", secondary: "#A8A192", tertiary: "#8A8375",
+  bg: "#222222", ink: "#F2EFE4", secondary: "#A8A192", tertiary: "#8A8375",
   rule: "#F2EFE4", divider: "rgba(242,239,228,.22)",
 };
 

@@ -151,9 +151,6 @@ const CHROME = `
 }
 .seg button[aria-pressed="true"] { color: var(--ink); background: var(--bg); }
 
-.site-footer { border-top: 1px solid var(--rule); margin-top: var(--s9); padding-top: var(--s4); }
-.site-footer p { font-family: var(--sans); font-size: 13px; color: var(--secondary); margin: 0 0 var(--s2); }
-
 .draft-flag {
   display: inline-block; font-family: var(--sans); font-size: 11px; font-weight: 700;
   letter-spacing: .1em; text-transform: uppercase; border: 1px solid var(--divider);
@@ -191,19 +188,6 @@ const COMPONENTS = `
   background: var(--surface); border: 1px solid var(--divider); border-radius: 16px;
   padding: var(--s5); margin: var(--s6) 0; max-width: var(--measure);
 }
-.stat-spark { color: var(--secondary); margin: var(--s2) 0; }
-.stat-axis { font-family: var(--sans); font-size: 12px; line-height: 1.5; color: var(--tertiary); margin: var(--s2) 0 var(--s3); }
-
-/* 추세선을 그릴 수 없는 출처(스냅숏)에서는 선 대신 비교 기준을 글자로 적는다.
-   가짜 4주 배열보다 "무엇과 비교한 값인가" 한 줄이 검증 가능하다. */
-.stat-basis {
-  font-family: var(--sans); font-size: 13px; line-height: 1.6; color: var(--secondary);
-  margin: var(--s3) 0; padding-left: var(--s3); border-left: 1px solid var(--dc, var(--divider));
-}
-.stat-basis-label {
-  display: block; font-size: 11px; font-weight: 700; letter-spacing: .1em;
-  text-transform: uppercase; color: var(--tertiary); margin-bottom: 2px;
-}
 .stat-source {
   font-family: var(--sans); font-size: 12px; font-weight: 700; letter-spacing: .04em;
   color: var(--ink); text-decoration: underline; text-underline-offset: 3px;
@@ -215,19 +199,6 @@ const COMPONENTS = `
   font-family: var(--serif); font-weight: 700; font-size: 22px; line-height: 1.55;
   letter-spacing: -.01em; margin: var(--s6) 0; padding-left: var(--s4);
   border-left: 1px solid var(--dc, var(--rule)); max-width: var(--measure);
-}
-
-.insight { margin-top: var(--s3); }
-.insight summary {
-  font-family: var(--sans); font-size: 12px; font-weight: 700; letter-spacing: .08em;
-  text-transform: uppercase; color: var(--secondary); cursor: pointer; list-style: none;
-}
-.insight summary::-webkit-details-marker { display: none; }
-.insight summary::after { content: " +"; }
-.insight[open] summary::after { content: " −"; }
-.insight-body {
-  font-family: var(--sans); font-size: 14px; line-height: 1.7; color: var(--secondary);
-  margin-top: var(--s2); padding-left: var(--s3); border-left: 1px solid var(--divider);
 }
 
 .domain-tag { font-family: var(--sans); font-size: 12px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--dc, var(--secondary)); }
@@ -380,10 +351,20 @@ const INTRO = `
   --bg: ${INTRO_THEME.bg}; --ink: ${INTRO_THEME.ink}; --secondary: ${INTRO_THEME.secondary};
   --tertiary: ${INTRO_THEME.tertiary}; --divider: ${INTRO_THEME.divider};
   background: var(--bg); color: var(--ink);
-  min-height: 100svh; display: flex; flex-direction: column;
-  align-items: center; justify-content: center; text-align: center; padding: var(--s6) var(--s5);
+  text-align: center; position: relative;
 }
-.intro, .statement-wrap { position: relative; }
+.statement-wrap {
+  min-height: 100svh; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; padding: var(--s6) var(--s5);
+}
+/* 인트로는 뷰포트보다 60vh 더 큰 상자다 — 그 여유분만큼 안쪽 콘텐츠가 상단에
+   고정(sticky)된 채로 머물러서, 스크롤해도 그냥 지나가 버리지 않고 옅어지며
+   줄어드는 과정 자체가 눈에 보인다. app.js의 진행률 계산이 이 160svh를 전제한다. */
+.intro { height: 160svh; }
+.intro-inner {
+  position: sticky; top: 0; height: 100svh; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; padding: var(--s6) var(--s5);
+}
 /* app.js가 매 스크롤 프레임마다 이 둘을 직접 조절한다. will-change로 미리 레이어를 띄워둔다. */
 /* 섹션 자체(솔리드 배경)는 그대로 두고, 로고·문장만 담긴 안쪽 래퍼를 대신 조절한다.
    섹션 자체의 opacity를 낮추면 배경까지 옅어져 body 배경이 비쳐 보인다(§app.js). */
@@ -436,7 +417,7 @@ const PRINT = `
 @media print {
   @page { size: A4; margin: 0; }
   html, body { margin: 0; padding: 0; background: #fff; letter-spacing: 0; }
-  .site-header, .site-footer, .statement-wrap, .shell, .seg, .intro,
+  .site-header, .statement-wrap, .shell, .seg, .intro,
   .print-btn, .zine-preview-cta {
     display: none !important;
   }

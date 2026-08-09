@@ -7,7 +7,6 @@
  */
 import { h, raw } from "./html.mjs";
 import { u } from "./site.mjs";
-import { blocksOf, parseRange, issueNeighbors, issueLabel } from "./data.mjs";
 import { dateline, SITE } from "./layout.mjs";
 
 const tag = (s) =>
@@ -52,8 +51,7 @@ export function renderIndex(issues, stories, registry) {
 
   <p class="empty-state" data-empty hidden>이 카테고리는 아직 신호가 없다.</p>
 
-  ${latest ? raw(h`<p style="margin-top:40px"><a class="btn" href="${u(`/${latest.issue}/`)}">이번 호 전체 보기</a>
-    <a class="btn" href="${u(`/${latest.issue}/print/`)}" style="margin-left:8px">인쇄용 A4</a></p>`) : ""}
+  ${latest ? raw(h`<p style="margin-top:40px"><a class="btn" href="${u(`/${latest.issue}/print/`)}">인쇄용 A4</a></p>`) : ""}
 </main>`;
 
   return {
@@ -66,54 +64,3 @@ export function renderIndex(issues, stories, registry) {
   };
 }
 
-/** 호 넘기기 바. 독자가 잡지를 주별로 넘기는 동작이다. */
-function issuePager(issue, issues) {
-  const { prev, next, index, total } = issueNeighbors(issues, issue.issue);
-  const link = (i, dir) =>
-    i
-      ? h`<a class="pager-link pager-${raw(dir)}" href="${u(`/${i.issue}/`)}">
-      <span class="pager-dir">${dir === "prev" ? "← 지난 호" : "다음 호 →"}</span>
-      <span class="pager-issue">${issueLabel(i.issue)}</span>
-    </a>`
-      : h`<span class="pager-link pager-${raw(dir)} is-off"><span class="pager-dir">${dir === "prev" ? "← 지난 호 없음" : "다음 호 없음 →"}</span></span>`;
-
-  return h`<nav class="pager" aria-label="호 이동">
-  ${raw(link(prev, "prev"))}
-  <span class="pager-now">${issueLabel(issue.issue)} <span class="pager-count">${index + 1} / ${total}</span></span>
-  ${raw(link(next, "next"))}
-</nav>`;
-}
-
-export function renderIssue(issue, stories, registry, issues = [issue]) {
-  const mine = stories.filter((s) => s.issue.issue === issue.issue);
-
-  const content = h`<main class="shell">
-  <a class="back-link" href="${u("/")}">← 아카이브로</a>
-  ${raw(issuePager(issue, issues))}
-
-  <p class="dateline" style="margin-top:24px">${dateline(issue.range)}</p>
-  <h1 style="font-size:clamp(31px,4.4vw,44px)">${issueLabel(issue.issue)}<span class="issue-range"> · ${issue.range}</span>${issue.status === "draft" ? raw(' <span class="draft-flag">작업 중</span>') : ""}</h1>
-  ${issue.notes ? raw(h`<details class="editor-note"><summary>편집 메모</summary><p>${issue.notes}</p></details>`) : ""}
-
-  <div class="list">
-    ${mine.map((s) => raw(rowBlock(s)))}
-  </div>
-
-  <p style="margin-top:40px">
-    <a class="btn" href="${u(`/${issue.issue}/print/`)}">인쇄용 A4 진</a>
-    <a class="btn" href="${u("/")}" style="margin-left:8px">전체 아카이브</a>
-  </p>
-
-  ${raw(issuePager(issue, issues))}
-</main>`;
-
-  return {
-    title: `${issueLabel(issue.issue)} — ${mine.length}편`,
-    description: mine[0] ? mine[0].teaser : `${issue.range} 회차.`,
-    content,
-    noindex: issue.status === "draft",
-    printUrl: `/${issue.issue}/print/`,
-  };
-}
-
-export { parseRange };

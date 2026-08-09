@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { renderZinePage, zineBodyFor } from "../build/lib/render-zine.mjs";
-import { renderIndex, renderIssue } from "../build/lib/render-index.mjs";
+import { renderIndex } from "../build/lib/render-index.mjs";
 
 const ISSUE = { issue: "2026-w31", range: "2026.07.28 – 08.03", status: "ready" };
 
@@ -59,9 +59,11 @@ test("스티커는 사진 콜라주 안에 있다 — 사진과 본문 사이에
   assert.match(collage[1], /zine-sticker/, "스티커가 콜라주 밖에 있다");
 });
 
-test("QR 캡션은 회차 URL을 가리킨다", () => {
+test("QR 캡션은 홈 아카이브 URL을 가리킨다", () => {
+  // 2026-08-08부터 회차 목록 페이지가 없어져 QR·캡션 모두 홈을 가리킨다.
   const z = renderZinePage(ISSUE, stories, REG);
-  assert.match(z.content, /answerzine\.kr\/2026-w31/);
+  assert.match(z.content, /answerzine\.kr</);
+  assert.ok(!z.content.includes("answerzine.kr/2026-w31"));
 });
 
 test("미니가 3편 미만이면 경고한다", () => {
@@ -122,19 +124,21 @@ test("필터는 onclick이 아니라 data 속성을 쓴다", () => {
   assert.match(content, /data-domain=/);
 });
 
-test("draft 회차는 표시가 붙고 noindex다", () => {
+test("draft 회차는 인덱스에 표시가 붙는다", () => {
+  // noindex는 스토리 페이지 자체의 일이다 (render.test.mjs "draft 스토리는 noindex를 요청한다").
+  // 회차 목록 페이지가 없어졌으므로(2026-08-08) 여기서는 인덱스의 배지만 본다.
   const draft = { ...ISSUE, status: "draft" };
   const ds = stories.map((s) => ({ ...s, issue: draft, draft: true }));
   const idx = renderIndex([draft], ds, REG);
   assert.match(idx.content, /작업 중/);
-  const iss = renderIssue(draft, ds, REG);
-  assert.equal(iss.noindex, true);
 });
 
-test("회차 페이지는 그 주의 스토리를 전부 내고 인쇄 링크를 준다", () => {
-  const { content } = renderIssue(ISSUE, stories, REG);
-  for (const s of stories) assert.ok(content.includes(s.headline), `${s.headline} 누락`);
+test("인덱스가 최신 회차의 인쇄 링크를 준다", () => {
+  // "이번 호 전체 보기" 버튼은 2026-08-08에 없앴다 — 회차 목록 페이지 자체가 없어졌다.
+  // "인쇄용 A4"만 남는다.
+  const { content } = renderIndex([ISSUE], stories, REG);
   assert.match(content, /href="\/2026-w31\/print\/"/);
+  assert.ok(!content.includes("이번 호 전체 보기"));
 });
 
 test("빈 상태 요소가 인덱스에 있다", () => {

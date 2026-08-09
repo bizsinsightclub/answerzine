@@ -30,8 +30,8 @@ function intro() {
   <div class="intro-inner">
     <img class="logo logo-light" src="${u("/assets/img/logo-light.png")}" alt="${SITE.name}" width="1970" height="860">
     <img class="logo logo-dark" src="${u("/assets/img/logo-dark.png")}" alt="" aria-hidden="true" width="1971" height="842">
+    <a class="intro-scroll" href="#statement" aria-label="아래로 스크롤"><span class="chev" aria-hidden="true">⌄</span></a>
   </div>
-  <a class="intro-scroll" href="#statement" aria-label="아래로 스크롤"><span class="chev" aria-hidden="true">⌄</span></a>
 </section>
 <section class="statement-wrap" id="statement" data-intro>
   <div class="statement-inner">
@@ -50,7 +50,7 @@ function intro() {
  */
 const OG_IMAGE = { path: "/assets/img/og.png", width: 1200, height: 630 };
 
-export function page({ title, description, url, content, noindex = false, bodyClass = "", showChrome = true, showFooter = true, printUrl = null, showIntro = false }) {
+export function page({ title, description, url, content, noindex = false, bodyClass = "", showChrome = true, printUrl = null, showIntro = false }) {
   const full = title === SITE.name ? title : `${title} — ${SITE.name}`;
   const canonical = absolute(url ?? "/");
   const ogImage = absolute(OG_IMAGE.path);
@@ -81,7 +81,7 @@ ${noindex ? '<meta name="robots" content="noindex">' : ""}
 <script>${BOOT}</script>
 </head>
 <body class="${escapeHTML(bodyClass)}">
-${showChrome ? `${showIntro ? intro() : ""}\n<div id="main-content">\n${header(printUrl)}\n${content}\n${showFooter ? footer() : ""}\n</div>` : content}
+${showChrome ? `${showIntro ? intro() : ""}\n<div id="main-content">\n${header(printUrl)}\n${content}\n</div>` : content}
 <script src="${u("/assets/app.js")}" defer></script>
 </body>
 </html>
@@ -101,13 +101,6 @@ function header(printUrl) {
     <div class="ruleline"></div>
   </div>
 </header>`;
-}
-
-function footer() {
-  return h`<footer class="site-footer shell" style="padding-top:0">
-  <p>${SITE.name} — ${SITE.tagline}</p>
-  <p>1위라도 이유를 설명할 수 없으면 싣지 않는다. 7위라도 이유가 선명하면 싣는다.</p>
-</footer>`;
 }
 
 /** "서울, 대한민국 — 2026년 8월 1주차" */

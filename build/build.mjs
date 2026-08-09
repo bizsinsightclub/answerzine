@@ -18,7 +18,7 @@ import { loadIssues, loadRegistry, allStories, neighbors } from "./lib/data.mjs"
 import { stylesheet } from "./lib/css.mjs";
 import { page } from "./lib/layout.mjs";
 import { renderStory } from "./lib/render-story.mjs";
-import { renderIndex, renderIssue } from "./lib/render-index.mjs";
+import { renderIndex } from "./lib/render-index.mjs";
 import { renderZinePreview } from "./lib/render-zine.mjs";
 import { copyAssets, usedCharset, UI_CHARS, writeFile } from "./lib/assets.mjs";
 import { setBase, getBase, u, absolute } from "./lib/site.mjs";
@@ -105,20 +105,20 @@ export async function build({ root = ROOT, out = join(ROOT, "dist"), quiet = fal
   const idx = renderIndex(issues, stories, registry);
   write("index.html", page({ ...idx, url: "/" }));
 
-  /* ── 회차·스토리·인쇄 진 ── */
+  /* ── 회차·스토리·인쇄 진 ──
+     2026-08-08부터 회차 목록 페이지(/YYYY-wNN/)는 만들지 않는다 — 홈 아카이브가 이미
+     모든 스토리를 평면으로 낸다. 인쇄 진(/YYYY-wNN/print/)은 독립적으로 그대로 만든다. */
   for (const issue of issues) {
     const mine = stories.filter((s) => s.issue.issue === issue.issue);
-
-    const iss = renderIssue(issue, stories, registry, issues);
-    write(`${issue.issue}/index.html`, page({ ...iss, url: `/${issue.issue}/` }));
 
     const zine = renderZinePreview(issue, mine, registry);
     write(`${issue.issue}/print/index.html`, page({ ...zine, url: `/${issue.issue}/print/`, showChrome: false }));
     for (const w of zine.warnings) warnings.push(`${issue.issue}: ${w}`);
 
-    // QR은 그 회차의 실제 배포 주소를 가리킨다 — SITE_ORIGIN·BASE_PATH로 계산한 절대 URL이라
+    // QR은 홈 아카이브를 가리킨다 — 회차 목록 페이지가 없어졌으므로(2026-08-08) 그 자리를
+    // 대신할 목적지는 사이트 전체다. SITE_ORIGIN·BASE_PATH로 계산한 절대 URL이라
     // 로컬 빌드(answerzine.kr 기본값)와 CI 배포(bizsinsightclub.github.io/answerzine)가 각자 맞는 값을 낸다.
-    const qrTarget = absolute(`/${issue.issue}/`);
+    const qrTarget = absolute("/");
     write(`assets/img/qr-${issue.issue}.svg`, genQR ? await genQR(qrTarget) : qrPlaceholder(issue.issue));
 
     for (const s of mine) {
