@@ -1,6 +1,6 @@
 {
   "$schema": "https://answerzine.kr/schema/registry-1.json",
-  "version": "2026-w32f",
+  "version": "2026-w32g",
   "updated": "2026-08-09",
   "note": "도메인 단일 소스. build/lib/*.mjs, tools/zine-builder.html, tools/qa.mjs가 모두 이 파일을 참조한다. 색상은 여기서만 정의한다. status가 active가 아닌 도메인은 필터·결번 계산에서 빠진다.",
   "colorRules": {
@@ -238,12 +238,12 @@
       1050
     ],
     "issueInsightWeb": [
-      70,
-      90
+      20,
+      34
     ],
     "issueInsightPrint": [
-      30,
-      40
+      18,
+      30
     ]
   },
   "zineLayout": {

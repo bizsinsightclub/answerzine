@@ -20,6 +20,11 @@
       if (match) { items[i].classList.add("is-in"); shown++; }
     }
 
+    // 통합 인사이트(issue.insight)는 그 주 전체를 관통하는 제목이다 — 한 도메인으로
+    // 좁혀 보는 중에는(전체가 아닌 필터) 그 관통이 안 맞으므로 "전체"에서만 보인다.
+    var insight = document.querySelector(".issue-insight");
+    if (insight) insight.hidden = key !== "all";
+
     var btns = document.querySelectorAll(".seg button[data-domain]");
     for (var j = 0; j < btns.length; j++) {
       btns[j].setAttribute("aria-pressed", btns[j].getAttribute("data-domain") === key ? "true" : "false");
