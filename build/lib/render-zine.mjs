@@ -60,6 +60,7 @@ export function renderZinePage(issue, stories, registry = {}) {
     <img class="zine-logo" src="${raw(u("/assets/img/logo-dark.png"))}" alt="${SITE.name}" width="1971" height="842">
     <div class="zine-ruleline"></div>
     <div class="zine-dateline">${dateline(issue.range)}</div>
+    ${issue.insightPrint ? raw(h`<p class="zine-insight">${issue.insightPrint}</p>`) : ""}
   </header>
 
   ${lead

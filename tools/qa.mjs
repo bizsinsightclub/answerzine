@@ -234,6 +234,28 @@ for (const f of files) {
   draftMode = !Array.isArray(issue) && issue.status === "draft";
   if (draftMode) console.log(`${C.d}  (draft — 실패를 경고로 낮춘다. 발행 전 status를 "ready"로 바꾼다.)${C.x}`);
 
+  /* --- 통합 인사이트 (issue.insight, 2026-08-08 도입) ---
+     스토리가 아니라 회차 자체에 붙는 값이라 스토리 루프 밖에서, 한 번만 검사한다. */
+  if (!Array.isArray(issue)) {
+    const atIssue = `${basename(f)} · issue.insight`;
+    const Li = s => (s ?? "").length;
+    if (!issue.insight) {
+      // "관통하는" 인사이트는 스토리가 2편 이상일 때만 뜻이 있다 — 1편짜리 회차에는 강제하지 않는다.
+      if (issue.status === "ready" && stories.length >= 2)
+        fail(atIssue, "issue.insight가 없다 — ready 회차는 그 안의 스토리들을 관통하는 통합 인사이트가 있어야 한다.");
+    } else {
+      const [rec, max] = BUDGET.issueInsightWeb;
+      if (Li(issue.insight) > max) fail(atIssue, `${Li(issue.insight)}자 > 절대상한 ${max}자.`);
+      else if (Li(issue.insight) > rec) warn(atIssue, `${Li(issue.insight)}자 > 권장 ${rec}자.`);
+    }
+    if (issue.insightPrint) {
+      const [rec, max] = BUDGET.issueInsightPrint;
+      const at2 = `${basename(f)} · issue.insightPrint`;
+      if (Li(issue.insightPrint) > max) fail(at2, `${Li(issue.insightPrint)}자 > 절대상한 ${max}자 — 인쇄 진 A4 예산이 빠듯하다.`);
+      else if (Li(issue.insightPrint) > rec) warn(at2, `${Li(issue.insightPrint)}자 > 권장 ${rec}자.`);
+    }
+  }
+
   for (const st of stories) {
     const at = `${basename(f)} · ${st.id ?? "?"}`;
 

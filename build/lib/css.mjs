@@ -138,6 +138,14 @@ const CHROME = `
 /* 굵은 선 + 가는 선 — 신문 마스트헤드 관용구 */
 .ruleline { border-top: 3px solid var(--rule); border-bottom: 1px solid var(--rule); height: 5px; margin: var(--s3) 0 0; }
 .dateline { font-family: var(--sans); font-size: 12px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--secondary); margin-bottom: var(--s6); }
+/* 그 호 4편을 관통하는 통합 인사이트(issue.insight, 2026-08-08 도입). 개별 스토리의
+   헤드라인(산세리프 900)·풀쿼트(명조 700)와는 다른 자리라는 걸 폰트로도 구분한다 —
+   여기는 편집자의 목소리이지 어느 한 스토리의 목소리가 아니다. */
+.issue-insight {
+  font-family: var(--serif); font-weight: 700; font-style: italic; font-size: 19px;
+  line-height: 1.5; letter-spacing: -.01em; max-width: var(--measure);
+  margin: -20px 0 var(--s6);
+}
 
 .seg {
   display: inline-flex; flex-wrap: wrap; gap: 2px; margin: 0 0 var(--s5);
@@ -273,6 +281,8 @@ const ZINE = `
 .zine-logo { height: 15mm; width: auto; margin: 0 auto 1mm; display: block; }
 .zine-ruleline { border-top: 3px solid var(--ink); border-bottom: 1px solid var(--ink); height: 5px; margin: 2mm 0; }
 .zine-dateline { font-family: var(--sans); font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
+/* issue.insightPrint — 웹의 .issue-insight와 같은 자리지만 A4는 여유가 없어 한 줄로 줄인다. */
+.zine-insight { font-family: var(--serif); font-style: italic; font-weight: 700; font-size: 10.5px; margin: 1.5mm 0 0; }
 .zine-section-rule { border-top: 1px solid var(--ink); margin: 4mm 0; }
 
 .zine-kicker { font-family: var(--sans); font-size: 10.5px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--secondary); }

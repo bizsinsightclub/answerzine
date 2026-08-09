@@ -38,6 +38,7 @@ export function renderIndex(issues, stories, registry) {
 
   const content = h`<main class="shell">
   <p class="dateline">${latest ? dateline(latest.range) : "준비 중"}</p>
+  ${latest?.insight ? raw(h`<p class="issue-insight" data-reveal>${latest.insight}</p>`) : ""}
 
   <nav class="seg" data-reveal aria-label="도메인 필터">
     ${filters.map((name, i) =>
