@@ -7,34 +7,49 @@
  *
  * 이제 입력에 없으면 지면에도 없다. test/zine.test.mjs가 그 사고를 직접 재현해 막는다.
  * 헤드라인·티저는 웹과 같은 값을 참조하므로 CLAUDE.md §8 QA #17은 위반이 불가능하다.
+ *
+ * 2026-08-10 전면 개편 — 사용자가 첨부한 참고 목업(print.html)의 포맷을 따른다.
+ * "리드 1 + 미니 3" 위계를 없애고 그 주 통과분 전원을 동등한 행으로 낸다. 사진·콜라주·
+ * 테이프·스티커·회전각 시스템은 그 부품 자체가 빠졌다(design.md §2 불변식 갱신).
+ * 폰트·색은 목업을 따르지 않는다 — 이 세션에 확정한 헬베티카+화이트/블랙 톤 그대로다.
  */
 import { h, raw } from "./html.mjs";
 import { u, absolute } from "./site.mjs";
 import { blocksOf } from "./data.mjs";
 import { dateline, SITE } from "./layout.mjs";
 
-/** QR 옆 캡션에 적을 사람이 읽는 주소. "https://" 없이, 실제 배포 도메인 그대로.
-    QR은 홈 아카이브를 가리킨다(2026-08-08부터 회차 목록 페이지가 없다 — build.mjs 참고). */
+/** 지면 하단에 적을 사람이 읽는 주소. "https://" 없이, 실제 배포 도메인 그대로.
+    2026-08-10부터 QR 대신 텍스트로 낸다(목업 그대로) — 홈 아카이브를 가리킨다. */
 const displayUrl = () => absolute("/").replace(/^https?:\/\//, "").replace(/\/$/, "");
 
-/** 인쇄 본문. zineBody가 있으면 그대로, 없으면 text 블록 셋을 쓴다. */
+/** 인쇄 본문. zineBody가 있으면 그대로, 없으면 text 블록 셋을 쓴다.
+    2026-08-10부터 renderZinePage()는 이 함수를 안 쓴다(story.teaser 한 문장으로
+    바뀌었다) — zineBody 커스텀 축약이 여전히 유효한 개념이라 export는 유지한다. */
 export function zineBodyFor(story) {
   if (Array.isArray(story.zineBody) && story.zineBody.length) return story.zineBody;
   return blocksOf(story).texts.map((t) => t.text);
 }
 
-function photoBlock(story, stat) {
-  // 사진은 스토리가 명시할 때만 붙인다. 기본 사진을 두면 엉뚱한 기사에 남의 사진이 얹힌다.
-  const src = story.photo?.src ?? null;
-  const alt = story.photo?.alt ?? "";
-  const bg = src ? `background-image:url('${u(src)}');` : "";
-  // 스티커는 사진 모서리에 겹쳐 붙인다. 사진과 본문 사이에 띄우면 배너처럼 읽힌다.
-  return h`<div class="zine-lead-photo">
-  <div class="zine-photo-collage">
-    <div class="zine-photo-placeholder" style="${raw(bg)}" role="img" aria-label="${alt || "사진 자리"}">${src ? "" : "PHOTO"}</div>
-    <div class="zine-tape zine-tape-1"></div>
-    <div class="zine-tape zine-tape-2"></div>
-    ${stat ? raw(h`<div class="zine-sticker"><span class="lbl">${stat.label}</span><span class="val">${stat.value}</span></div>`) : ""}
+/** 스토리 한 편 = 지면 한 행. 왼쪽은 본문(킥커·헤드라인·티저·인사이트·출처),
+    오른쪽은 stat.value 한 방(statcol) — 참고 목업의 .sheet-story/.statcol 구조. */
+function storyRow(story) {
+  const { stat, quote } = blocksOf(story);
+  return h`<div class="zine-story">
+  <div class="zine-story-main">
+    <div class="zine-kicker">${story.domain}${story.kicker ? ` · ${story.kicker}` : ""}</div>
+    <h3 class="zine-story-headline">${story.headline}</h3>
+    <p class="zine-story-body">${story.teaser}</p>
+    ${quote?.insight?.note
+      ? raw(h`<div class="zine-insight-note"><b>인사이트</b>${quote.insight.note}</div>`)
+      : ""}
+    ${stat?.sourceUrl
+      ? raw(h`<div class="zine-source">출처: <a href="${stat.sourceUrl}">${stat.sourceLabel ?? "출처 확인하기"}</a></div>`)
+      : ""}
+  </div>
+  <div class="zine-story-stat">
+    ${stat
+      ? raw(h`<span class="zine-stat-value">${stat.value}</span><span class="zine-stat-label">${stat.label}</span>`)
+      : ""}
   </div>
 </div>`;
 }
@@ -42,18 +57,9 @@ function photoBlock(story, stat) {
 export function renderZinePage(issue, stories, registry = {}) {
   const mine = stories.filter((s) => s.issue?.issue === issue.issue || stories === issue.stories);
   const list = mine.length ? mine : (issue.stories ?? []);
-  const [lead, ...minis] = list;
   const warnings = [];
 
-  if (!lead) warnings.push("리드 스토리가 없다. 회차가 비어 있다.");
-  if (minis.length < 3)
-    warnings.push(`미니 슬롯이 ${minis.length}개다 (3개 기준). 그만큼 지면 하단이 빈다 — 결번 판정 결과인지 확인할 것. CLAUDE.md §7.2`);
-  if (minis.length > 3)
-    // 지면은 리드 1 + 미니 3 고정이다. 활성 도메인이 8개여도 늘리지 않는다 (registry.zineLayout).
-    warnings.push(`통과 ${list.length}편 중 점수 상위 4편만 지면에 싣는다. 나머지 ${minis.length - 3}편은 웹에만 게재된다.`);
-
-  const leadStat = lead ? blocksOf(lead).stat : null;
-  const body = lead ? zineBodyFor(lead) : [];
+  if (!list.length) warnings.push("이번 주는 게재할 스토리가 없다. 회차가 비어 있다.");
 
   const content = h`<div class="zine-page" id="zine-page">
   <header class="zine-masthead">
@@ -63,48 +69,28 @@ export function renderZinePage(issue, stories, registry = {}) {
     ${issue.insightPrint ? raw(h`<p class="zine-insight">${issue.insightPrint}</p>`) : ""}
   </header>
 
-  ${lead
-    ? raw(h`<div class="zine-lead">
-    <div class="zine-kicker">이번 주 · ${lead.domain}${lead.kicker ? ` · ${lead.kicker}` : ""}</div>
-    <h1 class="zine-headline">${lead.headline}</h1>
-    <div class="zine-byline">BY ${SITE.name} · ${lead.domain} 데이터 기반</div>
-    <div class="zine-lead-body">
-      ${raw(photoBlock(lead, leadStat))}
-      <p class="zine-teaser">${lead.teaser}</p>
-      ${body.map((p) => raw(h`<p class="zine-body">${p}</p>`))}
-    </div>
-  </div>`)
-    : raw('<p class="zine-body">이번 주는 게재할 스토리가 없다.</p>')}
+  ${list.length
+    ? raw(list.map(storyRow).join("\n"))
+    : raw('<p class="zine-story-body">이번 주는 게재할 스토리가 없다.</p>')}
 
-  <div class="zine-section-rule"></div>
-
-  <div class="zine-secondary-row">
-    ${minis.slice(0, 3).map((s) =>
-      raw(h`<div class="zine-mini">
-      <div class="zine-kicker">${s.kicker ?? ""}${s.kicker ? " · " : ""}${s.domain}</div>
-      <h3 class="zine-mini-headline">${s.headline}</h3>
-      <p class="zine-mini-teaser">${s.teaser}</p>
-    </div>`)
-    )}
-  </div>
-
-  <footer class="zine-footer-bar">
-    <div class="zine-footer-qr">
-      <img class="zine-qr" src="${u(`/assets/img/qr-${issue.issue}.svg`)}" alt="QR 코드" width="60" height="60">
-      <div class="zine-qr-caption">전체 글 읽기 →<span>${displayUrl()}</span></div>
-    </div>
+  <footer class="zine-footer">
+    ${SITE.name} · ${issue.issue} · 전체 아카이브 ${displayUrl()} · 각 기사의 인사이트는 편집 의견입니다
   </footer>
 </div>`;
 
-  return { title: `${issue.issue} 인쇄용 A4`, content, lead, minis, warnings };
+  return { title: `${issue.issue} 인쇄용 A4`, content, stories: list, warnings };
 }
 
-/** 인쇄 진을 감싸는 미리보기 페이지. 설명 없이 "인쇄하기" 하나만 가운데 둔다 —
-   무엇인지는 여기 오기 전(홈의 미리보기 섹션)에 이미 설명했다. */
+/** 인쇄 진을 감싸는 미리보기 페이지. "← 목록으로"로 돌아가거나, "인쇄 / PDF로 저장"
+   버튼으로 바로 인쇄할 수 있다 — 버튼은 assets/app.js의 기존 [data-print] 리스너를
+   그대로 쓴다(2026-08-10 되돌림, 오늘 이전 라운드에서 뺐던 버튼이다). */
 export function renderZinePreview(issue, stories, registry) {
   const z = renderZinePage(issue, stories, registry);
   const content = h`<main class="zine-preview">
-  <div class="zine-preview-cta"><a class="btn" href="${u("/")}">← 목록으로</a></div>
+  <div class="zine-preview-cta">
+    <a class="back-link" href="${u("/")}">← 목록으로</a>
+    <button class="btn" type="button" data-print>인쇄 / PDF로 저장</button>
+  </div>
   <div class="zine-mount" style="margin-top:32px">${raw(z.content)}</div>
 </main>`;
 

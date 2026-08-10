@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { renderZinePage, zineBodyFor } from "../build/lib/render-zine.mjs";
+import { renderZinePage, renderZinePreview, zineBodyFor } from "../build/lib/render-zine.mjs";
 import { renderIndex } from "../build/lib/render-index.mjs";
 
 const ISSUE = { issue: "2026-w31", range: "2026.07.28 – 08.03", status: "ready" };
@@ -31,55 +31,64 @@ const REG = { domains: [
   { key: "youtube", name: "유튜브" }, { key: "book", name: "도서" },
 ]};
 
-test("리드는 첫 스토리, 미니는 나머지 3편이다", () => {
+// 2026-08-10 전면 개편 — "리드 1 + 미니 3" 위계를 없앴다. 그 주 통과분 전원이
+// 사진·콜라주 없이 동등한 행(.zine-story)으로 나온다. 참고 목업(print.html)의
+// .sheet-story/.statcol 구조를 따른다.
+
+test("그 주 통과분 전원이 위계 없이 지면에 나온다", () => {
   const z = renderZinePage(ISSUE, stories, REG);
-  assert.equal(z.lead.id, "2026-w31-book");
-  assert.equal(z.minis.length, 3);
+  assert.equal(z.stories.length, 4);
   assert.deepEqual(z.warnings, []);
+  for (const s of stories) assert.ok(z.content.includes(s.headline), `${s.headline} 누락`);
 });
 
 test("진의 헤드라인·티저가 웹과 문자열이 같다 — §8 QA #17", () => {
   const z = renderZinePage(ISSUE, stories, REG);
-  for (const s of stories) assert.ok(z.content.includes(s.headline), `헤드라인 불일치: ${s.headline}`);
-  assert.ok(z.content.includes(stories[0].teaser));
+  for (const s of stories) {
+    assert.ok(z.content.includes(s.headline), `헤드라인 불일치: ${s.headline}`);
+    assert.ok(z.content.includes(s.teaser), `티저 불일치: ${s.teaser}`);
+  }
 });
 
-test("스티커 수치는 리드의 stat.value를 그대로 쓴다", () => {
+test("스탯 값·라벨이 스토리마다 하나씩 나온다", () => {
   const z = renderZinePage(ISSUE, stories, REG);
-  const m = z.content.match(/<div class="zine-sticker">([\s\S]*?)<\/div>/);
-  assert.ok(m, "스티커가 없다");
-  assert.match(m[1], /\+326\.5%/, "리드 stat.value가 스티커에 없다");
-  assert.match(m[1], /주간 판매량 지수/, "리드 stat.label이 스티커에 없다");
+  const rows = z.content.match(/class="zine-story"/g) ?? [];
+  const values = z.content.match(/class="zine-stat-value">\+326\.5%/g) ?? [];
+  const labels = z.content.match(/주간 판매량 지수/g) ?? [];
+  assert.equal(rows.length, 4, "스토리 행이 4개가 아니다");
+  assert.equal(values.length, 4, "stat.value가 스토리 수만큼 없다");
+  assert.equal(labels.length, 4, "stat.label이 스토리 수만큼 없다");
 });
 
-test("스티커는 사진 콜라주 안에 있다 — 사진과 본문 사이에 뜨지 않는다", () => {
+test("인사이트 설명(note)이 각 행의 콜아웃으로 나온다", () => {
   const z = renderZinePage(ISSUE, stories, REG);
-  const collage = z.content.match(/<div class="zine-photo-collage">([\s\S]*?)<\/div>\s*<\/div>/);
-  assert.ok(collage, "콜라주 블록이 없다");
-  assert.match(collage[1], /zine-sticker/, "스티커가 콜라주 밖에 있다");
+  const count = (z.content.match(/zine-insight-note/g) ?? []).length;
+  assert.equal(count, 4, "스토리마다 인사이트 콜아웃이 하나씩 있어야 한다");
+  assert.match(z.content, /설명\./, "insight.note 문장이 안 보인다");
 });
 
-test("QR 캡션은 홈 아카이브 URL을 가리킨다", () => {
-  // 2026-08-08부터 회차 목록 페이지가 없어져 QR·캡션 모두 홈을 가리킨다.
+test("사진·콜라주·테이프·스티커·QR은 더 이상 나오지 않는다", () => {
   const z = renderZinePage(ISSUE, stories, REG);
-  assert.match(z.content, /answerzine\.kr</);
-  assert.ok(!z.content.includes("answerzine.kr/2026-w31"));
+  for (const gone of ["zine-photo", "zine-tape", "zine-sticker", "zine-qr", "<img class=\"zine-qr\""])
+    assert.ok(!z.content.includes(gone), `${gone}이 여전히 나온다`);
 });
 
-test("미니가 3편 미만이면 경고한다", () => {
-  const two = stories.slice(0, 2);
-  const z = renderZinePage({ ...ISSUE, stories: two }, two, REG);
-  assert.equal(z.minis.length, 1);
-  assert.ok(z.warnings.some((w) => /미니/.test(w)), "레이아웃 경고가 있어야 한다");
+test("QR 대신 사람이 읽는 URL이 지면 하단에 나온다", () => {
+  const z = renderZinePage(ISSUE, stories, REG);
+  assert.match(z.content, /answerzine\.kr/);
+  assert.match(z.content, /class="zine-footer"/);
 });
 
-test("도메인이 늘어도 지면은 상위 4편만 싣는다", () => {
-  // 활성 도메인 8개 체제에서, 통과 편수가 슬롯을 넘는 것이 정상 상황이 됐다.
-  const five = [...stories, mk("2026-w31-x", "stage", "공연", "다섯째.", "티저 다섯.")];
-  const z = renderZinePage({ ...ISSUE, stories: five }, five, REG);
-  assert.equal(z.minis.length, 4, "미니 후보는 4편이다");
-  assert.ok(!z.content.includes("다섯째."), "슬롯을 넘은 스토리는 지면에 없어야 한다");
-  assert.ok(z.warnings.some((w) => /상위 4편만/.test(w)), "웹에만 실린다는 사실을 알려야 한다");
+test("미리보기에 인쇄 버튼과 목록 링크가 둘 다 있다", () => {
+  const { content } = renderZinePreview(ISSUE, stories, REG);
+  assert.match(content, /data-print/, "인쇄 버튼이 없다");
+  assert.match(content, /← 목록으로/, "목록 링크가 없다");
+});
+
+test("스토리가 0편이면 경고한다", () => {
+  const z = renderZinePage({ ...ISSUE, stories: [] }, [], REG);
+  assert.equal(z.stories.length, 0);
+  assert.ok(z.warnings.some((w) => /스토리가 없다/.test(w)));
 });
 
 test("zineBodyFor는 zineBody가 있으면 그대로 쓴다", () => {

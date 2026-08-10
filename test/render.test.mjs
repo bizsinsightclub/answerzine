@@ -68,10 +68,13 @@ test("차트(스파크라인)는 더 이상 렌더되지 않는다 — 2026-08-0
   assert.match(content, /\+326\.5%/, "수치는 남아 있어야 한다");
 });
 
-test("인사이트(행동경제학 개념·설명)는 더 이상 화면에 나오지 않는다 — 2026-08-08", () => {
+test("인사이트 설명(note)이 콜아웃으로 다시 보인다 — 2026-08-10, 참고 목업 포맷 반영", () => {
+  // 2026-08-08엔 이걸 화면에서 뺐다. 사용자가 첨부한 참고 목업(movie.html)의
+  // .insight 콜아웃 구조가 되돌려 놓았다 — design.md §2 불변식 2번 갱신.
   const { content } = renderStory(STORY, {});
-  assert.ok(!content.includes("<details"), "인사이트 details가 여전히 나온다");
-  assert.ok(!content.includes("사후 관심 효과"), "인사이트 개념명이 여전히 나온다");
+  assert.match(content, /insight-note/, "인사이트 콜아웃이 없다");
+  assert.match(content, /예술 시장 연구에서 반복 관찰된다\./, "insight.note 문장이 안 보인다");
+  assert.ok(!content.includes("사후 관심 효과"), "concept 이름은 라벨로 쓰지 않는다 — 고정 문구 '인사이트'를 쓴다");
   assert.match(content, /이건 마케팅이 만든 베스트셀러가 아니다\./, "쿼트 문장 자체는 남아 있어야 한다");
 });
 

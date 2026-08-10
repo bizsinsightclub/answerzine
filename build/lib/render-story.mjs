@@ -1,43 +1,58 @@
 /**
  * 스토리 페이지.
  *
- * 원본 프로토타입처럼 폭 전체에서 한 칼럼이다 — 리드/레일로 쪼개지 않는다.
- * 스탯은 본문 흐름 안의 둥근 패널이고, 출처 링크는 항상 보인다 —
- * hover에 의존하던 프로토타입의 출처 노출(§9.9)은 그대로 해소돼 있다.
+ * 2026-08-10 개편 — 사용자가 첨부한 참고 목업(movie.html)의 포맷을 따른다.
+ * 스탯 패널과 인사이트를 헤드라인 바로 아래로 끌어올려 "무슨 일이, 왜 중요한지"를
+ * 본문을 읽기 전에 먼저 보여주고, 본문 세 문단은 끊김 없이 이어 읽게 한 뒤,
+ * 인용문 → 출처 → 다음 회차 순으로 마무리한다. 폰트·색은 목업을 따르지 않는다 —
+ * 이 세션에 이미 확정한 헬베티카+화이트/블랙 톤을 그대로 쓴다(CLAUDE.md 참고).
+ *
+ * `quote.insight.note`는 2026-08-08에 화면에서 뺐다가 이번 개편으로 다시 보인다
+ * (design.md §2 불변식 2번 갱신). 원본 프로토타입처럼 폭 전체에서 한 칼럼이다 —
+ * 리드/레일로 쪼개지 않는다. 출처 링크는 항상 보인다 — hover에 의존하던
+ * 프로토타입의 출처 노출(§9.9)은 그대로 해소돼 있다.
  */
 import { h, raw, escapeHTML } from "./html.mjs";
 import { u } from "./site.mjs";
+import { SITE } from "./layout.mjs";
 import { blocksOf } from "./data.mjs";
 
 const dcVar = (story) => (story.slug ? `--dc: var(--dc-${story.slug});` : "");
 
 /**
- * 스탯 카드.
+ * 스탯 패널.
  *
- * 2026-08-08부터 차트(스파크라인)·축설명·비교기준 문장은 화면에 내지 않는다 — 사용자
- * 피드백으로 라벨+수치+출처 링크만 남긴다. `trend`/`axisCaption`/`basis`는 데이터에는
- * 계속 남아 있다(재현 가능한 선이라는 §3.4의 약속, `tools/qa.mjs` 검증도 그대로다) —
- * 순수 렌더링만 뺐다.
+ * 2026-08-08~2026-08-10 사이에는 여기 출처 링크까지 같이 있었다. 이번 개편으로
+ * 라벨+수치만 남기고 출처는 `sourceBox()`로 뺐다(목업의 `.stat-panel`/`.source-box`
+ * 분리 구조). 차트(스파크라인)·축설명·비교기준 문장은 여전히 화면에 내지 않는다 —
+ * `trend`/`axisCaption`/`basis`는 데이터에는 계속 남아 있다(§3.4의 약속, qa.mjs 검증도
+ * 그대로다) — 순수 렌더링만 뺀 상태가 이어진다.
  */
-function statCard(stat, story) {
+function statPanel(stat, story) {
   if (!stat) return "";
-
   return h`<div class="stat-card is-single" data-reveal style="${raw(dcVar(story))}">
     <div class="label">${stat.label}</div>
     <div class="stat-value">${stat.value}</div>
-    ${stat.sourceUrl
-      ? raw(h`<a class="stat-source" href="${stat.sourceUrl}" target="_blank" rel="noopener noreferrer">${stat.sourceLabel ?? "출처 확인하기"} &#8599;</a>`)
-      : ""}
 </div>`;
 }
 
 /**
- * 풀쿼트.
+ * 인사이트 콜아웃.
  *
- * 2026-08-08부터 `insight`(행동경제학 개념·설명)는 화면에 내지 않는다 — 인용문 한 줄만
- * 보여준다. `quote.insight`는 데이터에는 계속 남는다 — S5 집필 규율(인사이트 3문 테스트,
- * CLAUDE.md §5.1)과 `tools/qa.mjs`의 필수값 검증은 그대로 살아 있는 내부 품질 장치다.
+ * 2026-08-08에 "화면에는 안 보인다"로 뺐던 걸(design.md §2 불변식 2번) 이번 개편으로
+ * 되돌린다 — 사용자가 첨부한 목업의 `.insight` 콜아웃이 다시 요구했다. `concept`(개념명)
+ * 은 라벨로 쓰지 않는다 — 고정 문구 "인사이트"를 쓴다. 보여주는 건 `note`(왜 일반적
+ * 현상인지 + 이번 사례가 어디에 해당하는지) 한 문단뿐이다.
  */
+function insightNote(quote, story) {
+  if (!quote?.insight?.note) return "";
+  return h`<div class="insight-note" data-reveal style="${raw(dcVar(story))}">
+  <span class="insight-label">인사이트</span>
+  <p>${quote.insight.note}</p>
+</div>`;
+}
+
+/** 풀쿼트. 인용문 한 줄만 보여준다 — insight 설명은 위 insightNote()가 이미 냈다. */
 function pullquote(quote, story) {
   if (!quote) return "";
   return h`<figure class="pullquote" data-reveal style="${raw(dcVar(story))}">
@@ -45,17 +60,24 @@ function pullquote(quote, story) {
 </figure>`;
 }
 
+/** 원문 출처 — 스탯 패널에서 분리해 본문 뒤에 낸다(목업의 `.source-box`). */
+function sourceBox(stat) {
+  if (!stat?.sourceUrl) return "";
+  return h`<div class="source-box" data-reveal>
+  <span class="lbl">원문 출처</span>
+  <a class="stat-source" href="${stat.sourceUrl}" target="_blank" rel="noopener noreferrer">${stat.sourceLabel ?? "출처 확인하기"} &#8599;</a>
+</div>`;
+}
+
 export function renderStory(story, { prev, next } = {}) {
   const { texts, stat, quote } = blocksOf(story);
   const title = story.headline ?? "";
   const description = story.teaser ?? "";
 
-  const body = [
-    texts[0] ? h`<p>${texts[0].text}</p>` : "",
-    pullquote(quote, story),
-    texts[1] ? h`<p>${texts[1].text}</p>` : "",
-    texts[2] ? h`<p>${texts[2].text}</p>` : "",
-  ].join("\n");
+  const body = [texts[0], texts[1], texts[2]]
+    .filter(Boolean)
+    .map((t) => h`<p>${t.text}</p>`)
+    .join("\n");
 
   const navLink = (s, kind) =>
     s
@@ -70,13 +92,18 @@ export function renderStory(story, { prev, next } = {}) {
       ${story.kicker ? raw(h`<p class="kicker">${story.kicker}</p>`) : ""}
       <h1 class="story-headline">${story.headline}</h1>
       <p class="teaser">${story.teaser}</p>
+      <p class="byline">BY ${SITE.name} · ${story.domain} 데이터 기반</p>
     </header>
+
+${raw(statPanel(stat, story))}
+${raw(insightNote(quote, story))}
 
     <div class="story-body" data-reveal>
 ${raw(body)}
     </div>
 
-${raw(statCard(stat, story))}
+${raw(pullquote(quote, story))}
+${raw(sourceBox(stat))}
   </article>
 
   <nav class="nav-row">
@@ -84,11 +111,13 @@ ${raw(statCard(stat, story))}
     <div class="nav-next">${raw(navLink(next, "next"))}</div>
   </nav>
 
-  <p style="margin-top:32px"><a class="btn" href="${u("/")}">전체 아카이브 보기</a></p>
+  <div class="to-archive"><a href="${u("/")}">전체 아카이브 보기</a></div>
 </main>`;
 
   // 이전/다음 회차 + 전체 보기가 페이지의 진짜 바닥이다 — 그 아래 사이트 공통 설명
   // (footer)이 또 붙으면 "최하단"이 아니게 된다. 스토리 페이지에서만 footer를 뺀다.
+  // 참고 목업엔 footer("한 장 요약 PDF 보기" 링크)가 있지만, 그 기능은 이미 사이트
+  // 전역 우하단 고정 CTA(header-cta, "한 장 요약 보기")가 커버해서 다시 넣지 않는다.
   return {
     title, description, content, noindex: !!story.draft, showFooter: false,
     printUrl: `/${story.issue.issue}/print/`,

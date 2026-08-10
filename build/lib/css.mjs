@@ -66,11 +66,14 @@ const TYPE = `
 }
 
 /* 킥커는 신문 문법이라 유지한다. 다만 모노스페이스 코스튬은 뺐다 —
-   impeccable craft-floor: "monospace as a costume for 'technical'". */
+   impeccable craft-floor: "monospace as a costume for 'technical'".
+   2026-08-10 개편: 참고 목업의 밑줄 태그처럼 아래 보더를 붙여 헤드라인 앞 마디를
+   시각적으로 끊는다. */
 .kicker {
-  font-size: 12px; font-weight: 700; letter-spacing: .14em;
+  display: inline-block; font-size: 12px; font-weight: 700; letter-spacing: .14em;
   text-transform: uppercase; color: var(--dc, var(--secondary));
-  margin: 0 0 var(--s2);
+  margin: 0 0 var(--s5); padding-bottom: var(--s3);
+  border-bottom: 1px solid var(--divider);
 }
 
 h1, .story-headline {
@@ -82,8 +85,16 @@ h3 { font-weight: 900; font-size: 22px; line-height: 1.15; letter-spacing: -.025
 
 .teaser {
   font-family: var(--serif); font-weight: 700; font-size: 20px;
-  line-height: 1.6; margin: 0 0 var(--s6); color: var(--ink);
+  line-height: 1.6; margin: 0 0 var(--s5); color: var(--ink);
   max-width: var(--measure);
+}
+
+/* "BY ANSWER ZINE · {도메인} 데이터 기반" — 인쇄 진의 킥커류와 같은 문법이다.
+   2026-08-10 개편: 헤드라인/티저와 스탯 패널 사이의 경계선 역할도 겸한다. */
+.byline {
+  font-family: var(--sans); font-size: 12px; font-weight: 700; letter-spacing: .1em;
+  text-transform: uppercase; color: var(--secondary); margin: 0 0 var(--s6);
+  padding-bottom: var(--s4); border-bottom: 1px solid var(--divider);
 }
 
 .story-body p { margin: 0 0 var(--s5); max-width: var(--measure); }
@@ -191,11 +202,43 @@ const COMPONENTS = `
   color: var(--tertiary); font-family: var(--sans); font-size: 18px;
 }
 
-/* 출처 링크는 항상 보인다 — 프로토타입은 opacity:0에 hover로만 노출해
-   터치 기기에서 접근이 안 됐다 (§9.9). */
+/* 2026-08-10 개편: 헤드라인 바로 아래(byline 다음)로 끌어올렸다 — 참고 목업의
+   .stat-panel처럼 라벨(왼쪽)과 수치(오른쪽)를 한 줄에 나란히 둔다. 출처 링크는
+   여기서 뺐다 — source-box로 분리해 본문 뒤로 옮겼다. */
 .stat-card {
   background: var(--surface); border: 1px solid var(--divider); border-radius: 16px;
-  padding: var(--s5); margin: var(--s6) 0; max-width: var(--measure);
+  padding: var(--s5); margin: 0 0 var(--s6); max-width: var(--measure);
+  display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: var(--s3);
+}
+.stat-card .label { max-width: 60%; }
+
+/* 인사이트 콜아웃. 2026-08-08에 화면에서 뺐던 quote.insight.note가 2026-08-10에
+   되돌아왔다 — 참고 목업의 .insight 콜아웃 구조를 그대로 가져왔다. 왼쪽 보더에
+   도메인색을 쓴다 — 도메인 태그·킥커·풀쿼트에 이어 네 번째 자리다
+   (design.md §2 불변식 3번 갱신, 9번은 그대로 — 1px을 넘지 않는다). */
+.insight-note {
+  background: var(--surface); border: 1px solid var(--divider);
+  border-left: 1px solid var(--dc, var(--rule));
+  padding: var(--s4) var(--s5); margin: 0 0 var(--s6); max-width: var(--measure);
+}
+.insight-label {
+  display: block; font-family: var(--sans); font-size: 11px; font-weight: 700;
+  letter-spacing: .1em; text-transform: uppercase; color: var(--dc, var(--secondary));
+  margin-bottom: var(--s2);
+}
+.insight-note p { margin: 0; font-size: 14px; line-height: 1.75; }
+
+/* 출처 링크는 항상 보인다 — 프로토타입은 opacity:0에 hover로만 노출해
+   터치 기기에서 접근이 안 됐다 (§9.9). 2026-08-10부터 스탯 패널이 아니라 본문
+   뒤의 이 헤어라인 박스에서 낸다(참고 목업의 .source-box). */
+.source-box {
+  display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap;
+  gap: var(--s3); border-top: 1px solid var(--divider); border-bottom: 1px solid var(--divider);
+  padding: var(--s4) 0; margin: 0 0 var(--s6); max-width: var(--measure);
+}
+.source-box .lbl {
+  font-family: var(--sans); font-size: 12px; font-weight: 700; letter-spacing: .08em;
+  text-transform: uppercase; color: var(--tertiary);
 }
 .stat-source {
   font-family: var(--sans); font-size: 12px; font-weight: 700; letter-spacing: .04em;
@@ -265,12 +308,30 @@ const COMPONENTS = `
   text-decoration: none; color: var(--ink); background: none; cursor: pointer;
 }
 .btn:hover { background: var(--ink); color: var(--bg); }
+
+/* "전체 아카이브 보기" — 2026-08-10부터 테두리 버튼이 아니라 참고 목업의
+   .to-archive처럼 가운데 정렬된 텍스트 링크다. 페이지의 진짜 마지막 줄이라
+   장식을 줄였다. */
+.to-archive { text-align: center; margin-top: var(--s7); }
+.to-archive a {
+  font-family: var(--sans); font-size: 12px; font-weight: 700; letter-spacing: .1em;
+  text-transform: uppercase; color: var(--secondary); text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.to-archive a:hover { color: var(--ink); }
 `;
 
-/* 인쇄 진. design.md §8의 장치를 유지하되 전부 데이터에서 생성한다. */
+/* 인쇄 진.
+ *
+ * 2026-08-10 전면 개편 — 사용자가 첨부한 참고 목업(print.html)의 포맷을 따른다.
+ * "리드 1 + 미니 3" 위계(design.md §2 옛 불변식 4번)를 없애고, 그 주 통과분 전원을
+ * 사진·콜라주·테이프·스티커·회전각 없이 동등한 행으로 낸다 — 그 부품들이 쓰던
+ * 옛 불변식 5·6번도 함께 없어졌다. QR도 뺐다 — 목업처럼 사람이 읽는 URL 한 줄로
+ * 바꿨다(§4.2 A4 1페이지 검증은 그대로 유지). */
 const ZINE = `
 .zine-preview { max-width: 900px; margin: 0 auto; padding: var(--s7) var(--s4) var(--s9); }
-.zine-preview-cta { text-align: center; }
+.zine-preview-cta { display: flex; align-items: center; justify-content: center; gap: var(--s4); flex-wrap: wrap; }
+.zine-preview-cta .back-link { margin-bottom: 0; }
 
 .zine-page {
   width: 210mm; min-height: 297mm; margin: 0 auto; padding: 8mm 10mm;
@@ -286,68 +347,51 @@ const ZINE = `
 .zine-dateline { font-family: var(--sans); font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
 /* issue.insightPrint — 웹의 .issue-insight와 같은 자리지만 A4는 여유가 없어 한 줄로 줄인다. */
 .zine-insight { font-family: var(--serif); font-style: italic; font-weight: 700; font-size: 10.5px; margin: 1.5mm 0 0; }
-.zine-section-rule { border-top: 1px solid var(--ink); margin: 4mm 0; }
 
-.zine-kicker { font-family: var(--sans); font-size: 10.5px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--secondary); }
-.zine-headline { font-family: var(--sans); font-weight: 900; font-size: 44px; line-height: 1.05; letter-spacing: -.035em; margin: 2mm 0 1mm; }
-.zine-byline { font-family: var(--sans); font-size: 10px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--secondary); margin: 1mm 0 3mm; }
-.zine-teaser { font-size: 14px; font-weight: 700; line-height: 1.45; margin: 0 0 3mm; }
-.zine-body { font-size: 11.5px; line-height: 1.65; margin: 0 0 3mm; }
-.zine-lead-body::after { content: ""; display: block; clear: both; }
-.zine-lead-photo { float: left; width: 38%; margin: 0 5mm 3mm 0; }
+/* 스토리 한 편 = 한 행. 왼쪽은 본문, 오른쪽은 숫자 한 방(statcol) — 참고 목업의
+   .sheet-story/.statcol 구조 그대로다. */
+.zine-story {
+  display: grid; grid-template-columns: 1fr 32mm; gap: 6mm; align-items: start;
+  padding: 4.5mm 0; border-bottom: 1px solid var(--ink);
+}
+.zine-story:first-of-type { padding-top: 4mm; }
+.zine-story:last-of-type { border-bottom: none; }
 
-.zine-photo-collage { position: relative; margin: 0 0 9mm; }
-/* 2026-08-10 — 화이트 톤에 맞춰 크림 대각선 스트라이프를 걷어내고 연회색 박스로
-   단순화했다. 배경이 이제 흰색이라 스트라이프 텍스처가 있으나 없으나 실사진이
-   덮이면 안 보이고, 없을 때는 은은한 회색 박스가 더 깔끔하다. */
-.zine-photo-placeholder {
-  aspect-ratio: 4 / 3; border: 2px solid var(--ink); transform: rotate(-1.1deg);
-  background: #F2F2F2;
-  background-size: cover; background-position: center 20%;
-  clip-path: polygon(0% 2%, 3% 0%, 97% 1%, 100% 4%, 99% 97%, 96% 100%, 2% 99%, 0% 96%);
-  display: flex; align-items: center; justify-content: center;
-  font-family: var(--sans); font-size: 11px; font-weight: 700; color: var(--secondary);
-}
-.zine-tape { position: absolute; width: 60px; height: 20px; background: rgba(255,255,255,.6); border: 1px dashed rgba(0,0,0,.3); }
-.zine-tape-1 { top: -9px; left: 6px; transform: rotate(-9deg); }
-.zine-tape-2 { top: -7px; right: 2px; transform: rotate(7deg); }
-/* 사진 왼쪽 아래 모서리에 겹쳐 붙는다. 라벨이 길어도 배너로 늘어나지 않도록 폭을 묶는다. */
-.zine-sticker {
-  position: absolute; left: -2mm; bottom: -6mm; z-index: 2;
-  max-width: 78%; padding: 4px 9px;
-  border: 2px solid var(--ink); background: var(--surface);
-  font-family: var(--sans); transform: rotate(-3deg); line-height: 1.2;
-}
-.zine-sticker .lbl {
-  display: block; font-size: 8px; font-weight: 700;
-  letter-spacing: .06em; text-transform: uppercase; color: var(--secondary);
-}
-.zine-sticker .val {
-  display: block; font-size: 15px; font-weight: 900;
-  letter-spacing: -.025em; font-variant-numeric: tabular-nums;
-}
+.zine-kicker { font-family: var(--sans); font-size: 9px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--secondary); margin: 0 0 1mm; }
+.zine-story-headline { font-family: var(--sans); font-weight: 900; font-size: 16px; line-height: 1.25; letter-spacing: -.02em; margin: 0 0 1.5mm; }
+.zine-story-body { font-size: 10px; line-height: 1.55; margin: 0 0 2mm; }
 
-.zine-secondary-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6mm; margin-top: 1mm; position: relative; }
-.zine-secondary-row::before, .zine-secondary-row::after {
-  content: ""; position: absolute; top: 0; bottom: 0; width: 1px; background: var(--ink); opacity: .25;
+/* 인사이트 콜아웃. 웹의 .insight-note와 같은 데이터(quote.insight.note), A4에
+   맞춰 여백만 줄였다. 왼쪽 보더의 도메인색은 웹과 같은 네 번째 자리다. */
+.zine-insight-note {
+  font-size: 9px; line-height: 1.5; background: var(--surface);
+  border-left: 2px solid var(--dc, var(--rule)); padding: 1.5mm 2.5mm; margin: 0 0 2mm;
 }
-.zine-secondary-row::before { left: 33.333%; }
-.zine-secondary-row::after { left: 66.666%; }
-.zine-mini-headline { font-family: var(--sans); font-weight: 900; font-size: 19px; line-height: 1.15; letter-spacing: -.025em; margin: 1.5mm 0 2mm; }
-.zine-mini-teaser { font-size: 11px; line-height: 1.55; }
+.zine-insight-note b {
+  display: block; font-family: var(--sans); font-size: 7.5px; font-weight: 700;
+  letter-spacing: .08em; text-transform: uppercase; color: var(--dc, var(--secondary)); margin-bottom: .6mm;
+}
+.zine-source { font-family: var(--sans); font-size: 8px; color: var(--secondary); }
+.zine-source a { color: var(--ink); font-weight: 700; }
 
-.zine-footer-bar { display: flex; justify-content: center; align-items: center; margin-top: 5mm; background: var(--ink); color: var(--bg); padding: 4mm 5mm; }
-.zine-footer-qr { display: flex; align-items: center; gap: 3mm; }
-.zine-qr { width: 60px; height: 60px; background: #fff; padding: 3px; flex-shrink: 0; }
-.zine-qr-caption { font-family: var(--sans); font-size: 9.5px; line-height: 1.5; }
-.zine-qr-caption span { font-weight: 900; display: block; }
+.zine-story-stat { text-align: center; border-left: 1px solid var(--divider); padding-left: 4mm; }
+.zine-stat-value {
+  display: block; font-family: var(--sans); font-weight: 900; font-size: 15px;
+  letter-spacing: -.02em; font-variant-numeric: tabular-nums; line-height: 1.2;
+  word-break: keep-all;
+}
+.zine-stat-label { display: block; font-family: var(--sans); font-size: 7.5px; color: var(--secondary); letter-spacing: .02em; margin-top: 1mm; }
+
+/* 사람이 읽는 URL 한 줄 — QR 대신이다 (2026-08-10). */
+.zine-footer {
+  text-align: center; margin-top: 4mm; padding-top: 3mm; border-top: 1px solid var(--ink);
+  font-family: var(--sans); font-size: 8.5px; letter-spacing: .04em; color: var(--secondary);
+}
 
 @media (max-width: 780px) {
   .zine-page { width: 100%; padding: 6mm 5mm; }
-  .zine-secondary-row { grid-template-columns: 1fr; }
-  .zine-secondary-row::before, .zine-secondary-row::after { display: none; }
-  .zine-lead-photo { float: none; width: 100%; }
-  .zine-headline { font-size: 32px; }
+  .zine-story { grid-template-columns: 1fr; }
+  .zine-story-stat { text-align: left; border-left: none; padding-left: 0; }
 }
 `;
 
