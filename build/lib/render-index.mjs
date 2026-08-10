@@ -51,8 +51,6 @@ export function renderIndex(issues, stories, registry) {
   </div>
 
   <p class="empty-state" data-empty hidden>이 카테고리는 아직 신호가 없다.</p>
-
-  ${latest ? raw(h`<p style="margin-top:40px"><a class="btn" href="${u(`/${latest.issue}/print/`)}">인쇄용 A4</a></p>`) : ""}
 </main>`;
 
   return {

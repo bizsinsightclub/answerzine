@@ -135,10 +135,12 @@ test("draft 회차는 인덱스에 표시가 붙는다", () => {
 
 test("인덱스가 최신 회차의 인쇄 링크를 준다", () => {
   // "이번 호 전체 보기" 버튼은 2026-08-08에 없앴다 — 회차 목록 페이지 자체가 없어졌다.
-  // "인쇄용 A4"만 남는다.
-  const { content } = renderIndex([ISSUE], stories, REG);
-  assert.match(content, /href="\/2026-w31\/print\/"/);
+  // 본문 하단의 "인쇄용 A4" 링크는 2026-08-10에 없앴다 — 마스트헤드의 "한 장 요약
+  // 보기"(header-cta, printUrl로 렌더된다)가 유일한 인쇄 진입점이다.
+  const { content, printUrl } = renderIndex([ISSUE], stories, REG);
+  assert.equal(printUrl, "/2026-w31/print/");
   assert.ok(!content.includes("이번 호 전체 보기"));
+  assert.ok(!content.includes("인쇄용 A4"));
 });
 
 test("빈 상태 요소가 인덱스에 있다", () => {
