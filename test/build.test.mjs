@@ -122,7 +122,7 @@ test("내부 링크가 전부 실제 파일로 해석된다", () => {
     }
   };
   walk(OUT);
-  assert.ok(htmls.length >= 8);
+  assert.ok(htmls.length >= 6); // 인덱스 + 스토리 4편 + 인쇄 진, 회차 수가 늘면 더 늘어난다
 
   const broken = [];
   for (const file of htmls) {

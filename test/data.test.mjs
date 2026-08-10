@@ -66,7 +66,7 @@ test("실제 저장소 데이터가 최신순으로 로드된다", async () => {
   const { loadIssues, loadRegistry } = await import("../build/lib/data.mjs");
   const reg = loadRegistry(".");
   const issues = loadIssues(".");
-  assert.ok(issues.length >= 2, "회차가 2개 이상이어야 한다");
+  assert.ok(issues.length >= 1, "회차가 1개 이상이어야 한다");
   const dates = issues.map((i) => parseRange(i.range).start.getTime());
   for (let i = 1; i < dates.length; i++)
     assert.ok(dates[i - 1] >= dates[i], "회차가 최신순이 아니다");

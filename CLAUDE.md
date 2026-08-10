@@ -99,7 +99,7 @@ sources/
   README.md
 issues/
   README.md             회차 파일 형식
-  2026-w27.json  2026-w31.json
+  2026-w31.json
 tools/
   collect.mjs           ★ 주간 원본 수집 — 오픈API·fetch·Playwright 어댑터
   make-og.mjs           링크 미리보기 이미지 생성 (결과물은 커밋한다)
