@@ -1,34 +1,27 @@
 /**
  * 전체 스타일시트.
  *
- * 방향 A — "지면이 본체다". 인쇄 진의 크림·먹색·괘선을 웹이 물려받고,
+ * 방향 A — "지면이 본체다". 인쇄 진의 흰색·먹색·괘선을 웹이 물려받고,
  * PC는 12칼럼 비대칭 그리드(본문 한 칼럼 + 근거 레일)를 쓴다.
  * 본문에 CSS 다단은 쓰지 않는다 — 신문이 다단인 건 지면이 고정이기 때문이고,
  * 웹에서 다단 본문은 아래로 읽다가 위로 되돌아가야 한다 (스펙 §6.3).
  *
- * 로드하는 웨이트는 Paperlogy 400/700/900, 나눔명조 400/700뿐이다.
- * CSS가 그 밖의 웨이트를 참조하면 test/css.test.mjs가 실패한다 (§9.8).
+ * 2026-08-10부터 자체 호스팅 폰트(Paperlogy·나눔명조)를 걷어내고 시스템 헬베티카
+ * 스택으로 바꿨다 — 자체 폰트·서브셋 빌드 단계가 없다. 위계는 400/700/900 웨이트
+ * 대비로만 만든다(design.md §3). `--sans`/`--serif` 두 변수는 이름만 남기고 같은
+ * 스택을 가리킨다 — 기존 규칙들이 역할별로 나눠 참조하던 걸 그대로 두기 위해서다.
  */
-import { themeCSS, domainCSS, INTRO_THEME } from "./theme.mjs";
-import { getBase } from "./site.mjs";
+import { themeCSS, domainCSS } from "./theme.mjs";
 
-const FONTS = `
-@font-face { font-family: "Paperlogy"; font-weight: 400; font-display: swap;
-  src: url("__BASE__/assets/fonts/Paperlogy-400.ttf") format("truetype"); }
-@font-face { font-family: "Paperlogy"; font-weight: 700; font-display: swap;
-  src: url("__BASE__/assets/fonts/Paperlogy-700.ttf") format("truetype"); }
-@font-face { font-family: "Paperlogy"; font-weight: 900; font-display: swap;
-  src: url("__BASE__/assets/fonts/Paperlogy-900.ttf") format("truetype"); }
-@font-face { font-family: "NanumMyeongjo"; font-weight: 400; font-display: swap;
-  src: url("__BASE__/assets/fonts/NanumMyeongjo.otf") format("opentype"); }
-@font-face { font-family: "NanumMyeongjo"; font-weight: 700; font-display: swap;
-  src: url("__BASE__/assets/fonts/NanumMyeongjoBold.otf") format("opentype"); }
-`;
+/* 라틴 글자는 Helvetica Neue/Helvetica/Arial에서, 한글은 그 폰트들에 글리프가 없어
+   자동으로 다음 순번(Apple SD Gothic Neo·맑은 고딕)으로 넘어간다 — 둘 다 헬베티카와
+   같은 계열의 중립 그로테스크라 톤이 크게 안 어긋난다. */
+const HELVETICA = `-apple-system, "Helvetica Neue", Helvetica, Arial, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif`;
 
 const BASE = `
 :root {
-  --sans: "Paperlogy", -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", sans-serif;
-  --serif: "NanumMyeongjo", Batang, "Times New Roman", serif;
+  --sans: ${HELVETICA};
+  --serif: ${HELVETICA};
   --measure: 68ch;
   --shell: 1240px;
   --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px; --s5: 24px;
@@ -112,10 +105,13 @@ const CHROME = `
 
 .masthead { padding-top: var(--s3); }
 .masthead-top { display: flex; align-items: baseline; justify-content: space-between; gap: var(--s4); }
-/* 워드마크는 원본 로고를 쓴다. 배경을 투명화한 두 벌 중, 밝은 배경(사이트 기본값)에는
-   어두운 로고를, 항상 어두운 진입 화면(.intro)에는 밝은 로고를 보인다. */
+/* 워드마크는 2026-08-10부터 브래킷 마크 + "the answer company"만 남긴 축소판이다
+   (기존의 큰 ANSWER/Zine 로고타입은 뺐다 — CLAUDE.md 참고). 배경을 투명화한 두 벌 중
+   어두운 쪽(logo-dark)만 실제로 쓰인다 — 사이트가 단일 흰 테마라 밝은 쪽(logo-light)이
+   보일 자리가 없다. 나중에 어두운 배경이 다시 생기면 그대로 켤 수 있게 마크업·스위치는
+   남겨 둔다. 마크가 가로로 넓고 얇은 비율이라(약 7.3:1) 높이가 아니라 너비로 재운다. */
 .wordmark { display: inline-block; text-decoration: none; color: var(--ink); line-height: 0; }
-.logo { height: clamp(34px, 5vw, 52px); width: auto; display: block; }
+.logo { height: auto; width: clamp(150px, 20vw, 230px); display: block; }
 .logo-light { display: none; }
 .intro .logo-light { display: block; }
 .intro .logo-dark { display: none; }
@@ -154,6 +150,8 @@ const CHROME = `
   display: inline-flex; flex-wrap: wrap; gap: 2px; margin: 0 0 var(--s5);
   padding: 4px; list-style: none; background: var(--surface); border-radius: 12px;
   max-width: 100%;
+  /* --surface가 --bg와 같은 흰색이라(2026-08-10) 테두리 없이는 페이지에 묻힌다. */
+  border: 1px solid var(--divider);
 }
 .seg button {
   font-family: var(--sans); font-size: 13px; font-weight: 700; letter-spacing: .08em;
@@ -281,7 +279,9 @@ const ZINE = `
   box-shadow: 0 6px 30px rgba(0,0,0,.18);
 }
 .zine-masthead { text-align: center; padding-bottom: 2mm; }
-.zine-logo { height: 15mm; width: auto; margin: 0 auto 1mm; display: block; }
+/* 2026-08-10 축소판 마크(약 7.3:1)에 맞춰 높이 대신 너비로 잰다 — 예전 높이 기준이면
+   가로 109mm까지 늘어나 인쇄 지면 폭을 넘긴다. */
+.zine-logo { width: 62mm; height: auto; margin: 0 auto 1mm; display: block; }
 .zine-ruleline { border-top: 3px solid var(--ink); border-bottom: 1px solid var(--ink); height: 5px; margin: 2mm 0; }
 .zine-dateline { font-family: var(--sans); font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
 /* issue.insightPrint — 웹의 .issue-insight와 같은 자리지만 A4는 여유가 없어 한 줄로 줄인다. */
@@ -297,9 +297,12 @@ const ZINE = `
 .zine-lead-photo { float: left; width: 38%; margin: 0 5mm 3mm 0; }
 
 .zine-photo-collage { position: relative; margin: 0 0 9mm; }
+/* 2026-08-10 — 화이트 톤에 맞춰 크림 대각선 스트라이프를 걷어내고 연회색 박스로
+   단순화했다. 배경이 이제 흰색이라 스트라이프 텍스처가 있으나 없으나 실사진이
+   덮이면 안 보이고, 없을 때는 은은한 회색 박스가 더 깔끔하다. */
 .zine-photo-placeholder {
   aspect-ratio: 4 / 3; border: 2px solid var(--ink); transform: rotate(-1.1deg);
-  background: repeating-linear-gradient(45deg, #DBD7C9 0, #DBD7C9 2px, #EDE9DC 2px, #EDE9DC 5px);
+  background: #F2F2F2;
   background-size: cover; background-position: center 20%;
   clip-path: polygon(0% 2%, 3% 0%, 97% 1%, 100% 4%, 99% 97%, 96% 100%, 2% 99%, 0% 96%);
   display: flex; align-items: center; justify-content: center;
@@ -350,65 +353,41 @@ const ZINE = `
 
 /* ── 진입 화면 ──────────────────────────────────────────────
    홈에서만 나온다 (issue·story 페이지는 마스트헤드부터 바로 시작한다).
-   원본 프로토타입처럼 로고 → 스테이트먼트 → 본문 순으로 스크롤해 들어가고,
-   세션에 한 번 봤다고 건너뛰지 않는다 — 홈으로 돌아올 때마다 다시 보인다.
-   자동으로 걷히는 타이머 오버레이가 아니라 문서 흐름 안의 두 섹션이라
-   스크립트가 죽어도 그냥 스크롤하거나 링크를 누르면 다음 섹션이 나온다.
-   app.js가 스크롤 위치에 맞춰 두 섹션의 opacity·scale을 조절해 크로스페이드로
-   넘어가게 한다 — 스크립트가 없으면 그냥 각자 100vh를 채운 채로 스크롤된다. */
+   2026-08-10 리디자인: "THE ANSWER" / "COMPANY" 두 줄이 중앙에 겹쳐 있다가, 스크롤에
+   맞춰 첫 줄은 오른쪽으로 둘째 줄은 왼쪽으로 갈라지며 바로 아카이브로 이어진다 —
+   "이거 왜 잘나가?" 스테이트먼트 단계는 없앴다. 세션에 한 번 봤다고 건너뛰지 않는다 —
+   홈으로 돌아올 때마다 다시 보인다. 자동으로 걷히는 타이머 오버레이가 아니라 문서
+   흐름 안의 섹션 하나라 스크립트가 죽어도 그냥 스크롤하거나 링크를 누르면 본문이
+   나온다. app.js가 스크롤 위치에 맞춰 두 줄을 좌우로 밀어내고 옅게 한다 — 스크립트가
+   없으면 그냥 중앙에 겹친 채로 스크롤되어 지나간다. */
 const INTRO = `
-/* 진입 화면은 사이트의 밝은 기본 테마와 무관하게 항상 어둡다 — 로컬 변수로
-   덮어써서, 그 안의 .statement-cta 같은 컴포넌트가 이 팔레트를 그대로 물려받는다.
-   값은 theme.mjs의 INTRO_THEME 하나뿐이다 (make-og.mjs도 같은 값을 쓴다). */
-.intro, .statement-wrap {
-  --bg: ${INTRO_THEME.bg}; --ink: ${INTRO_THEME.ink}; --secondary: ${INTRO_THEME.secondary};
-  --tertiary: ${INTRO_THEME.tertiary}; --divider: ${INTRO_THEME.divider};
-  background: var(--bg); color: var(--ink);
-  text-align: center; position: relative;
-}
-.statement-wrap {
-  min-height: 100svh; display: flex; flex-direction: column;
-  align-items: center; justify-content: center; padding: var(--s6) var(--s5);
-}
+/* 인트로는 이제 사이트의 기본 흰 테마를 그대로 쓴다 — 예전엔 항상 어두운 로컬
+   팔레트(theme.mjs의 INTRO_THEME)를 덮어썼지만, 화이트+헬베티카로 통일되면서
+   별도 팔레트가 필요 없어져 그 오버라이드 자체를 없앴다. */
+.intro { text-align: center; position: relative; }
 /* 인트로는 뷰포트보다 60vh 더 큰 상자다 — 그 여유분만큼 안쪽 콘텐츠가 상단에
-   고정(sticky)된 채로 머물러서, 스크롤해도 그냥 지나가 버리지 않고 옅어지며
-   줄어드는 과정 자체가 눈에 보인다. app.js의 진행률 계산이 이 160svh를 전제한다. */
+   고정(sticky)된 채로 머물러서, 스크롤해도 그냥 지나가 버리지 않고 두 줄이 갈라지는
+   과정 자체가 눈에 보인다. app.js의 진행률 계산이 이 160svh를 전제한다. */
 .intro { height: 160svh; }
 .intro-inner {
   position: sticky; top: 0; height: 100svh; display: flex; flex-direction: column;
   align-items: center; justify-content: center; padding: var(--s6) var(--s5);
 }
-/* app.js가 매 스크롤 프레임마다 이 둘을 직접 조절한다. will-change로 미리 레이어를 띄워둔다. */
-/* 섹션 자체(솔리드 배경)는 그대로 두고, 로고·문장만 담긴 안쪽 래퍼를 대신 조절한다.
-   섹션 자체의 opacity를 낮추면 배경까지 옅어져 body 배경이 비쳐 보인다(§app.js). */
-.js .intro-inner, .js .statement-inner { will-change: opacity, transform; }
-.intro .logo { height: clamp(140px, 22vw, 270px); width: auto; margin: 0 auto; }
+/* app.js가 매 스크롤 프레임마다 두 줄을 직접 조절한다. will-change로 미리 레이어를 띄워둔다. */
+.js .intro-word { will-change: transform, opacity; }
+
+.intro-wordmark { margin: 0; display: flex; flex-direction: column; align-items: center; gap: .02em; }
+.intro-word {
+  display: block; font-family: var(--sans); font-weight: 700; letter-spacing: -.03em;
+  font-size: clamp(40px, 9vw, 130px); line-height: 1.05; white-space: nowrap;
+}
 
 .intro-scroll {
   position: absolute; bottom: var(--s7); left: 50%; transform: translateX(-50%);
   color: var(--tertiary); text-decoration: none; padding: var(--s2);
 }
-.intro-scroll .chev, .statement-cta .chev {
-  display: inline-block; animation: chev-bounce 1.8s ease-in-out infinite;
-}
+.intro-scroll .chev { display: inline-block; animation: chev-bounce 1.8s ease-in-out infinite; }
 @keyframes chev-bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(6px); } }
-
-/* 문장을 임의의 너비로 한 번 더 접지 않는다 — <br>로 나눈 두 절 각각은
-   자기 안에서 끊어지지 않아야 "이유 없는 줄바꿈"이 안 생긴다. */
-.statement-text {
-  font-family: var(--sans); font-weight: 900; font-size: clamp(25px, 4vw, 42px);
-  line-height: 1.3; letter-spacing: -.02em; margin: 0 0 var(--s6);
-}
-/* 버튼이 아니라 뜬 힌트다 — intro-scroll과 같은 무게. 아래로 스크롤하기 시작하면
-   app.js가 opacity를 낮춰 자연스럽게 지운다(§ 진입 화면 스크립트). */
-.statement-cta {
-  position: absolute; bottom: var(--s7); left: 50%; transform: translateX(-50%);
-  display: inline-flex; align-items: center; gap: var(--s2);
-  font-family: var(--sans); font-size: 13px; font-weight: 700; letter-spacing: .08em;
-  text-transform: uppercase; color: var(--tertiary); text-decoration: none;
-  transition: opacity .25s ease-out;
-}
-.statement-cta:hover { color: var(--ink); }
 `;
 
 /* ── 등장 ──────────────────────────────────────────────────
@@ -430,7 +409,7 @@ const PRINT = `
 @media print {
   @page { size: A4; margin: 0; }
   html, body { margin: 0; padding: 0; background: #fff; letter-spacing: 0; }
-  .site-header, .statement-wrap, .shell, .seg, .intro,
+  .site-header, .shell, .seg, .intro,
   .print-btn, .zine-preview-cta {
     display: none !important;
   }
@@ -461,9 +440,8 @@ const MOTION = `
 `;
 
 export function stylesheet(domains = []) {
-  // GitHub Pages 프로젝트 사이트는 /<저장소명>/ 하위에 놓인다. 폰트 경로도 접두사가 필요하다.
-  const fonts = FONTS.replaceAll("__BASE__", getBase());
-  return [fonts, themeCSS(), domainCSS(domains), BASE, TYPE, CHROME, LAYOUT, COMPONENTS, ZINE, INTRO, REVEAL, PRINT, MOTION]
+  // 시스템 폰트만 쓰므로(2026-08-10) __BASE__ 접두사가 필요한 @font-face가 없다.
+  return [themeCSS(), domainCSS(domains), BASE, TYPE, CHROME, LAYOUT, COMPONENTS, ZINE, INTRO, REVEAL, PRINT, MOTION]
     .join("\n")
     .trim() + "\n";
 }

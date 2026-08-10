@@ -19,25 +19,23 @@ export { SITE };
 const BOOT = `(function(d){d.documentElement.className+=" js";})(document);`;
 
 /**
- * 진입 화면 — 홈에서만 나온다. 원본 프로토타입처럼 로고 → 스테이트먼트 → 본문 순으로
- * 스크롤해 들어간다. 세션에 한 번만 보여주고 넘기지 않는다 — 홈으로 돌아올 때마다
- * (뒤로 가기 포함) 매번 다시 보인다. 문서 흐름 안의 두 섹션이라 스크립트가 없어도
- * 그냥 스크롤하거나 링크를 누르면 다음 섹션·본문으로 넘어간다 (a href="#…" 뿐이다).
- * app.js가 스크롤에 맞춰 두 섹션을 크로스페이드한다 — 실패해도 둘 다 그냥 보인다.
+ * 진입 화면 — 홈에서만 나온다. 2026-08-10 리디자인: 로고 이미지 대신 실제 텍스트
+ * "THE ANSWER" / "COMPANY" 두 줄을 띄우고, 스크롤에 맞춰 첫 줄은 오른쪽으로,
+ * 둘째 줄은 왼쪽으로 갈라지며 그 뒤의 아카이브를 드러낸다("이거 왜 잘나가?" 스테이트먼트
+ * 단계는 없앴다 — 인트로 다음이 바로 본문이다).
+ * 문서 흐름 안의 섹션 하나라 스크립트가 없어도 그냥 스크롤하거나 아래 링크를 누르면
+ * 바로 본문(`#main-content`)으로 넘어간다. app.js의 bootIntroMotion()이 스크롤 진행률에
+ * 맞춰 두 줄을 좌우로 밀어낸다 — 실패해도 텍스트는 중앙에 그냥 보인다.
  */
 function intro() {
   return h`<section class="intro" id="intro" data-intro role="presentation">
   <div class="intro-inner">
-    <img class="logo logo-light" src="${u("/assets/img/logo-light.png")}" alt="${SITE.name}" width="1970" height="860">
-    <img class="logo logo-dark" src="${u("/assets/img/logo-dark.png")}" alt="" aria-hidden="true" width="1971" height="842">
-    <a class="intro-scroll" href="#statement" aria-label="아래로 스크롤"><span class="chev" aria-hidden="true">⌄</span></a>
+    <p class="intro-wordmark">
+      <span class="intro-word intro-word-1">THE ANSWER</span>
+      <span class="intro-word intro-word-2">COMPANY</span>
+    </p>
+    <a class="intro-scroll" href="#main-content" aria-label="아카이브로 이동"><span class="chev" aria-hidden="true">⌄</span></a>
   </div>
-</section>
-<section class="statement-wrap" id="statement" data-intro>
-  <div class="statement-inner">
-    <p class="statement-text">이거 왜 잘나가?<br>순위가 아니라, 팔린 이유를 본다.</p>
-  </div>
-  <a class="statement-cta" href="#main-content">아카이브 보기 <span class="chev" aria-hidden="true">⌄</span></a>
 </section>`;
 }
 
@@ -93,8 +91,8 @@ function header(printUrl) {
   <div class="masthead">
     <div class="masthead-top">
       <a class="wordmark" href="${u("/")}" aria-label="${SITE.name} 홈">
-        <img class="logo logo-light" src="${u("/assets/img/logo-light.png")}" alt="${SITE.name}" width="1970" height="860">
-        <img class="logo logo-dark" src="${u("/assets/img/logo-dark.png")}" alt="" aria-hidden="true" width="1971" height="842">
+        <img class="logo logo-light" src="${u("/assets/img/logo-light.png")}" alt="${SITE.name}" width="1970" height="260">
+        <img class="logo logo-dark" src="${u("/assets/img/logo-dark.png")}" alt="" aria-hidden="true" width="1971" height="270">
       </a>
       ${printUrl ? raw(h`<a class="header-cta" href="${u(printUrl)}">한 장 요약 보기</a>`) : ""}
     </div>

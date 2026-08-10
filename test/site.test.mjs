@@ -60,13 +60,9 @@ test("기본 경로로 빌드해도 파일 구조는 그대로다", async () => 
   assert.ok(!existsSync(join(OUT, "answerzine")), "출력에 접두사 디렉터리를 만들면 안 된다");
 });
 
-test("스타일시트의 폰트 경로에도 접두사가 붙는다", () => {
-  const css = readFileSync(join(OUT, "assets/style.css"), "utf8");
-  const urls = [...css.matchAll(/url\("([^"]+)"\)/g)].map((m) => m[1]);
-  assert.ok(urls.length >= 5, "폰트 url이 5개 이상이어야 한다");
-  for (const url of urls)
-    assert.ok(url.startsWith("/answerzine/"), `접두사 없는 폰트 경로: ${url}`);
-});
+// "스타일시트의 폰트 경로에도 접두사가 붙는다" 테스트는 2026-08-10 자체 호스팅 폰트
+// 제거와 함께 없앴다 — 시스템 헬베티카 스택은 url()로 받아오는 폰트 파일이 아예 없어서
+// 접두사가 붙을 경로 자체가 없다(위에서 stylesheet() 출력에 url()이 0건임을 확인했다).
 
 test("canonical이 배포 주소를 가리킨다", () => {
   const html = readFileSync(join(OUT, "2026-w31/book/index.html"), "utf8");

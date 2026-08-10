@@ -12,17 +12,9 @@ test("로드하지 않은 폰트 웨이트를 참조하지 않는다 — §9.8",
   assert.deepEqual(bad, [], `로드하지 않은 웨이트 참조: ${bad.join(", ")}`);
 });
 
-test("@font-face는 다섯 개다 (Paperlogy 3 + 나눔명조 2)", () => {
-  assert.equal((css.match(/@font-face/g) ?? []).length, 5);
-});
-
-test("@font-face가 참조하는 파일과 로드 웨이트가 일치한다", () => {
-  for (const f of ["Paperlogy-400.ttf", "Paperlogy-700.ttf", "Paperlogy-900.ttf",
-                   "NanumMyeongjo.otf", "NanumMyeongjoBold.otf"]) {
-    assert.ok(css.includes(f), `${f} 참조 없음`);
-  }
-  assert.ok(!css.includes("Paperlogy-300"), "쓰지 않는 300 웨이트를 참조하면 안 된다");
-  assert.ok(!css.includes("NotoSerif"), "한글 0자인 NotoSerif를 참조하면 안 된다");
+test("@font-face를 쓰지 않는다 — 2026-08-10부터 시스템 헬베티카 스택뿐이다", () => {
+  assert.equal((css.match(/@font-face/g) ?? []).length, 0);
+  assert.ok(css.includes("Helvetica"), "--sans/--serif가 헬베티카 스택을 가리켜야 한다");
 });
 
 test("자간 하한 -0.04em을 넘지 않는다", () => {
@@ -31,9 +23,11 @@ test("자간 하한 -0.04em을 넘지 않는다", () => {
   assert.deepEqual(bad, [], `자간 하한 초과: ${bad.join(", ")}`);
 });
 
-test("인쇄에서 .statement-wrap을 숨긴다 — §9.1", () => {
+test("인쇄에서 .intro를 숨긴다 — §9.1", () => {
+  // "이거 왜 잘나가?" 스테이트먼트 섹션은 2026-08-10에 없앴다 — 이제 인트로 하나만
+  // 있고, 그 하나가 인쇄에서 숨는지만 확인한다.
   const print = css.slice(css.indexOf("@media print"));
-  assert.match(print, /\.statement-wrap/);
+  assert.match(print, /\.intro\b/);
 });
 
 test("인쇄 @page는 A4 margin 0이다", () => {

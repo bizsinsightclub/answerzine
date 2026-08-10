@@ -18,7 +18,6 @@ import { fileURLToPath } from "node:url";
 import { createServer } from "node:http";
 
 import { loadIssues, loadRegistry, allStories } from "./lib/data.mjs";
-import { cmapSet, FONTS, usedCharset, UI_CHARS } from "./lib/assets.mjs";
 import { setBase } from "./lib/site.mjs";
 
 /** 빌드와 같은 규칙으로 정규화한다. "answerzine" → "/answerzine" */
@@ -118,22 +117,12 @@ head("이스케이프");
   if (!bad) ok("이스케이프 누락·onclick 보간 없음");
 }
 
-/* ══════════════ 3. 서브셋 폰트 커버리지 ══════════════ */
-head("폰트 커버리지");
-{
-  const charset = usedCharset(loadIssues(ROOT), UI_CHARS);
-  let bad = 0;
-  for (const f of FONTS) {
-    const p = join(DIST, "assets/fonts", f.file);
-    if (!existsSync(p)) { fail("폰트", `${f.file}이 dist에 없다.`); bad++; continue; }
-    const set = cmapSet(readFileSync(p));
-    const missing = [...charset].filter((c) => c.codePointAt(0) > 32 && !set.has(c.codePointAt(0)));
-    if (missing.length) { fail("폰트", `${f.file}에 없는 글자 ${missing.length}개: ${missing.slice(0, 20).join("")}`); bad++; }
-  }
-  if (!bad) ok(`폰트 ${FONTS.length}벌이 본문 ${charset.size}자를 전부 담는다 (두부 없음)`);
-}
+/* 2026-08-10 — 자체 호스팅 폰트를 걷어내고 시스템 헬베티카로 바꾸면서 "서브셋 폰트
+   커버리지"(두부 검사) 항목을 없앴다. 시스템/OS 내장 폰트(Apple SD Gothic Neo·맑은 고딕
+   등)는 한글 11,172자를 전부 담고 있어 서브셋 누락으로 인한 두부 자체가 구조적으로
+   불가능하다 — 검사할 대상이 없어졌다. */
 
-/* ══════════════ 4. 인쇄·웹 문자열 일치 (§8 #17) ══════════════ */
+/* ══════════════ 3. 인쇄·웹 문자열 일치 (§8 #17) ══════════════ */
 head("인쇄·웹 문자열 일치");
 {
   const registry = loadRegistry(ROOT);
@@ -152,7 +141,7 @@ head("인쇄·웹 문자열 일치");
   if (!bad) ok("진의 헤드라인이 회차 정본과 일치 (같은 값을 참조하므로 구조적으로 보장)");
 }
 
-/* ══════════════ 5. 브라우저 검사 ══════════════ */
+/* ══════════════ 4. 브라우저 검사 ══════════════ */
 head("브라우저 검사 (A4 페이지 수 · 콘솔 에러)");
 
 let chromium = null;

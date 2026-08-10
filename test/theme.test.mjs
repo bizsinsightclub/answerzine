@@ -27,8 +27,8 @@ test("registry의 도메인 색(Paper 보정색)이 사이트 배경에서 AA를
 
 test("themeCSS는 :root와 .zine-page를 낸다", () => {
   const css = themeCSS();
-  assert.match(css, /:root\s*\{[^}]*--bg:\s*#F4F1E7/);
-  assert.match(css, /\.zine-page\s*\{[^}]*--bg:\s*#F4F1E7/);
+  assert.match(css, /:root\s*\{[^}]*--bg:\s*#FFFFFF/);
+  assert.match(css, /\.zine-page\s*\{[^}]*--bg:\s*#FFFFFF/);
 });
 
 test("themeCSS는 다크/라이트 토글이 없다 — data-theme도 prefers-color-scheme도 없다", () => {

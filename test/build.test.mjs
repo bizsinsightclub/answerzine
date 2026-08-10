@@ -3,8 +3,6 @@ import assert from "node:assert/strict";
 import { existsSync, readFileSync, rmSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { build } from "../build/build.mjs";
-import { hangulCoverage, FONTS, usedCharset, UI_CHARS, cmapSet } from "../build/lib/assets.mjs";
-import { loadIssues } from "../build/lib/data.mjs";
 
 const OUT = "dist-test";
 let result;
@@ -146,20 +144,9 @@ test("렌더된 HTML에 이스케이프 누락이 없다", () => {
   }
 });
 
-test("서브셋 폰트가 본문의 모든 글자를 담는다 — 두부 방지", () => {
-  const charset = usedCharset(loadIssues("."), UI_CHARS);
-  for (const f of FONTS) {
-    const p = join(OUT, "assets/fonts", f.file);
-    if (!existsSync(p)) continue;
-    const set = cmapSet(readFileSync(p));
-    const missing = [...charset].filter((c) => {
-      const cp = c.codePointAt(0);
-      // 공백·개행은 폰트가 없어도 된다
-      return cp > 32 && !set.has(cp);
-    });
-    assert.deepEqual(missing, [], `${f.file}에 없는 글자: ${missing.join("")}`);
-  }
-});
+// "서브셋 폰트가 본문의 모든 글자를 담는다" 테스트는 2026-08-10 자체 호스팅 폰트 제거와
+// 함께 없앴다 — 시스템 헬베티카 스택은 서브셋되지 않고 OS 내장 CJK 폰트로 자동
+// 폴백되므로 두부(tofu) 자체가 구조적으로 생기지 않는다.
 
 test("빌드 경고는 실제 데이터 문제만 담는다", () => {
   // 지금은 draft 회차의 미니 슬롯 부족만 있어야 한다
@@ -168,13 +155,6 @@ test("빌드 경고는 실제 데이터 문제만 담는다", () => {
   }
 });
 
-test("필수 폰트가 없으면 빌드가 실패한다 — 폴백 렌더 방지", async () => {
-  // 폰트 없이 만들어진 사이트는 폴백 서체로 조용히 나간다. 경고가 아니라 실패여야 한다.
-  const empty = "dist-test-nofonts";
-  rmSync(empty, { recursive: true, force: true });
-  await assert.rejects(
-    () => build({ root: "test/fixtures/no-fonts", out: empty, quiet: true }),
-    /필수 폰트가 없다|no such file|ENOENT/,
-  );
-  rmSync(empty, { recursive: true, force: true });
-});
+// "필수 폰트가 없으면 빌드가 실패한다" 테스트는 2026-08-10 자체 호스팅 폰트 제거와 함께
+// 없앴다 — 시스템 헬베티카 스택은 assets/fonts/ 자체가 없어도(항상) 정상 빌드된다.
+// 이 테스트 전용이었던 test/fixtures/no-fonts/도 같이 지웠다.

@@ -15,7 +15,7 @@
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
-import { INTRO_THEME } from "../build/lib/theme.mjs";
+import { THEME } from "../build/lib/theme.mjs";
 import { SITE } from "../build/lib/site.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
@@ -23,9 +23,11 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 /** OG 카드 표준 규격. 1.91:1 — 페이스북·X·카카오톡이 공통으로 이 비율을 자른다. */
 export const OG = { width: 1200, height: 630, file: "assets/img/og.png" };
 
-/** 인트로 로딩 화면과 같은 조판이다. 링크를 누르기 전과 후가 같은 화면이어야 한다. */
+/** 2026-08-10 — 인트로가 흰 배경으로 바뀌면서 OG 카드도 같은 톤(THEME)을 쓴다.
+    예전엔 인트로 전용 고정 다크 팔레트(INTRO_THEME)를 따로 썼지만 이제 그런 예외가
+    없다. 링크를 누르기 전과 후가 같은 톤이어야 한다는 원칙은 그대로다. */
 export function ogHTML({ logoDataUri }) {
-  const t = INTRO_THEME;
+  const t = THEME;
   return `<!doctype html><meta charset="utf-8">
 <style>
   html, body { margin: 0; padding: 0; }
@@ -33,7 +35,7 @@ export function ogHTML({ logoDataUri }) {
     width: ${OG.width}px; height: ${OG.height}px;
     background: ${t.bg}; color: ${t.ink};
     display: flex; align-items: center; justify-content: center;
-    font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", sans-serif;
+    font-family: -apple-system, "Helvetica Neue", Helvetica, Arial, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
   }
   .card { text-align: center; }
   .logo { width: 660px; height: auto; display: block; margin: 0 auto; }
@@ -54,7 +56,7 @@ export function ogHTML({ logoDataUri }) {
 }
 
 export async function makeOG({ root = ROOT } = {}) {
-  const logoPath = join(root, "assets/img/logo-light.png");
+  const logoPath = join(root, "assets/img/logo-dark.png");
   if (!existsSync(logoPath)) throw new Error(`로고가 없다: ${logoPath}`);
   const logoDataUri = `data:image/png;base64,${readFileSync(logoPath).toString("base64")}`;
 

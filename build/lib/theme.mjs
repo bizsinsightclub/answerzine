@@ -1,30 +1,25 @@
 /**
  * 테마 값. 역할 이름은 같고 값은 하나뿐이다.
  *
- * 다크/라이트 토글은 없다 — 사이트는 항상 이 하나의(Paper 계열) 밝은 테마로 읽힌다.
- * 진입 화면(.intro, .statement-wrap)만 예외로, 항상 어두운 스플래시를 쓴다 —
- * 그 부분은 layout.mjs·css.mjs에서 로컬 변수로 따로 덮어쓴다.
- * 인쇄 진(.zine-page)은 별도 값을 쓴다(흰 서피스로 종이 느낌을 낸다).
+ * 다크/라이트 토글은 없다 — 사이트는 항상 이 하나의 흰 테마로 읽힌다.
+ * 2026-08-10 리디자인 전에는 진입 화면(.intro, .statement-wrap)만 예외로 항상 어두운
+ * 스플래시(INTRO_THEME)를 썼는데, 인트로도 화이트+헬베티카로 통일되면서 그 예외
+ * 자체가 없어졌다 — 이제 인트로도 이 THEME을 그대로 물려받는다.
+ * 인쇄 진(.zine-page)은 별도 값을 쓴다(흰 서피스로 종이 느낌을 낸다) — 지금은 bg도
+ * 흰색이라 THEME과 거의 같지만, 역할이 다르므로 변수는 분리해 둔다.
  * 대비 수치는 test/theme.test.mjs가 매번 실제로 계산해 검증한다.
  */
 
 export const THEME = {
-  bg: "#F4F1E7", ink: "#17150F", secondary: "#5C574A", tertiary: "#726C5E",
-  rule: "#17150F", surface: "#EDEADE", divider: "rgba(23,21,15,.24)",
+  bg: "#FFFFFF", ink: "#17150F", secondary: "#5C574A", tertiary: "#726C5E",
+  rule: "#17150F", surface: "#FFFFFF", divider: "rgba(23,21,15,.24)",
   "rule-soft": "rgba(23,21,15,.3)",
 };
 
 export const ZINE_THEME = {
-  bg: "#F4F1E7", ink: "#17150F", secondary: "#5C574A", tertiary: "#726C5E",
+  bg: "#FFFFFF", ink: "#17150F", secondary: "#5C574A", tertiary: "#726C5E",
   rule: "#17150F", surface: "#FFFFFF", divider: "rgba(23,21,15,.35)",
   "rule-soft": "rgba(23,21,15,.4)",
-};
-
-/** 진입 화면(.intro, .statement-wrap)과 OG 카드가 함께 쓰는 고정 다크 팔레트.
-    사이트 기본 테마와 무관하게 항상 이 값이다 — css.mjs가 로컬 변수로 덮어쓴다. */
-export const INTRO_THEME = {
-  bg: "#222222", ink: "#F2EFE4", secondary: "#A8A192", tertiary: "#8A8375",
-  rule: "#F2EFE4", divider: "rgba(242,239,228,.22)",
 };
 
 /** 도메인 색은 registry.json이 단일 소스다. 여기는 폴백일 뿐이다. */

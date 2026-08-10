@@ -22,20 +22,22 @@ const print = page({
 });
 const css = stylesheet([{ key: "book", color: "#34C759", colorPaper: "#217E38" }]);
 
-test("진입 화면은 홈에서만 마크업으로 심긴다 — 첫 페인트에 로고가 이미 있다", () => {
+test("진입 화면은 홈에서만 마크업으로 심긴다 — 첫 페인트에 워드마크가 이미 있다", () => {
+  // 2026-08-10부터 로고 이미지 대신 실제 텍스트 "THE ANSWER"/"COMPANY" 두 줄이다.
   assert.match(home, /class="intro"/);
-  assert.match(home, /id="statement"/);
+  assert.match(home, /class="intro-word intro-word-1">THE ANSWER</);
+  assert.match(home, /class="intro-word intro-word-2">COMPANY</);
 });
 
 test("진입 화면은 issue·story 페이지에는 없다 — 마스트헤드부터 바로 시작한다", () => {
   assert.ok(!story.includes('class="intro"'), "story 페이지에 진입 화면이 들어갔다");
-  assert.ok(!story.includes('id="statement"'), "story 페이지에 스테이트먼트가 들어갔다");
   assert.match(story, /class="site-header/, "story 페이지에 마스트헤드는 있어야 한다");
 });
 
 test("진입 화면은 문서 흐름 안에 있다 — 스크립트 없이도 스크롤·앵커로 본문에 닿는다", () => {
-  assert.match(home, /class="intro-scroll" href="#statement"/);
-  assert.match(home, /class="statement-cta" href="#main-content"/);
+  // "이거 왜 잘나가?" 스테이트먼트 단계는 2026-08-10에 없앴다 — 인트로 다음이 바로
+  // #main-content(아카이브)다.
+  assert.match(home, /class="intro-scroll" href="#main-content"/);
   assert.match(home, /id="main-content"/);
 });
 

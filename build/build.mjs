@@ -8,7 +8,7 @@
  * issues/*.json이 유일한 정본이다. 웹·인쇄·메타데이터가 전부 여기서 나온다.
  * CLAUDE.md §9.3(정본 이중화)과 §9.4(라우팅 부재)는 이 구조에서 발생할 수 없다.
  */
-import { readFileSync, existsSync, rmSync, mkdirSync, readdirSync, statSync } from "node:fs";
+import { readFileSync, existsSync, rmSync, mkdirSync, statSync } from "node:fs";
 import { join, extname } from "node:path";
 import { createServer } from "node:http";
 import { fileURLToPath } from "node:url";
@@ -20,7 +20,7 @@ import { page } from "./lib/layout.mjs";
 import { renderStory } from "./lib/render-story.mjs";
 import { renderIndex } from "./lib/render-index.mjs";
 import { renderZinePreview } from "./lib/render-zine.mjs";
-import { copyAssets, usedCharset, UI_CHARS, writeFile } from "./lib/assets.mjs";
+import { copyAssets, writeFile } from "./lib/assets.mjs";
 import { setBase, getBase, u, absolute } from "./lib/site.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
@@ -58,19 +58,6 @@ async function loadQR() {
     const mod = await import("qrcode");
     const QRCode = mod.default ?? mod;
     return async (text) => QRCode.toString(text, { type: "svg", margin: 1 });
-  } catch {
-    return null;
-  }
-}
-
-async function loadSubsetter() {
-  try {
-    const mod = await import("subset-font");
-    const subsetFont = mod.default ?? mod;
-    return async (buf, charset, file) =>
-      await subsetFont(buf, [...charset].join(""), {
-        targetFormat: extname(file) === ".otf" ? "sfnt" : "sfnt",
-      });
   } catch {
     return null;
   }
@@ -138,58 +125,19 @@ export async function build({ root = ROOT, out = join(ROOT, "dist"), quiet = fal
 <p><a class="btn" href="${u("/")}">전체 아카이브</a></p></main>`,
   }));
 
-  /* ── 폰트 ── */
-  const subsetter = await loadSubsetter();
-  const charset = usedCharset(issues, UI_CHARS);
-  const { FONTS } = await import("./lib/assets.mjs");
-
-  // 폰트가 없으면 폴백 서체로 렌더된 사이트가 조용히 나간다.
-  // 서브셋 도구가 없는 것(선택)과 폰트 파일이 없는 것(치명)은 다르다.
-  const missing = FONTS.filter((f) => !existsSync(join(root, "assets/fonts", f.file)));
-  if (missing.length) {
-    throw new Error(
-      `필수 폰트가 없다: ${missing.map((f) => f.file).join(", ")}\n` +
-      `  assets/fonts/에 있어야 한다. design.md §3 참조.`
-    );
-  }
-
-  let assetResult;
-  if (subsetter) {
-    assetResult = { fonts: [], images: [], subset: true, bytes: 0, warnings: [] };
-    for (const f of FONTS) {
-      const src = join(root, "assets/fonts", f.file);
-      const orig = readFileSync(src);
-      let buf = orig;
-      try {
-        buf = await subsetter(orig, charset, f.file);
-      } catch (e) {
-        assetResult.warnings.push(`서브셋 실패(${f.file}) — 원본을 쓴다: ${e.message}`);
-        buf = orig;
-      }
-      writeFile(join(out, "assets/fonts", f.file), buf);
-      assetResult.fonts.push(f.file);
-      assetResult.bytes += buf.length;
-    }
-    // 이미지는 공용 경로로 복사
-    const imgDir = join(root, "assets/img");
-    if (existsSync(imgDir)) {
-      for (const f of readdirSync(imgDir))
-        writeFile(join(out, "assets/img", f), readFileSync(join(imgDir, f)));
-    }
-  } else {
-    assetResult = copyAssets(root, out);
-    warnings.push("subset-font가 없어 원본 폰트를 그대로 복사했다. `npm install`로 설치하면 전송량이 크게 줄어든다.");
-  }
+  /* ── 이미지 ──
+     2026-08-10부터 자체 호스팅 폰트가 없다 — 헬베티카는 시스템 폰트라 다운로드도
+     서브셋도 필요 없다. copyAssets는 이제 assets/img/*만 dist로 복사한다. */
+  const assetResult = copyAssets(root, out);
   warnings.push(...assetResult.warnings);
 
   log(`\n  회차 ${issues.length}개 · 스토리 ${stories.length}편 · 파일 ${files.length}개`);
   if (getBase()) log(`  기본 경로 ${getBase()}`);
-  log(`  폰트 ${assetResult.fonts.length}벌 ${(assetResult.bytes / 1048576).toFixed(2)}MB` +
-      (assetResult.subset ? ` (서브셋 ${charset.size}자)` : " (원본)"));
+  log(`  이미지 ${assetResult.images.length}개`);
   for (const w of warnings) log(`  ! ${w}`);
   log(`  → ${out}\n`);
 
-  return { files, warnings, issues, stories, charset, out };
+  return { files, warnings, issues, stories, out };
 }
 
 /* ── 로컬 미리보기 ── */
