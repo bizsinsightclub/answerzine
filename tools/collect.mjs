@@ -3,7 +3,7 @@
  * ANSWER ZINE — 주간 원본 수집
  *
  *   node tools/collect.mjs 2026-w32
- *   node tools/collect.mjs 2026-w32 --only=netflix,yes24
+ *   node tools/collect.mjs 2026-w32 --only=kobis,yes24
  *   node tools/collect.mjs 2026-w32 --dry
  *
  * ── 이 도구가 있는 이유 ────────────────────────────────────────
@@ -110,33 +110,6 @@ async function withPage(fn) {
    rows는 그 주에 실제로 화면에 있던 값이다 — 해석하지 않고 그대로 적는다. */
 
 const ADAPTERS = {
-  /* 넷플릭스 — 전 주차 누적 TSV. 사실 아카이브가 이미 있으므로 수집이 필수는 아니지만,
-     그 주에 우리가 무엇을 보고 썼는지 남기려고 같이 뜬다. */
-  netflix: {
-    domains: ["ott"],
-    needs: null,
-    async run({ end }) {
-      const url = "https://www.netflix.com/tudum/top10/data/all-weeks-countries.tsv";
-      const tsv = await (await get(url)).text();
-      const [head, ...lines] = tsv.split("\n");
-      const cols = head.split("\t");
-      // 넷플릭스 주는 일요일 라벨이다. 우리 주의 종료일(일)과 같은 날을 고른다.
-      const target = iso(end);
-      const rows = [];
-      for (const line of lines) {
-        if (!line) continue;
-        const v = line.split("\t");
-        if (v[1] !== "KR" || v[2] !== target) continue;
-        rows.push(Object.fromEntries(cols.map((c, i) => [c, v[i]])));
-      }
-      if (!rows.length) throw new Error(`KR ${target} 주가 아직 TSV에 없다. 화요일 이후 다시 돈다.`);
-      return {
-        method: "tsv", url, rows,
-        note: `넷플릭스 주는 월~일이고 라벨이 일요일이다. week=${target}.`,
-      };
-    },
-  },
-
   /* 예스24 — 순위와 판매지수가 서버 렌더 HTML에 그대로 있다. */
   yes24: {
     domains: ["book"],

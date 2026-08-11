@@ -15,7 +15,7 @@ import { setBase } from "../build/lib/site.mjs";
 import { OG } from "../tools/make-og.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
-const render = (url = "/2026-w31/ott/") =>
+const render = (url = "/2026-w31/movie/") =>
   page({ title: "제목", description: "설명", url, content: "<main>본문</main>" });
 
 test("모든 페이지가 og:image를 낸다", () => {

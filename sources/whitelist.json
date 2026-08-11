@@ -424,72 +424,6 @@
       "series": "snapshot"
     },
     {
-      "host": "bigkinds.or.kr",
-      "name": "빅카인즈 (한국언론진흥재단)",
-      "tier": "primary",
-      "market": "KR",
-      "domains": [
-        "news"
-      ],
-      "reads": "기사 건수 추이, 키워드 트렌드, 언론사별 보도량",
-      "url": "https://www.bigkinds.or.kr/",
-      "sourceLabel": "빅카인즈에서 확인하기",
-      "note": "국가 지원 뉴스 빅데이터 분석 시스템. 검색 결과 URL은 시점에 따라 바뀌므로 분석 조건을 기사에 명시한다.",
-      "series": "archived"
-    },
-    {
-      "host": "kpf.or.kr",
-      "name": "한국언론진흥재단",
-      "tier": "primary",
-      "market": "KR",
-      "domains": [
-        "news"
-      ],
-      "reads": "언론수용자 조사, 뉴스 이용 통계",
-      "series": "archived"
-    },
-    {
-      "host": "netflix.com",
-      "name": "넷플릭스 Tudum",
-      "tier": "primary",
-      "market": "KR",
-      "domains": [
-        "ott"
-      ],
-      "reads": "국가별 주간 TOP10 순위(TV·Films), 톱10 누적 체류 주차",
-      "url": "https://www.netflix.com/tudum/top10/south-korea",
-      "sourceLabel": "넷플릭스 Top 10 확인하기",
-      "note": "국가별 표는 순위와 체류 주차만 준다. 시청시간(hours viewed)은 글로벌 표에만 있으므로 국내 서사에 쓰지 않는다. ⚠️ 넷플릭스 단독 수치이므로 국내 OTT 전체로 일반화하지 않는다.",
-      "series": "archived",
-      "dataUrl": "https://www.netflix.com/tudum/top10/data/all-weeks-countries.tsv",
-      "seriesNote": "Tudum이 전 국가·전 주차 누적 TSV를 통째로 내려준다 (country_iso2 · week · category · weekly_rank · cumulative_weeks_in_top_10). 한 번 받으면 과거 어느 주든 같은 값이 재현된다 — 이 저장소에서 시계열 재현성이 가장 높은 출처다."
-    },
-    {
-      "host": "datalab.visitkorea.or.kr",
-      "name": "한국관광 데이터랩",
-      "tier": "primary",
-      "market": "KR",
-      "domains": [
-        "travel"
-      ],
-      "reads": "지역별 방문자 수, 이동 통신·카드 소비 기반 관광 지표",
-      "url": "https://datalab.visitkorea.or.kr/",
-      "sourceLabel": "한국관광 데이터랩 확인하기",
-      "note": "한국관광공사 운영. 월 단위 갱신이라 주간 이례 판정에는 한계가 있다.",
-      "series": "archived"
-    },
-    {
-      "host": "knto.or.kr",
-      "name": "한국관광공사",
-      "tier": "primary",
-      "market": "KR",
-      "domains": [
-        "travel"
-      ],
-      "reads": "관광 통계, 보도자료",
-      "series": "archived"
-    },
-    {
       "host": "namu.wiki",
       "name": "나무위키",
       "tier": "blocked",
@@ -605,8 +539,7 @@
       "tier": "secondary",
       "market": "OVERSEAS",
       "domains": [
-        "movie",
-        "ott"
+        "movie"
       ],
       "series": "snapshot",
       "reads": "국가별 OTT·박스오피스 순위 추정치",

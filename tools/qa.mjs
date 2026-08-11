@@ -331,7 +331,7 @@ for (const f of files) {
        §6은 "고유명사를 헤드라인에 넣지 않는다"인데, 뒤에 "본문에서 밝힌다"가 붙어 있다.
        앞 절만 지키고 뒷 절을 빠뜨리면 대상이 통째로 익명이 된 기사가 나간다.
        작품이 주인공인 도메인에서는 〈 〉 표기가 본문 어딘가에 반드시 있어야 한다. */
-    const WORK_DOMAINS = ["movie", "ott", "book", "music", "stage"];
+    const WORK_DOMAINS = ["movie", "book", "music", "stage"];
     if (dom && WORK_DOMAINS.includes(dom.key) && !/[〈〉]/.test(prose))
       fail(at, "본문에 〈작품명〉이 없다. 헤드라인에서 감춘 고유명사는 본문에서 밝힌다 — CLAUDE.md §6. " +
                "무엇에 관한 기사인지 독자가 끝까지 알 수 없다.");

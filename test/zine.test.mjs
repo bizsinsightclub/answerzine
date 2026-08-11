@@ -2,6 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { renderZinePage, renderZinePreview, zineBodyFor } from "../build/lib/render-zine.mjs";
 import { renderIndex } from "../build/lib/render-index.mjs";
+import { HIDDEN_DOMAIN_NAMES } from "../build/lib/data.mjs";
 
 const ISSUE = { issue: "2026-w31", range: "2026.07.28 – 08.03", status: "ready" };
 
@@ -163,12 +164,20 @@ test("인덱스가 최신 회차의 인쇄 링크를 준다", () => {
   assert.ok(!content.includes("인쇄용 A4"));
 });
 
-test("뉴스·여행은 카드 그리드에서 빠진다 — 데이터가 아직 불안정한 도메인", () => {
-  const withHidden = { domains: [...REG.domains, { key: "news", name: "뉴스" }, { key: "travel", name: "여행" }] };
-  const { content } = renderIndex([ISSUE], stories, withHidden);
-  assert.equal((content.match(/class="category-card(?: is-dark)?"/g) ?? []).length, 4, "뉴스·여행 카드까지 나오면 안 된다");
-  assert.ok(!content.includes(">뉴스<"));
-  assert.ok(!content.includes(">여행<"));
+// 뉴스·여행은 2026-08-11 사용자 요청으로 registry.json에서 도메인 자체가 삭제됐다(더는
+// "데이터 불안정" 편집 결정으로 숨겨둔 상태가 아니다) — 이 Set은 현재 비어 있다
+// (data.mjs 참고). 그 메커니즘 자체(HIDDEN_DOMAIN_NAMES에 있는 도메인은 카드 그리드에서
+// 빠진다)는 여전히 살아 있으므로, 합성 이름으로 회귀 테스트한다.
+test("HIDDEN_DOMAIN_NAMES에 있는 도메인은 카드 그리드에서 빠진다", () => {
+  HIDDEN_DOMAIN_NAMES.add("가상도메인");
+  try {
+    const withHidden = { domains: [...REG.domains, { key: "fake", name: "가상도메인" }] };
+    const { content } = renderIndex([ISSUE], stories, withHidden);
+    assert.equal((content.match(/class="category-card(?: is-dark)?"/g) ?? []).length, 4, "숨김 도메인 카드까지 나오면 안 된다");
+    assert.ok(!content.includes(">가상도메인<"));
+  } finally {
+    HIDDEN_DOMAIN_NAMES.delete("가상도메인");
+  }
 });
 
 test("스토리가 없는 도메인은 색 없는 빈 카드로 뜬다", () => {

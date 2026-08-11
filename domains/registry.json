@@ -1,8 +1,8 @@
 {
   "$schema": "https://answerzine.kr/schema/registry-1.json",
-  "version": "2026-w32g",
-  "updated": "2026-08-09",
-  "note": "도메인 단일 소스. build/lib/*.mjs, tools/zine-builder.html, tools/qa.mjs가 모두 이 파일을 참조한다. 색상은 여기서만 정의한다. status가 active가 아닌 도메인은 홈 카테고리 카드·결번 계산에서 빠진다. nameEn은 2026-08-10 도입 — 홈 상단 고정 내비게이션(영문 카테고리 라벨)이 쓴다. cardColor는 2026-08-11 도입 — 홈 카테고리 카드의 풀블리드 배경 전용 색이다(사용자 지정 파스텔). colorPaper와 별개다 — colorPaper는 흰 배경 위 텍스트/보더용으로 어둡게 골랐고(흰 글자를 못 올린다), cardColor는 카드 배경용으로 밝게 골랐다(검은 글자만 올린다, 전 도메인 8:1 이상 — test/theme.test.mjs가 검증). 없는 도메인은 카드에서 colorPaper+흰 글자로 되돌아간다. nameCard는 2026-08-11 열 번째 라운드 도입 — 카테고리 카드 우측 상단 라벨 전용 영문(사용자 지정: Movies·Music·Books·YouTube). nameEn과 다르다(nameEn은 단수형, 마스트헤드 내비 전용) — 그 전엔 이 라벨이 name(한글)을 썼다.",
+  "version": "2026-w32h",
+  "updated": "2026-08-11",
+  "note": "도메인 단일 소스. build/lib/*.mjs, tools/zine-builder.html, tools/qa.mjs가 모두 이 파일을 참조한다. 색상은 여기서만 정의한다. status가 active가 아닌 도메인은 홈 카테고리 카드·결번 계산에서 빠진다. nameEn은 2026-08-10 도입 — 홈 상단 고정 내비게이션(영문 카테고리 라벨)이 쓴다. cardColor는 2026-08-11 도입 — 홈 카테고리 카드의 풀블리드 배경 전용 색이다(사용자 지정 파스텔). colorPaper와 별개다 — colorPaper는 흰 배경 위 텍스트/보더용으로 어둡게 골랐고(흰 글자를 못 올린다), cardColor는 카드 배경용으로 밝게 골랐다(검은 글자만 올린다, 전 도메인 8:1 이상 — test/theme.test.mjs가 검증). 없는 도메인은 카드에서 colorPaper+흰 글자로 되돌아간다. nameCard는 2026-08-11 열 번째 라운드 도입 — 카테고리 카드 우측 상단 라벨 전용 영문(사용자 지정: Movies·Music·Books·YouTube). nameEn과 다르다(nameEn은 단수형, 마스트헤드 내비 전용) — 그 전엔 이 라벨이 name(한글)을 썼다. 2026-08-11 사용자 요청으로 OTT·뉴스·여행 도메인을 완전히 삭제했다(편집 결정, 데이터 문제 아님) — 활성 도메인이 movie·music·youtube·book 4개 + 휴면 stage 1개로 줄었다. domains/ott.md·news.md·travel.md도 삭제했고, 세 도메인만 쓰던 sources/whitelist.json 출처(netflix.com·bigkinds.or.kr·kpf.or.kr·datalab.visitkorea.or.kr·knto.or.kr)도 함께 뺐다. 되돌리려면 이 diff를 역으로 적용한다 — git 히스토리에 원본이 남아 있다.",
   "colorRules": {
     "background": "#16150F",
     "backgroundPaper": "#F4F1E7",
@@ -132,71 +132,6 @@
       ],
       "warning": "휴면. 2026-w32 확인 시점에 KOPIS 포털이 전면 개편돼 등록 URL이 모두 404였고 화면에 서버 렌더 데이터가 없다. 오픈API 서비스키(KOPIS_API_KEY)를 발급해 tools/collect.mjs의 kopis 어댑터가 실제로 값을 받아오는 것을 확인한 뒤 active로 되돌린다. 읽을 수 없는 도메인을 활성으로 두면 매주 결번만 쌓인다.",
       "api": "tools/collect.mjs (kopis 어댑터 · KOPIS_API_KEY 필요)"
-    },
-    {
-      "key": "news",
-      "name": "뉴스",
-      "nameEn": "News",
-      "color": "#8B66F3",
-      "colorName": "인디고 (Night)",
-      "colorPaper": "#7142F0",
-      "colorPaperName": "인디고 명도 보정 (Paper)",
-      "hue": 256,
-      "contrast": 4.61,
-      "contrastPaper": 4.97,
-      "contrastPass": true,
-      "doc": "domains/news.md",
-      "status": "active",
-      "order": 6,
-      "anchorType": "기사 최초 보도일",
-      "primarySources": [
-        "bigkinds.or.kr"
-      ],
-      "note": "한국언론진흥재단 빅카인즈. 네이버 뉴스 랭킹은 집계 기준 비공개라 쓰지 않는다."
-    },
-    {
-      "key": "ott",
-      "name": "OTT",
-      "nameEn": "OTT",
-      "color": "#E212D8",
-      "colorName": "마젠타 (Night)",
-      "colorPaper": "#C110B9",
-      "colorPaperName": "마젠타 명도 보정 (Paper)",
-      "hue": 303,
-      "contrast": 4.63,
-      "contrastPaper": 4.6,
-      "contrastPass": true,
-      "doc": "domains/ott.md",
-      "status": "dormant",
-      "order": 7,
-      "anchorType": "국내 공개일",
-      "primarySources": [
-        "netflix.com"
-      ],
-      "warning": "국가별 표에는 순위와 톱10 체류 주차만 있다. 시청시간(hours viewed)은 글로벌 표에만 있으므로 국내 서사에 쓰지 않는다. 티빙·웨이브·쿠팡플레이는 수치를 공개하지 않으니 기사에 반드시 플랫폼을 명시한다.",
-      "note": "Tudum이 전 국가·전 주차 누적 TSV를 공개한다(all-weeks-countries.tsv). 이 저장소에서 시계열 재현성이 가장 높은 출처이고, 추세선을 그려도 되는 몇 안 되는 도메인이다. 기준선은 domains/ott.md §3에서 이 파일로 직접 계산한다.",
-      "dormantReason": "2026-08-07 사용자 요청으로 게재 중단 — 데이터가 안 읽혀서가 아니라 편집 결정이다. 데이터는 여전히 가장 재현성이 높다(§note). 되돌리려면 status를 active로만 바꾸면 된다."
-    },
-    {
-      "key": "travel",
-      "name": "여행",
-      "nameEn": "Travel",
-      "color": "#59900C",
-      "colorName": "라임 (Night)",
-      "colorPaper": "#4A780A",
-      "colorPaperName": "라임 명도 보정 (Paper)",
-      "hue": 85,
-      "contrast": 4.72,
-      "contrastPaper": 4.67,
-      "contrastPass": true,
-      "doc": "domains/travel.md",
-      "status": "active",
-      "order": 8,
-      "anchorType": "계기 발생일 (행사 개시일·미디어 노출일 등)",
-      "primarySources": [
-        "datalab.visitkorea.or.kr"
-      ],
-      "warning": "한국관광 데이터랩은 월 단위 갱신이라 주간 이례 판정이 어렵다. 주간 소재로 쓰려면 계기가 뚜렷한 경우에만."
     }
   ],
   "budget": {

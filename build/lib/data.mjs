@@ -43,9 +43,13 @@ export function loadIssues(root) {
 
 /* 데이터 수집이 아직 불안정해 UI에는 노출하지 않기로 한 도메인(편집 결정, registry.json의
    status와는 별개). 홈 카테고리 카드 그리드와 마스트헤드 상단 내비 둘 다 이 목록을
-   공유한다 — 갈리면 카드에는 있는데 내비에는 없는(또는 반대) 도메인이 생긴다. 공연·OTT는
-   registry.json에서 이미 dormant라 loadRegistry()가 걸러내므로 여기 다시 적지 않는다. */
-export const HIDDEN_DOMAIN_NAMES = new Set(["뉴스", "여행"]);
+   공유한다 — 갈리면 카드에는 있는데 내비에는 없는(또는 반대) 도메인이 생긴다. 공연은
+   registry.json에서 이미 dormant라 loadRegistry()가 걸러내므로 여기 다시 적지 않는다.
+   뉴스·여행은 2026-08-11 사용자 요청으로 registry.json에서 도메인 자체가 삭제됐다 —
+   이 목록에 있었던 이유(데이터 불안정)와 무관한 편집 결정이라, 되살릴 필요가 생기면
+   먼저 registry.json에 도메인을 다시 등록해야 한다. 이 Set은 등록은 돼 있지만 화면에는
+   아직 못 낼 도메인이 생겼을 때 다시 쓴다. */
+export const HIDDEN_DOMAIN_NAMES = new Set();
 
 /** UI(카테고리 카드·상단 내비)에 노출할 도메인 목록. */
 export function visibleDomains(registry) {
