@@ -599,7 +599,7 @@ const INTRO = `
 .intro-word {
   display: block; font-family: var(--sans); font-weight: 900; letter-spacing: -.03em;
   font-size: clamp(72px, 21vw, 380px); line-height: .98; white-space: nowrap;
-  -webkit-text-stroke: .045em currentColor;
+  -webkit-text-stroke: .075em currentColor;
 }
 
 .intro-scroll {
