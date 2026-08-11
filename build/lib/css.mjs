@@ -549,25 +549,32 @@ const INTRO = `
 /* 인트로는 이제 사이트의 기본 흰 테마를 그대로 쓴다 — 예전엔 항상 어두운 로컬
    팔레트(theme.mjs의 INTRO_THEME)를 덮어썼지만, 화이트+헬베티카로 통일되면서
    별도 팔레트가 필요 없어져 그 오버라이드 자체를 없앴다. */
-.intro { text-align: center; position: relative; }
+.intro { text-align: center; position: relative; overflow: hidden; }
 /* 인트로는 뷰포트보다 60vh 더 큰 상자다 — 그 여유분만큼 안쪽 콘텐츠가 상단에
-   고정(sticky)된 채로 머물러서, 스크롤해도 그냥 지나가 버리지 않고 두 줄이 갈라지는
-   과정 자체가 눈에 보인다. app.js의 진행률 계산이 이 160svh를 전제한다. */
+   고정(sticky)된 채로 머물러서, 스크롤해도 그냥 지나가 버리지 않고 줄이 갈라지는
+   과정 자체가 눈에 보인다. app.js의 진행률 계산이 이 160svh를 전제한다.
+   2026-08-11 여덟 번째 라운드: overflow: hidden을 붙였다 — 아래에서 글자 크기를
+   더 키워 가장자리에 닿을 만큼 커지므로, 자간·서브픽셀 반올림으로 1px 안팎이
+   삐져나와도 가로 스크롤바가 안 생기게 막아 둔다(verify.mjs의 가로 넘침 검사와도
+   맞물린다). */
 .intro { height: 160svh; }
 .intro-inner {
   position: sticky; top: 0; height: 100svh; display: flex; flex-direction: column;
-  align-items: center; justify-content: center; padding: var(--s6) var(--s5);
+  align-items: center; justify-content: center; padding: var(--s6) var(--s3);
 }
-/* app.js가 매 스크롤 프레임마다 두 줄을 직접 조절한다. will-change로 미리 레이어를 띄워둔다. */
+/* app.js가 매 스크롤 프레임마다 세 줄을 직접 조절한다. will-change로 미리 레이어를 띄워둔다. */
 .js .intro-word { will-change: transform, opacity; }
 
 /* 2026-08-10 두 번째 라운드: 화면을 꽉 채우는 크기로 키웠다(사용자 요청) — "ANSWER ZINE"
-   이 인트로에서 화면의 절대적인 비중을 차지하도록. gap도 같이 키워 두 줄 사이 자간(여백)이
-   커 보이는 인상을 준다(요청: "THE ANSWER 와 ZINE 사이의 자간이 좀 더 넓어도 상관없음"). */
-.intro-wordmark { margin: 0; display: flex; flex-direction: column; align-items: center; gap: .06em; }
+   이 인트로에서 화면의 절대적인 비중을 차지하도록. gap도 같이 키워 줄 사이 자간(여백)이
+   커 보이는 인상을 준다(요청: "THE ANSWER 와 ZINE 사이의 자간이 좀 더 넓어도 상관없음").
+   2026-08-11 여덟 번째 라운드: THE·ANSWER·ZINE을 각자 한 줄로 뗀 뒤(위 intro() 주석)
+   여백을 더 줄이고(var(--s3)) 글자 크기를 한 단계 더 키웠다 — 화면 가장자리에 살짝
+   닿는 듯한 인상을 의도적으로 노린다(사용자 요청: "화면 경계에 살짝 넘치는 효과"). */
+.intro-wordmark { margin: 0; display: flex; flex-direction: column; align-items: center; gap: .03em; }
 .intro-word {
   display: block; font-family: var(--sans); font-weight: 700; letter-spacing: -.03em;
-  font-size: clamp(56px, 15vw, 260px); line-height: 1.02; white-space: nowrap;
+  font-size: clamp(72px, 21vw, 380px); line-height: .98; white-space: nowrap;
 }
 
 .intro-scroll {

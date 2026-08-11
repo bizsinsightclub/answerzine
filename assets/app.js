@@ -21,10 +21,12 @@
   });
 
   /* ── 진입 화면 ──
-     2026-08-10 리디자인: "THE ANSWER" / "COMPANY" 두 줄이 중앙에 겹쳐 있다가, 스크롤하면
-     첫 줄은 오른쪽으로 둘째 줄은 왼쪽으로 갈라지며 그 뒤의 아카이브가 드러난다. 스테이트먼트
-     단계는 없앴다 — 인트로 섹션 하나만 있다. 홈에서만 나오고, 세션에 한 번 봤다고
-     건너뛰지 않는다 — 뒤로 가기로 돌아와도 매번 다시 보인다. */
+     2026-08-10 리디자인: 큰 워드마크가 중앙에 겹쳐 있다가, 스크롤하면 갈라지며 그 뒤의
+     아카이브가 드러난다. 스테이트먼트 단계는 없앴다 — 인트로 섹션 하나만 있다. 홈에서만
+     나오고, 세션에 한 번 봤다고 건너뛰지 않는다 — 뒤로 가기로 돌아와도 매번 다시 보인다.
+     2026-08-11 여덟 번째 라운드: "THE ANSWER"를 THE·ANSWER 두 단어로 뗐다(layout.mjs
+     intro() 주석) — 세 줄이 됐으니 방향도 셋으로 나눈다: THE·ZINE은 오른쪽,
+     ANSWER는 왼쪽(사용자 요청 — 위아래 두 줄이 같은 방향, 가운데 줄만 반대로 갈라진다). */
   function prefersReduce() {
     return !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
   }
@@ -36,13 +38,14 @@
      진행률을 0→1로 잡아야, 고정돼 있는 동안 실제로 갈라지는 게 보인다 — 그냥 뷰포트
      높이로 나누면 상자가 이미 다 지나간 뒤에야 p가 1이 되어 버려서, 고정 구간 내내
      화면은 그대로인 채 스크롤만 되는 것처럼 보인다(모션이 없어 보이는 원인).
-     스크립트가 없거나 동작 최소화 환경이면 두 줄은 그냥 중앙에 겹친 채로 스크롤되어
+     스크립트가 없거나 동작 최소화 환경이면 세 줄은 그냥 중앙에 겹친 채로 스크롤되어
      지나간다 — 내용(텍스트)은 어느 쪽이든 항상 읽힌다. */
   function bootIntroMotion() {
     var introEl = document.getElementById("intro");
-    var word1 = introEl && introEl.querySelector(".intro-word-1");
-    var word2 = introEl && introEl.querySelector(".intro-word-2");
-    if (!introEl || !word1 || !word2 || prefersReduce()) return;
+    var wordThe = introEl && introEl.querySelector(".intro-word-the");
+    var wordAnswer = introEl && introEl.querySelector(".intro-word-answer");
+    var wordZine = introEl && introEl.querySelector(".intro-word-zine");
+    if (!introEl || !wordThe || !wordAnswer || !wordZine || prefersReduce()) return;
 
     var raf = null;
     function update() {
@@ -52,12 +55,14 @@
       var pinRange = Math.max(1, introBox.height - vh);
       var p = clamp(-introBox.top / pinRange, 0, 1);
 
-      word1.style.transform = "translateX(" + (p * 70) + "vw)";
-      word2.style.transform = "translateX(" + (p * -70) + "vw)";
+      wordThe.style.transform = "translateX(" + (p * 70) + "vw)";
+      wordZine.style.transform = "translateX(" + (p * 70) + "vw)";
+      wordAnswer.style.transform = "translateX(" + (p * -70) + "vw)";
       // 진행률 60% 지점부터 옅어져, 다 갈라지기 전에 사라지고 본문이 자연스럽게 이어진다.
       var fade = clamp(1 - (p - 0.6) / 0.4, 0, 1);
-      word1.style.opacity = String(fade);
-      word2.style.opacity = String(fade);
+      wordThe.style.opacity = String(fade);
+      wordAnswer.style.opacity = String(fade);
+      wordZine.style.opacity = String(fade);
     }
     function onScroll() { if (raf === null) raf = requestAnimationFrame(update); }
 

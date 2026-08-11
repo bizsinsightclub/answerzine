@@ -19,23 +19,28 @@ export { SITE };
 const BOOT = `(function(d){d.documentElement.className+=" js";})(document);`;
 
 /**
- * 진입 화면 — 홈에서만 나온다. 2026-08-10 리디자인: 로고 이미지 대신 실제 텍스트
- * "THE ANSWER" / "ZINE" 두 줄을 화면을 꽉 채우는 크기로 띄우고, 스크롤에 맞춰 첫 줄은
- * 오른쪽으로, 둘째 줄은 왼쪽으로 갈라지며 그 뒤의 아카이브를 드러낸다("이거 왜 잘나가?"
- * 스테이트먼트 단계는 없앴다 — 인트로 다음이 바로 본문이다).
+ * 진입 화면 — 홈에서만 나온다. 2026-08-10 리디자인: 로고 이미지 대신 실제 텍스트를
+ * 화면을 꽉 채우는 크기로 띄우고, 스크롤에 맞춰 갈라지며 그 뒤의 아카이브를 드러낸다
+ * ("이거 왜 잘나가?" 스테이트먼트 단계는 없앴다 — 인트로 다음이 바로 본문이다).
  * 문서 흐름 안의 섹션 하나라 스크립트가 없어도 그냥 스크롤하거나 아래 링크를 누르면
  * 바로 본문(`#main-content`)으로 넘어간다. app.js의 bootIntroMotion()이 스크롤 진행률에
- * 맞춰 두 줄을 좌우로 밀어낸다 — 실패해도 텍스트는 중앙에 그냥 보인다.
+ * 맞춰 세 줄을 좌우로 밀어낸다 — 실패해도 텍스트는 중앙에 그냥 보인다.
  *
- * 같은 날 두 번째 라운드에서 문구를 "THE ANSWER" / "COMPANY"에서 "THE ANSWER" / "ZINE"
- * (사이트명 ANSWER ZINE과 맞춘다)로, 크기를 화면 채움 수준으로 키웠다 — 사용자 요청.
+ * 2026-08-11 여덟 번째 라운드: "THE ANSWER" 한 줄이 넓은 화면에서 두 줄로 끊겨(THE /
+ * ANSWER) 어색하게 읽힌다는 지적 — 한 단어짜리 span 안에서 줄바꿈이 일어난 게 아니라,
+ * "THE"와 "ANSWER"가 한 덩어리(intro-word-1)라 폭에 따라 그 사이에서 줄이 갈라졌다.
+ * 사용자가 첨부한 참고 이미지처럼 THE / ANSWER / ZINE 세 단어를 처음부터 각자 한 줄로
+ * 떼어내 — 의도치 않은 중간 줄바꿈 자체가 구조적으로 안 생긴다(단어 하나 = 줄 하나).
+ * 그 김에 글자 크기도 더 키웠다(사용자 요청 — 화면 가장자리에 살짝 닿을 만큼).
+ * 스크롤 갈라짐 방향도 셋으로 나눴다 — THE·ZINE은 오른쪽, ANSWER는 왼쪽(사용자 요청).
  */
 function intro() {
   return h`<section class="intro" id="intro" data-intro role="presentation">
   <div class="intro-inner">
     <p class="intro-wordmark">
-      <span class="intro-word intro-word-1">THE ANSWER</span>
-      <span class="intro-word intro-word-2">ZINE</span>
+      <span class="intro-word intro-word-the">THE</span>
+      <span class="intro-word intro-word-answer">ANSWER</span>
+      <span class="intro-word intro-word-zine">ZINE</span>
     </p>
     <a class="intro-scroll" href="#main-content" aria-label="아카이브로 이동"><span class="chev" aria-hidden="true">⌄</span></a>
   </div>

@@ -593,13 +593,21 @@ border-top 1px --ink · padding-top 3mm · text-align center · 8.5px
 
 예외 하나 — 홈의 인트로(§8이 아니라 `build/lib/layout.mjs`의 `intro()`)는 스크롤에 반응하는
 발산 트랜스폼이다. 2026-08-10부터 "이거 왜 잘나가?" 스테이트먼트 단계가 없어지고, 인트로
-섹션 하나만 남았다 — "THE ANSWER" / "COMPANY" 두 줄이 중앙에 겹쳐 있다가 스크롤에 맞춰
-첫 줄은 오른쪽으로 둘째 줄은 왼쪽으로 갈라지며 그 뒤의 아카이브를 드러낸다. `.intro`는
+섹션 하나만 남았다 — "THE" / "ANSWER" / "ZINE" 세 줄이 중앙에 겹쳐 있다가 스크롤에 맞춰
+THE·ZINE은 오른쪽으로, ANSWER는 왼쪽으로 갈라지며 그 뒤의 아카이브를 드러낸다. `.intro`는
 뷰포트보다 60vh 큰 상자이고 안쪽 콘텐츠가 `position: sticky`로 그 여유분만큼 고정된 채
 갈라진다 — 그래야 스크롤이 그냥 지나가 버리지 않고 눈에 보이는 전환이 된다
 (`assets/app.js`의 `bootIntroMotion()`).
-`prefers-reduced-motion: reduce`에서는 이 계산 자체가 꺼지고 두 줄이 중앙에 겹친 채 그냥
+`prefers-reduced-motion: reduce`에서는 이 계산 자체가 꺼지고 세 줄이 중앙에 겹친 채 그냥
 스크롤되어 지나간다 — 콘텐츠(텍스트)는 어느 쪽이든 그대로 읽힌다.
+
+> **2026-08-11 여덟 번째 라운드.** 원래 "THE ANSWER"가 한 덩어리(intro-word-1)였는데, 넓은
+> 화면에서 그 안에서 줄이 갈라져(THE / ANSWER) 어색하게 읽힌다는 지적으로 THE·ANSWER·ZINE
+> 세 단어를 처음부터 각자 한 줄(각자 `white-space: nowrap`)로 뗐다 — 의도치 않은 중간
+> 줄바꿈이 구조적으로 안 생긴다. 글자 크기도 키워(`clamp(72px, 21vw, 380px)`) 가장 긴 단어
+> (ANSWER)가 어느 뷰포트에서든 폭의 약 85~90%를 채운다 — 화면 가장자리에 살짝 닿는 인상을
+> 의도적으로 노린다. `.intro`에 `overflow: hidden`을 붙여 자간 반올림으로 생기는 1px 안팎도
+> 가로 스크롤바를 만들지 않게 막는다.
 
 그 외 시스템에는 연출용 애니메이션이 없다. 상태 전환(hover, 필터, `<details>`)만 있고
 전부 브라우저 기본 동작이거나 0.15s 이내다. **모션은 반응에만 쓴다.**
