@@ -415,6 +415,14 @@ const COMPONENTS = `
   letter-spacing: -.01em; margin: var(--s6) 0; padding-left: var(--s4);
   border-left: 1px solid var(--dc, var(--rule)); max-width: var(--measure);
 }
+/* "THE ANSWER" 라벨 — 2026-08-11 도입. .insight-label과 같은 스펙(11px·700·
+   letter-spacing .1em·uppercase·도메인색)을 재사용하되 별도 클래스로 둔다 — 풀쿼트와
+   인사이트 콜아웃은 다른 컴포넌트라 나중에 독립적으로 조정할 여지를 남긴다. */
+.answer-label {
+  display: block; font-family: var(--sans); font-size: 11px; font-weight: 700;
+  letter-spacing: .1em; text-transform: uppercase; color: var(--dc, var(--secondary));
+  margin-bottom: var(--s2);
+}
 
 .domain-tag { font-family: var(--sans); font-size: 12px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--dc, var(--secondary)); }
 .domain-tag::before {

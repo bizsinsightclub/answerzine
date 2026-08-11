@@ -57,10 +57,21 @@ function insightNote(quote, story) {
 </div>`;
 }
 
-/** 풀쿼트. 인용문 한 줄만 보여준다 — insight 설명은 위 insightNote()가 이미 냈다. */
+/**
+ * 풀쿼트 — 이 회차의 "답의 순간". insight 설명은 위 insightNote()가 이미 냈으므로
+ * 여기는 quote.text 한 줄뿐이다(§6 "A가 아니라 B다" 대구조).
+ *
+ * 2026-08-11 — 사용자의 브랜드 방향 문서("If someone screenshots only one part of an
+ * article, the Answer should be the part they screenshot")에 따라 "THE ANSWER" 라벨을
+ * 붙였다. quote.text는 이미 그 역할을 하는 문장이었지만 화면에서 다른 본문 문단과
+ * 시각적으로 구분되지 않았다 — insight-note가 이미 쓰는 라벨 패턴(`.insight-label`)을
+ * 그대로 재사용하되 별도 클래스(`.answer-label`)로 둔다. 두 콜아웃은 다른 컴포넌트라
+ * 클래스를 공유하면 나중에 독립적으로 조정할 여지가 없어진다(design.md §2 참고).
+ */
 function pullquote(quote, story) {
   if (!quote) return "";
   return h`<figure class="pullquote" data-reveal style="${raw(dcVar(story))}">
+  <span class="answer-label">THE ANSWER</span>
   ${quote.text}
 </figure>`;
 }

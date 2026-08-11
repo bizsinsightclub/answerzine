@@ -78,6 +78,14 @@ test("인사이트 설명(note)이 콜아웃으로 다시 보인다 — 2026-08-
   assert.match(content, /이건 마케팅이 만든 베스트셀러가 아니다\./, "쿼트 문장 자체는 남아 있어야 한다");
 });
 
+test("풀쿼트에 THE ANSWER 라벨이 붙는다 — 2026-08-11, 답의 순간을 화면에서 명시", () => {
+  const { content } = renderStory(STORY, {});
+  assert.match(content, /<span class="answer-label">THE ANSWER<\/span>/, "answer-label이 없다");
+  const iLabel = content.indexOf("answer-label");
+  const iQuoteText = content.indexOf("이건 마케팅이 만든 베스트셀러가 아니다");
+  assert.ok(iLabel > -1 && iQuoteText > iLabel, "라벨이 쿼트 문장보다 먼저 나와야 한다");
+});
+
 test("이전/다음 링크가 URL로 나간다", () => {
   const prev = { id: "2026-w27-music", headline: "밈이, 판다.", url: "/2026-w27/music/" };
   const { content } = renderStory(STORY, { prev, next: null });
