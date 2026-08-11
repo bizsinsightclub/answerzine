@@ -45,6 +45,16 @@ body {
   line-height: 1.9;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+  /* 2026-08-11 열한 번째 라운드 — 한글 타이포그래피 전용 줄바꿈. 기본값(word-break:
+     normal)은 CJK 텍스트를 아무 글자 사이에서나 끊을 수 있어, 좁은 화면에서
+     "최단 기록을 세웠\n다"처럼 어절(단어) 중간이 갈라지는 사고가 났다. keep-all은
+     공백(어절 경계)에서만 줄을 바꾼다 — 사이트 전체(모든 페이지)에 적용해 개별
+     컴포넌트마다 따로 챙기지 않아도 되게 했다. overflow-wrap: break-word는 안전망이다
+     — 공백 없이 이어지는 긴 문자열(URL 등)이 폭을 넘기면 그때만 강제로 끊는다. 이미
+     white-space: nowrap을 쓰는 요소(로고 텍스트·킥커 등)는 한 줄 고정이 우선이라
+     영향받지 않는다. */
+  word-break: keep-all;
+  overflow-wrap: break-word;
 }
 
 body { letter-spacing: 0; }

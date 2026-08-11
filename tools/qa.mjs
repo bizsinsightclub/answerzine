@@ -316,7 +316,9 @@ for (const f of files) {
 
     /* --- 문장 규칙 --- */
     if (st.headline) {
-      if (!st.headline.endsWith(".")) warn(at, "헤드라인이 마침표로 끝나지 않는다.");
+      // 2026-08-11 열한 번째 라운드: "마침표로 끝낸다" → "마침표를 쓰지 않는다"로 뒤집었다
+      // (사용자 요청 — 더 직접적이고 트리거감 있는 제목). CLAUDE.md §6 참고.
+      if (st.headline.endsWith(".")) warn(at, "헤드라인에 마침표를 쓰지 않는다 — 2026-08-11 규칙 변경.");
       if (/[?!]|\.\.\.|…/.test(st.headline)) fail(at, "헤드라인에 물음표·느낌표·말줄임표를 쓰지 않는다.");
       if (/\p{Extended_Pictographic}/u.test(st.headline)) fail(at, "헤드라인에 이모지를 쓰지 않는다.");
     }
