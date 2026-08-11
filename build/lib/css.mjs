@@ -133,7 +133,14 @@ const CHROME = `
    2026-08-11 세 번째 라운드: ".shell"(max-width 1240px 중앙 정렬)을 벗었다 — 넓은
    화면에서 로고가 가운데로 몰리고 좌우에 빈 공간이 남는다는 지적이었다. 이제 뷰포트
    전체 폭이고, 로고·내비는 최소 여백만 두고 각자 코너에 붙는다. */
-.site-header { position: sticky; top: 0; z-index: 30; background: var(--bg); width: 100%; }
+/* 2026-08-11 열세 번째 라운드 — 사용자 요청으로 마스트헤드만 반전(검정 배경·흰 로고·
+   흰 내비)했다. 사이트 나머지는 여전히 흰 바탕 하나뿐이다(§1) — 이건 전역 다크모드가
+   아니라 이 바 하나에 국한된 배색이라, --bg/--ink 같은 전역 토큰을 바꾸지 않고 이
+   컴포넌트 안에서만 리터럴 색을 쓴다. 미리보기는 filter: invert(1)로 통째로
+   뒤집어서 보여줬지만, 실제 적용은 색을 각각 지정한다 — invert(1)을 그대로 프로덕션에
+   쓰면 나중에 헤더 안에 다른 색(도메인 컬러 등)이 들어왔을 때 의도치 않게 같이
+   뒤집힌다. */
+.site-header { position: sticky; top: 0; z-index: 30; background: #16150F; width: 100%; }
 .masthead { padding: var(--s3) var(--edge); }
 
 /* 홈 전용 — .shell(1240px 중앙 정렬)이 아니라 마스트헤드와 같은 최소 여백만 쓴다.
@@ -158,8 +165,11 @@ const CHROME = `
    같은 라운드에서 어두운 배경용 logo-light.png와 전환 스위치(.logo-light/
    .intro .logo-dark)를 없앴다 — 인트로가 이미지가 아니라 텍스트라 그 스위치가
    켜질 자리 자체가 없었다(죽은 코드, "layout.mjs"의 "header()" 주석 참고). */
-.wordmark { display: inline-block; text-decoration: none; color: var(--ink); line-height: 0; flex-shrink: 0; }
-.logo { width: auto; height: clamp(56px, 6vw, 96px); display: block; }
+.wordmark { display: inline-block; text-decoration: none; color: #fff; line-height: 0; flex-shrink: 0; }
+/* 로고 PNG는 검정 잉크를 투명 배경 위에 찍은 파일이다(assets/img/logo-dark.png) — 흰
+   버전 파일을 새로 만드는 대신, 검은 배경 위에서 invert(1)로 흰 잉크로 뒤집어 낸다.
+   투명한 부분은 invert의 영향을 안 받는다(알파 채널은 그대로다). */
+.logo { width: auto; height: clamp(56px, 6vw, 96px); display: block; filter: invert(1); }
 
 /* 카테고리 상단 내비 — 2026-08-10 두 번째 라운드 도입. 홈의 카테고리 카드와 같은 목록·
    같은 "최신 스토리" 링크를 쓴다(build.mjs가 한 번 계산해 물려준다). 좁은 화면에서는
@@ -172,10 +182,10 @@ const CHROME = `
 .category-nav::-webkit-scrollbar { display: none; }
 .category-nav a, .category-nav span {
   font-family: var(--sans); font-size: 12px; font-weight: 700; letter-spacing: .1em;
-  text-transform: uppercase; white-space: nowrap; text-decoration: none; color: var(--secondary);
+  text-transform: uppercase; white-space: nowrap; text-decoration: none; color: rgba(255,255,255,.7);
 }
-.category-nav a:hover { color: var(--ink); }
-.category-nav span.is-empty { color: var(--divider); }
+.category-nav a:hover { color: #fff; }
+.category-nav span.is-empty { color: rgba(255,255,255,.32); }
 
 /* 화면 우하단에 항상 떠 있는 CTA — 그 회차의 인쇄 지면으로 바로 간다.
    position:fixed라 마크업 위치(.masthead-top 안)와 무관하게 뷰포트 우하단에 앉는다.
