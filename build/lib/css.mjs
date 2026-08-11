@@ -589,9 +589,17 @@ const INTRO = `
    여백을 더 줄이고(var(--s3)) 글자 크기를 한 단계 더 키웠다 — 화면 가장자리에 살짝
    닿는 듯한 인상을 의도적으로 노린다(사용자 요청: "화면 경계에 살짝 넘치는 효과"). */
 .intro-wordmark { margin: 0; display: flex; flex-direction: column; align-items: center; gap: .03em; }
+/* 2026-08-11 열두 번째 라운드: 참고 이미지만큼 두껍게(사용자 요청) — font-weight를
+   700에서 900(사이트에서 가장 굵은 값)으로 올렸다. 900이어도 폴백 폰트(시스템에
+   Helvetica Neue가 없으면 Arial 등으로 넘어간다, --sans 참고)에 따라 참고 이미지보다
+   가늘어 보일 수 있어, -webkit-text-stroke로 획 자체를 두껍게 겹쳐 그린다 — 어느
+   폴백 폰트에서도 결과가 비슷하게 두꺼워진다. em 단위라 clamp된 글자 크기에
+   비례해서 커진다(작은 화면에서 획이 과하게 두꺼워지지 않는다). 미지원 브라우저
+   (Firefox 등)는 이 속성만 조용히 무시하고 900 굵기로 보인다 — 깨지지 않는다. */
 .intro-word {
-  display: block; font-family: var(--sans); font-weight: 700; letter-spacing: -.03em;
+  display: block; font-family: var(--sans); font-weight: 900; letter-spacing: -.03em;
   font-size: clamp(72px, 21vw, 380px); line-height: .98; white-space: nowrap;
+  -webkit-text-stroke: .045em currentColor;
 }
 
 .intro-scroll {
