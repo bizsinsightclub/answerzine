@@ -136,21 +136,20 @@ const CHROME = `
    좁혔다(var(--s5) 24px → var(--s3) 12px). */
 .masthead-top { display: flex; align-items: center; justify-content: space-between; gap: var(--s3); flex-wrap: nowrap; }
 /* 워드마크는 2026-08-10부터 브래킷 마크 + "the answer company"만 남긴 축소판이다
-   (기존의 큰 ANSWER/Zine 로고타입은 뺐다 — CLAUDE.md 참고). 배경을 투명화한 두 벌 중
-   어두운 쪽(logo-dark)만 실제로 쓰인다 — 사이트가 단일 흰 테마라 밝은 쪽(logo-light)이
-   보일 자리가 없다. 나중에 어두운 배경이 다시 생기면 그대로 켤 수 있게 마크업·스위치는
-   남겨 둔다. 마크가 가로로 넓고 얇은 비율이라(약 7.3:1) 높이가 아니라 너비로 재운다.
-   2026-08-10 두 번째 라운드에서 20% 키웠다(150→180 / 20vw→24vw / 230→276). 2026-08-11
-   세 번째 라운드에서 그 위에 30% 더 키웠다(180→234 / 24vw→31vw / 276→359). 같은 날
-   네 번째 라운드에서 최댓값을 다시 50% 더 키웠다(276→359→539) — 다만 최솟값(mobile
-   바닥값)은 180px로 남겨 뒀다. 세 번째 라운드 값(234px)을 그대로 50% 올리면 좁은
-   화면(375px)에서 로고 하나가 뷰포트의 94%를 차지해 내비가 설 자리가 없어진다 —
-   "PC 기준" 요청이라 데스크톱 상한만 올리고 모바일 바닥은 손대지 않았다. */
+   (기존의 큰 ANSWER/Zine 로고타입은 뺐다 — CLAUDE.md 참고).
+   2026-08-11 여섯 번째 라운드 — "로고 옆 공백"의 진짜 원인을 찾았다. PNG 원본
+   (1971×270)이 실제 잉크(x 748~1245)의 4배 가까운 캔버스였다 — 로고 좌우로 투명
+   여백이 전체 너비의 약 38%씩 있었다. "tools/crop-png.mjs"로 내용 경계에 10px
+   패딩만 남기고 다시 잘랐다(1971×270 → 518×265) — 지금까지 여러 라운드에 걸쳐
+   "옆에 공백을 없애 달라"던 요청이 CSS 여백이 아니라 이 파일 자체의 문제였다.
+   가로세로 비율이 7.3:1(넓고 얇음)에서 약 1.96:1(정사각에 가까움)로 완전히
+   바뀌어서, 너비 기준 재기(width: clamp(...))를 높이 기준으로 바꿨다 — 예전
+   비율로 재던 값을 그대로 두면 로고가 비정상적으로 세로로 길어진다.
+   같은 라운드에서 어두운 배경용 logo-light.png와 전환 스위치(.logo-light/
+   .intro .logo-dark)를 없앴다 — 인트로가 이미지가 아니라 텍스트라 그 스위치가
+   켜질 자리 자체가 없었다(죽은 코드, "layout.mjs"의 "header()" 주석 참고). */
 .wordmark { display: inline-block; text-decoration: none; color: var(--ink); line-height: 0; flex-shrink: 0; }
-.logo { height: auto; width: clamp(180px, 46.5vw, 539px); display: block; }
-.logo-light { display: none; }
-.intro .logo-light { display: block; }
-.intro .logo-dark { display: none; }
+.logo { width: auto; height: clamp(56px, 6vw, 96px); display: block; }
 
 /* 카테고리 상단 내비 — 2026-08-10 두 번째 라운드 도입. 홈의 카테고리 카드와 같은 목록·
    같은 "최신 스토리" 링크를 쓴다(build.mjs가 한 번 계산해 물려준다). 좁은 화면에서는
@@ -187,19 +186,27 @@ const CHROME = `
 .back-link:hover { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
 
 .dateline { font-family: var(--sans); font-size: 12px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--secondary); margin-bottom: var(--s6); }
+
+/* 2026-08-11 여섯 번째 라운드 — 헤드라인+부연설명이 좁은 왼쪽 칼럼에 몰려 있고
+   화면 오른쪽이 통째로 비어 보인다는 지적(사용자 요청) — 나란히 두 칼럼으로 펼쳐
+   페이지 너비를 실제로 쓴다. 좁은 화면에서는 flex-wrap이 자동으로 위아래로 접는다. */
+.insight-lead {
+  display: flex; align-items: center; flex-wrap: wrap; gap: var(--s7); margin: 0 0 var(--s6);
+}
 /* 그 호 4편을 관통하는 통합 인사이트(issue.insight). 홈의 진짜 헤드라인이라 h1로 낸다 —
    2026-08-10 두 번째 라운드에서 PC 기준 72px까지 키우고 이탤릭을 뺐다(사용자 요청,
    "이탤릭은 쓰지 말도록"). 산세리프 900이라 개별 스토리 헤드라인과 같은 문법이지만,
    더 큰 스케일로 "이 호를 관통하는 한 줄"이라는 위계를 표시한다. */
 .issue-insight {
   font-family: var(--sans); font-weight: 900; font-size: clamp(34px, 6.5vw, 72px);
-  line-height: 1.04; letter-spacing: -.03em; max-width: 20ch; margin: 0 0 var(--s4);
+  line-height: 1.04; letter-spacing: -.03em; margin: 0; flex: 2 1 480px;
 }
 /* 부연설명 — 헤드라인이 압축한 것을 한 문단으로 풀어준다(2026-08-10 두 번째 라운드 도입,
-   issue.insightNote). 헤드라인 아래, 카테고리 그리드 위에 온다. */
+   issue.insightNote). 2026-08-11부터 헤드라인 옆(아래가 아니라)에 온다 — flex: 1로
+   나머지 폭을 채워 오른쪽 빈 공간을 없앤다. */
 .issue-insight-note {
   font-family: var(--serif); font-weight: 400; font-size: 18px; line-height: 1.6;
-  color: var(--secondary); max-width: var(--measure); margin: 0 0 var(--s6);
+  color: var(--secondary); margin: 0; flex: 1 1 320px; max-width: 44ch;
 }
 
 .draft-flag {
@@ -257,10 +264,14 @@ const COMPONENTS = `
    test/theme.test.mjs가 AA를 검증한다. */
 /* 2026-08-11 다섯 번째 라운드: 좌우 패딩을 10px로 좁혔다(사용자 요청 — "글자가 시작·
    끝나는 지점에 딱 10px만, 완전한 여백이 아니라 아주 살짝 숨 쉴 틈만"). 위아래는
-   그대로 뒀다 — 요청이 좌우 한정이었다. */
+   그대로 뒀다 — 요청이 좌우 한정이었다.
+   2026-08-11 여섯 번째 라운드: 제목이 아래로 처져 보인다는 지적 — justify-content를
+   flex-end에서 center로 바꾸고 text-align도 center를 줘서 세로·가로 모두 카드
+   한가운데 온다. min-height도 280→420px로 키웠다(사용자 요청, "여유를 더 준다"). */
 .category-card {
-  position: relative; display: flex; flex-direction: column; justify-content: flex-end;
-  min-height: 280px; padding: var(--s6) 10px var(--s5); text-decoration: none;
+  position: relative; display: flex; flex-direction: column; align-items: center;
+  justify-content: center; text-align: center;
+  min-height: 420px; padding: var(--s7) 10px var(--s5); text-decoration: none;
   color: var(--ink);
 }
 /* cardColor가 없는 도메인의 폴백 — 어두운 colorPaper 배경이라 흰 글자가 필요하다. */
@@ -280,6 +291,12 @@ const COMPONENTS = `
 .category-card-headline {
   font-weight: 900; font-size: 40px; line-height: 1.1;
   letter-spacing: -.025em; margin: 0 0 var(--s3);
+}
+/* 제목 밑 한 줄 티저 — 2026-08-11 여섯 번째 라운드 도입(사용자 요청). story.teaser를
+   그대로 쓴다 — 새 필드가 필요 없다. */
+.category-card-teaser {
+  font-family: var(--sans); font-weight: 400; font-size: 14px; line-height: 1.5;
+  margin: 0 0 var(--s4); max-width: 42ch; opacity: .85;
 }
 .category-card-date {
   font-family: var(--sans); font-size: 11px; font-weight: 700; letter-spacing: .04em; opacity: .65;
@@ -443,9 +460,10 @@ const ZINE = `
   box-shadow: 0 6px 30px rgba(0,0,0,.18);
 }
 .zine-masthead { text-align: center; padding-bottom: 2mm; }
-/* 2026-08-10 축소판 마크(약 7.3:1)에 맞춰 높이 대신 너비로 잰다 — 예전 높이 기준이면
-   가로 109mm까지 늘어나 인쇄 지면 폭을 넘긴다. */
-.zine-logo { width: 62mm; height: auto; margin: 0 auto 1mm; display: block; }
+/* 2026-08-11 여섯 번째 라운드 — 로고 PNG를 실제 잉크 경계로 다시 잘라 비율이
+   7.3:1에서 약 1.96:1로 바뀌었다(위 .logo 주석 참고). 너비 62mm 기준을 그대로 두면
+   세로가 32mm까지 늘어나 지면을 침범한다 — 높이 기준(12mm)으로 다시 잰다. */
+.zine-logo { height: 12mm; width: auto; margin: 0 auto 1mm; display: block; }
 .zine-ruleline { border-top: 3px solid var(--ink); border-bottom: 1px solid var(--ink); height: 5px; margin: 2mm 0; }
 .zine-dateline { font-family: var(--sans); font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
 /* issue.insightPrint — 웹의 .issue-insight와 같은 자리지만 A4는 여유가 없어 한 줄로 줄인다. */

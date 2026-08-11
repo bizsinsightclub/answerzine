@@ -63,7 +63,7 @@ export function renderZinePage(issue, stories, registry = {}) {
 
   const content = h`<div class="zine-page" id="zine-page">
   <header class="zine-masthead">
-    <img class="zine-logo" src="${raw(u("/assets/img/logo-dark.png"))}" alt="${SITE.name}" width="1971" height="270">
+    <img class="zine-logo" src="${raw(u("/assets/img/logo-dark.png"))}" alt="${SITE.name}" width="518" height="265">
     <div class="zine-ruleline"></div>
     <div class="zine-dateline">${dateline(issue.range)}</div>
     ${issue.insightPrint ? raw(h`<p class="zine-insight">${issue.insightPrint}</p>`) : ""}

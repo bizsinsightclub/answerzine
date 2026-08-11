@@ -102,14 +102,18 @@ ${showChrome ? `${showIntro ? intro() : ""}\n<div id="main-content">\n${header(p
  * `categoryNav`는 build.mjs가 한 번 계산해 모든 페이지에 그대로 물려준다 —
  * [{ name, href }] 배열. `href`가 없으면(그 도메인에 아직 통과분이 없으면) 링크 없는
  * 라벨로만 낸다. 영문 라벨(`nameEn`)은 domains/registry.json 단일 소스다.
+ *
+ * 2026-08-11 정리 라운드: 어두운 배경용 `logo-light.png`와 그 전환 스위치를 없앴다 —
+ * 사이트가 처음부터 흰 배경 하나뿐이고(§1), 인트로도 이미지가 아니라 텍스트라
+ * `logo-light`가 표시될 자리가 구조적으로 없었다(죽은 코드). 어두운 배경이 다시
+ * 생기면 그때 다시 만든다.
  */
 function header(printUrl, categoryNav = []) {
   return h`<header class="site-header" style="padding-bottom:0">
   <div class="masthead">
     <div class="masthead-top">
       <a class="wordmark" href="${u("/")}" aria-label="${SITE.name} 홈">
-        <img class="logo logo-light" src="${u("/assets/img/logo-light.png")}" alt="${SITE.name}" width="1970" height="260">
-        <img class="logo logo-dark" src="${u("/assets/img/logo-dark.png")}" alt="" aria-hidden="true" width="1971" height="270">
+        <img class="logo" src="${u("/assets/img/logo-dark.png")}" alt="${SITE.name}" width="518" height="265">
       </a>
       <nav class="category-nav" aria-label="카테고리">
         <a href="${u("/about/")}">About</a>

@@ -123,6 +123,22 @@ test("도메인당 카드 하나, 그 도메인의 최신 스토리로 이어진
   }
 });
 
+test("카드 제목 밑에 teaser 한 줄이 나온다 — 2026-08-11 여섯 번째 라운드", () => {
+  const { content } = renderIndex([ISSUE], stories, REG);
+  for (const s of stories) {
+    assert.match(content, new RegExp(`class="category-card-teaser">${s.teaser.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`));
+  }
+});
+
+test("헤드라인·부연설명이 같은 가로 컨테이너(insight-lead) 안에 있다", () => {
+  const withInsight = { ...ISSUE, insight: "헤드라인.", insightNote: "부연설명." };
+  const { content } = renderIndex([withInsight], stories, REG);
+  const m = content.match(/<div class="insight-lead">([\s\S]*?)<\/div>/);
+  assert.ok(m, "insight-lead 래퍼가 없다");
+  assert.match(m[1], /class="issue-insight"/);
+  assert.match(m[1], /class="issue-insight-note"/);
+});
+
 test("onclick을 쓰지 않는다 — 카드는 순수 링크다", () => {
   const { content } = renderIndex([ISSUE], stories, REG);
   assert.ok(!content.includes("onclick"));

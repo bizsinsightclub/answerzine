@@ -35,6 +35,7 @@ const emptyCard = (d) => h`<div class="category-card is-empty">
 const card = (d, s) => h`<a class="category-card${d.cardColor ? "" : " is-dark"}" data-reveal href="${u(s.url)}" style="${raw(cardPalette(d))}">
   <span class="category-card-tag">${d.name}${s.draft ? raw(' <span class="draft-flag">작업 중</span>') : ""}</span>
   <h2 class="category-card-headline">${s.headline}</h2>
+  <p class="category-card-teaser">${s.teaser}</p>
   <span class="category-card-date">최신 · ${s.range}</span>
 </a>`;
 
@@ -96,8 +97,10 @@ export function renderIndex(issues, stories, registry) {
 
   const content = h`<main class="shell-edge">
   <p class="dateline">${latest ? dateline(latest.range) : "준비 중"}</p>
-  ${latest?.insight ? raw(h`<h1 class="issue-insight" data-reveal>${latest.insight}</h1>`) : ""}
-  ${latest?.insightNote ? raw(h`<p class="issue-insight-note" data-reveal>${latest.insightNote}</p>`) : ""}
+  <div class="insight-lead">
+    ${latest?.insight ? raw(h`<h1 class="issue-insight" data-reveal>${latest.insight}</h1>`) : ""}
+    ${latest?.insightNote ? raw(h`<p class="issue-insight-note" data-reveal>${latest.insightNote}</p>`) : ""}
+  </div>
 
   <div class="category-grid">
     ${withDividers.map((t) => raw(t))}
