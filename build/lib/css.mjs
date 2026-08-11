@@ -255,26 +255,31 @@ const COMPONENTS = `
    — cardColor가 없는 도메인은 예전처럼 어두운 colorPaper+흰 글자로 남는다
    (render-index.mjs의 cardPalette()가 인라인 style로 결정한다). 두 조합 다
    test/theme.test.mjs가 AA를 검증한다. */
+/* 2026-08-11 다섯 번째 라운드: 좌우 패딩을 10px로 좁혔다(사용자 요청 — "글자가 시작·
+   끝나는 지점에 딱 10px만, 완전한 여백이 아니라 아주 살짝 숨 쉴 틈만"). 위아래는
+   그대로 뒀다 — 요청이 좌우 한정이었다. */
 .category-card {
   position: relative; display: flex; flex-direction: column; justify-content: flex-end;
-  min-height: 280px; padding: var(--s6) var(--s5) var(--s5); text-decoration: none;
+  min-height: 280px; padding: var(--s6) 10px var(--s5); text-decoration: none;
   color: var(--ink);
 }
 /* cardColor가 없는 도메인의 폴백 — 어두운 colorPaper 배경이라 흰 글자가 필요하다. */
 .category-card.is-dark { color: #fff; }
 .category-card.is-dark .draft-flag { border-color: rgba(255,255,255,.6); color: #fff; }
 .category-card:hover .category-card-headline { text-decoration: underline; text-underline-offset: 4px; }
+/* 태그도 텍스트와 같은 10px 우측 여백으로 맞췄다 — 헤드라인만 좁히면 태그와
+   가장자리 거리가 안 맞아 보인다. */
 .category-card-tag {
-  position: absolute; top: var(--s5); right: var(--s5);
+  position: absolute; top: var(--s5); right: 10px;
   font-family: var(--sans); font-size: 12px; font-weight: 700; letter-spacing: .1em;
   text-transform: uppercase; opacity: .75;
 }
-/* 2026-08-11 네 번째 라운드: PC 기준(1280~1920px) 40~48px 사이에 오도록 조정
-   (사용자 요청) — clamp(26,4.2vw,46)은 1280px에서 이미 46px 상한에 붙어 좁은 PC
-   폭에서 더 못 컸다. */
+/* 2026-08-11 네 번째 라운드: PC 기준 40~48px 범위로 조정. 다섯 번째 라운드에서
+   범위를 없애고 40px 고정값으로 좁혔다(사용자 요청 — "정확히 40pt"). 모바일에서도
+   과하지 않은 크기라(스토리 헤드라인이 이미 최대 58px까지 쓴다) 반응형 없이 고정했다. */
 .category-card-headline {
-  font-weight: 900; font-size: clamp(32px, 3.2vw, 48px); line-height: 1.1;
-  letter-spacing: -.025em; margin: 0 0 var(--s3); max-width: 92%;
+  font-weight: 900; font-size: 40px; line-height: 1.1;
+  letter-spacing: -.025em; margin: 0 0 var(--s3);
 }
 .category-card-date {
   font-family: var(--sans); font-size: 11px; font-weight: 700; letter-spacing: .04em; opacity: .65;
