@@ -8,48 +8,15 @@
 (function () {
   "use strict";
 
-  /* ── 도메인 필터 ── */
-  function applyFilter(key) {
-    var items = document.querySelectorAll("[data-domain]:not(button)");
-    var shown = 0;
-    for (var i = 0; i < items.length; i++) {
-      var match = key === "all" || items[i].getAttribute("data-domain") === key;
-      items[i].hidden = !match;
-      // 숨어 있던 동안에는 화면에 들어온 적이 없어 등장 상태가 안 붙는다.
-      // 필터로 다시 꺼낸 항목이 투명한 채 남지 않도록 여기서 확정한다.
-      if (match) { items[i].classList.add("is-in"); shown++; }
-    }
-
-    // 통합 인사이트(issue.insight)는 그 주 전체를 관통하는 제목이다 — 한 도메인으로
-    // 좁혀 보는 중에는(전체가 아닌 필터) 그 관통이 안 맞으므로 "전체"에서만 보인다.
-    var insight = document.querySelector(".issue-insight");
-    if (insight) insight.hidden = key !== "all";
-
-    var btns = document.querySelectorAll(".seg button[data-domain]");
-    for (var j = 0; j < btns.length; j++) {
-      btns[j].setAttribute("aria-pressed", btns[j].getAttribute("data-domain") === key ? "true" : "false");
-    }
-
-    var empty = document.querySelector("[data-empty]");
-    if (empty) empty.hidden = shown !== 0;
-
-    var url = new URL(location.href);
-    if (key === "all") url.searchParams.delete("domain");
-    else url.searchParams.set("domain", key);
-    history.replaceState(null, "", url);
-  }
-
-  /* ── 단일 위임 리스너 ── */
+  /* ── 단일 위임 리스너 ──
+     2026-08-10부터 도메인 필터(.seg)가 없다 — 홈이 카테고리 카드 그리드로 바뀌면서
+     "골라서 좁혀 본다"는 필터 개념 자체가 없어졌다(카드 하나 = 도메인 하나, 클릭하면
+     바로 그 도메인의 최신 스토리로 간다). 그래서 여기 남은 위임 대상은 인쇄 버튼뿐이다. */
   document.addEventListener("click", function (e) {
     var print = e.target.closest("[data-print]");
     if (print) {
       window.print();
       return;
-    }
-
-    var seg = e.target.closest(".seg button[data-domain]");
-    if (seg) {
-      applyFilter(seg.getAttribute("data-domain"));
     }
   });
 
@@ -133,7 +100,4 @@
   /* ── 초기화 ── */
   bootIntroMotion();
   bootReveal();
-
-  var initial = new URL(location.href).searchParams.get("domain");
-  if (initial && document.querySelector(".seg button[data-domain]")) applyFilter(initial);
 })();

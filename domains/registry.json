@@ -2,7 +2,7 @@
   "$schema": "https://answerzine.kr/schema/registry-1.json",
   "version": "2026-w32g",
   "updated": "2026-08-09",
-  "note": "도메인 단일 소스. build/lib/*.mjs, tools/zine-builder.html, tools/qa.mjs가 모두 이 파일을 참조한다. 색상은 여기서만 정의한다. status가 active가 아닌 도메인은 필터·결번 계산에서 빠진다.",
+  "note": "도메인 단일 소스. build/lib/*.mjs, tools/zine-builder.html, tools/qa.mjs가 모두 이 파일을 참조한다. 색상은 여기서만 정의한다. status가 active가 아닌 도메인은 홈 카테고리 카드·결번 계산에서 빠진다. nameEn은 2026-08-10 도입 — 홈 상단 고정 내비게이션(영문 카테고리 라벨)이 쓴다.",
   "colorRules": {
     "background": "#16150F",
     "backgroundPaper": "#F4F1E7",
@@ -18,6 +18,7 @@
     {
       "key": "movie",
       "name": "영화",
+      "nameEn": "Movie",
       "color": "#0A84FF",
       "colorName": "Apple systemBlue (Night)",
       "colorPaper": "#006BD7",
@@ -40,6 +41,7 @@
     {
       "key": "music",
       "name": "음악",
+      "nameEn": "Music",
       "color": "#FF9500",
       "colorName": "Apple systemOrange (Night)",
       "colorPaper": "#A15E00",
@@ -62,6 +64,7 @@
     {
       "key": "youtube",
       "name": "유튜브",
+      "nameEn": "YouTube",
       "color": "#FF2D55",
       "colorName": "Apple systemPink (Night)",
       "colorPaper": "#DD002A",
@@ -80,6 +83,7 @@
     {
       "key": "book",
       "name": "도서",
+      "nameEn": "Book",
       "color": "#34C759",
       "colorName": "Apple systemGreen (Night)",
       "colorPaper": "#217E38",
@@ -102,6 +106,7 @@
     {
       "key": "stage",
       "name": "공연",
+      "nameEn": "Stage",
       "color": "#0C907E",
       "colorName": "틸 (Night)",
       "colorPaper": "#0A7B6C",
@@ -123,6 +128,7 @@
     {
       "key": "news",
       "name": "뉴스",
+      "nameEn": "News",
       "color": "#8B66F3",
       "colorName": "인디고 (Night)",
       "colorPaper": "#7142F0",
@@ -143,6 +149,7 @@
     {
       "key": "ott",
       "name": "OTT",
+      "nameEn": "OTT",
       "color": "#E212D8",
       "colorName": "마젠타 (Night)",
       "colorPaper": "#C110B9",
@@ -165,6 +172,7 @@
     {
       "key": "travel",
       "name": "여행",
+      "nameEn": "Travel",
       "color": "#59900C",
       "colorName": "라임 (Night)",
       "colorPaper": "#4A780A",
@@ -244,12 +252,16 @@
     "issueInsightPrint": [
       18,
       30
+    ],
+    "issueInsightNote": [
+      110,
+      140
     ]
   },
   "zineLayout": {
     "leadSlots": 1,
     "miniSlots": 3,
     "selection": "score",
-    "note": "지면은 리드 1 + 미니 3으로 고정이다. 활성 도메인이 8개여도 지면은 늘리지 않는다. 그 주에 통과한 스토리 중 점수 상위 4편만 싣고, 나머지는 웹에만 게재한다. 도메인을 8개로 늘린 이유는 지면을 채우기 위해서가 아니라 결번이 나도 4편을 확보하기 위해서다."
+    "note": "2026-08-10부터 리드 1 + 미니 3 위계가 없다 — 그 주 통과분 전원을 동등한 행으로 낸다(build/lib/render-zine.mjs). leadSlots/miniSlots 숫자 자체는 tools/qa.mjs의 죽은 분기(selection이 항상 'score'라 조건이 늘 false)에만 남아 있다 — 실제 지면 편수 제한으로는 안 쓰인다. 도메인을 8개로 늘린 이유는 결번이 나도 편수를 확보하기 위해서다."
   }
 }

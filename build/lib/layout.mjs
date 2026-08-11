@@ -20,19 +20,22 @@ const BOOT = `(function(d){d.documentElement.className+=" js";})(document);`;
 
 /**
  * 진입 화면 — 홈에서만 나온다. 2026-08-10 리디자인: 로고 이미지 대신 실제 텍스트
- * "THE ANSWER" / "COMPANY" 두 줄을 띄우고, 스크롤에 맞춰 첫 줄은 오른쪽으로,
- * 둘째 줄은 왼쪽으로 갈라지며 그 뒤의 아카이브를 드러낸다("이거 왜 잘나가?" 스테이트먼트
- * 단계는 없앴다 — 인트로 다음이 바로 본문이다).
+ * "THE ANSWER" / "ZINE" 두 줄을 화면을 꽉 채우는 크기로 띄우고, 스크롤에 맞춰 첫 줄은
+ * 오른쪽으로, 둘째 줄은 왼쪽으로 갈라지며 그 뒤의 아카이브를 드러낸다("이거 왜 잘나가?"
+ * 스테이트먼트 단계는 없앴다 — 인트로 다음이 바로 본문이다).
  * 문서 흐름 안의 섹션 하나라 스크립트가 없어도 그냥 스크롤하거나 아래 링크를 누르면
  * 바로 본문(`#main-content`)으로 넘어간다. app.js의 bootIntroMotion()이 스크롤 진행률에
  * 맞춰 두 줄을 좌우로 밀어낸다 — 실패해도 텍스트는 중앙에 그냥 보인다.
+ *
+ * 같은 날 두 번째 라운드에서 문구를 "THE ANSWER" / "COMPANY"에서 "THE ANSWER" / "ZINE"
+ * (사이트명 ANSWER ZINE과 맞춘다)로, 크기를 화면 채움 수준으로 키웠다 — 사용자 요청.
  */
 function intro() {
   return h`<section class="intro" id="intro" data-intro role="presentation">
   <div class="intro-inner">
     <p class="intro-wordmark">
       <span class="intro-word intro-word-1">THE ANSWER</span>
-      <span class="intro-word intro-word-2">COMPANY</span>
+      <span class="intro-word intro-word-2">ZINE</span>
     </p>
     <a class="intro-scroll" href="#main-content" aria-label="아카이브로 이동"><span class="chev" aria-hidden="true">⌄</span></a>
   </div>
@@ -48,7 +51,7 @@ function intro() {
  */
 const OG_IMAGE = { path: "/assets/img/og.png", width: 1200, height: 630 };
 
-export function page({ title, description, url, content, noindex = false, bodyClass = "", showChrome = true, printUrl = null, showIntro = false }) {
+export function page({ title, description, url, content, noindex = false, bodyClass = "", showChrome = true, printUrl = null, showIntro = false, categoryNav = [] }) {
   const full = title === SITE.name ? title : `${title} — ${SITE.name}`;
   const canonical = absolute(url ?? "/");
   const ogImage = absolute(OG_IMAGE.path);
@@ -79,14 +82,23 @@ ${noindex ? '<meta name="robots" content="noindex">' : ""}
 <script>${BOOT}</script>
 </head>
 <body class="${escapeHTML(bodyClass)}">
-${showChrome ? `${showIntro ? intro() : ""}\n<div id="main-content">\n${header(printUrl)}\n${content}\n</div>` : content}
+${showChrome ? `${showIntro ? intro() : ""}\n<div id="main-content">\n${header(printUrl, categoryNav)}\n${content}\n</div>` : content}
 <script src="${u("/assets/app.js")}" defer></script>
 </body>
 </html>
 `;
 }
 
-function header(printUrl) {
+/**
+ * 마스트헤드 — 2026-08-10 두 번째 라운드: 로고(좌)와 카테고리 내비(우)를 한 줄에 놓고
+ * 스크롤 내내 상단에 고정한다(`.site-header { position: sticky; top: 0 }`). 로고는
+ * ~20% 키웠다. 밑줄 괘선(`.ruleline`)은 뺐다 — 사용자 요청.
+ *
+ * `categoryNav`는 build.mjs가 한 번 계산해 모든 페이지에 그대로 물려준다 —
+ * [{ name, href }] 배열. `href`가 없으면(그 도메인에 아직 통과분이 없으면) 링크 없는
+ * 라벨로만 낸다. 영문 라벨(`nameEn`)은 domains/registry.json 단일 소스다.
+ */
+function header(printUrl, categoryNav = []) {
   return h`<header class="site-header shell" style="padding-bottom:0">
   <div class="masthead">
     <div class="masthead-top">
@@ -94,9 +106,14 @@ function header(printUrl) {
         <img class="logo logo-light" src="${u("/assets/img/logo-light.png")}" alt="${SITE.name}" width="1970" height="260">
         <img class="logo logo-dark" src="${u("/assets/img/logo-dark.png")}" alt="" aria-hidden="true" width="1971" height="270">
       </a>
+      <nav class="category-nav" aria-label="카테고리">
+        <a href="${u("/")}">All</a>
+        ${categoryNav.map((c) =>
+          raw(c.href ? h`<a href="${u(c.href)}">${c.name}</a>` : h`<span class="is-empty">${c.name}</span>`)
+        )}
+      </nav>
       ${printUrl ? raw(h`<a class="header-cta" href="${u(printUrl)}">한 장 요약 보기</a>`) : ""}
     </div>
-    <div class="ruleline"></div>
   </div>
 </header>`;
 }

@@ -23,10 +23,11 @@ const print = page({
 const css = stylesheet([{ key: "book", color: "#34C759", colorPaper: "#217E38" }]);
 
 test("진입 화면은 홈에서만 마크업으로 심긴다 — 첫 페인트에 워드마크가 이미 있다", () => {
-  // 2026-08-10부터 로고 이미지 대신 실제 텍스트 "THE ANSWER"/"COMPANY" 두 줄이다.
+  // 2026-08-10부터 로고 이미지 대신 실제 텍스트 두 줄이다. 같은 날 두 번째 라운드에서
+  // 둘째 줄을 "COMPANY"에서 "ZINE"으로 바꿨다(사이트명 ANSWER ZINE에 맞춘다).
   assert.match(home, /class="intro"/);
   assert.match(home, /class="intro-word intro-word-1">THE ANSWER</);
-  assert.match(home, /class="intro-word intro-word-2">COMPANY</);
+  assert.match(home, /class="intro-word intro-word-2">ZINE</);
 });
 
 test("진입 화면은 issue·story 페이지에는 없다 — 마스트헤드부터 바로 시작한다", () => {

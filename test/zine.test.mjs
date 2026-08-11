@@ -112,30 +112,25 @@ test("진 본문도 이스케이프된다", () => {
   assert.ok(!z.content.includes("<script>alert"));
 });
 
-/* --- 인덱스·회차 --- */
+/* --- 인덱스(홈) — 카테고리 카드 그리드, 2026-08-10 전면 개편 --- */
 
-test("인덱스는 모든 스토리를 위계 없는 카드 리스트로 낸다", () => {
+test("도메인당 카드 하나, 그 도메인의 최신 스토리로 이어진다", () => {
   const { content } = renderIndex([ISSUE], stories, REG);
-  const iFirst = content.indexOf("부고 다음날, 서점이 붐볐다.");
-  const iOther = content.indexOf("매진, 또 매진.");
-  assert.ok(iFirst > -1 && iOther > -1 && iFirst < iOther);
-  assert.match(content, /class="row"/);
+  const cards = content.match(/class="category-card"/g) ?? [];
+  assert.equal(cards.length, 4, "REG의 도메인 4개만큼 카드가 나와야 한다");
+  for (const s of stories) {
+    assert.match(content, new RegExp(`href="${s.url}"[\\s\\S]*?${s.headline.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`));
+  }
 });
 
-test("인덱스에 도메인 필터가 전부 나온다", () => {
-  const { content } = renderIndex([ISSUE], stories, REG);
-  for (const d of ["전체", "영화", "음악", "유튜브", "도서"]) assert.ok(content.includes(d), `${d} 누락`);
-});
-
-test("필터는 onclick이 아니라 data 속성을 쓴다", () => {
+test("onclick을 쓰지 않는다 — 카드는 순수 링크다", () => {
   const { content } = renderIndex([ISSUE], stories, REG);
   assert.ok(!content.includes("onclick"));
-  assert.match(content, /data-domain=/);
+  assert.match(content, /<a class="category-card"/);
 });
 
-test("draft 회차는 인덱스에 표시가 붙는다", () => {
+test("draft 회차의 최신 스토리 카드엔 '작업 중' 배지가 붙는다", () => {
   // noindex는 스토리 페이지 자체의 일이다 (render.test.mjs "draft 스토리는 noindex를 요청한다").
-  // 회차 목록 페이지가 없어졌으므로(2026-08-08) 여기서는 인덱스의 배지만 본다.
   const draft = { ...ISSUE, status: "draft" };
   const ds = stories.map((s) => ({ ...s, issue: draft, draft: true }));
   const idx = renderIndex([draft], ds, REG);
@@ -152,7 +147,55 @@ test("인덱스가 최신 회차의 인쇄 링크를 준다", () => {
   assert.ok(!content.includes("인쇄용 A4"));
 });
 
-test("빈 상태 요소가 인덱스에 있다", () => {
+test("뉴스·여행은 카드 그리드에서 빠진다 — 데이터가 아직 불안정한 도메인", () => {
+  const withHidden = { domains: [...REG.domains, { key: "news", name: "뉴스" }, { key: "travel", name: "여행" }] };
+  const { content } = renderIndex([ISSUE], stories, withHidden);
+  assert.equal((content.match(/class="category-card"/g) ?? []).length, 4, "뉴스·여행 카드까지 나오면 안 된다");
+  assert.ok(!content.includes(">뉴스<"));
+  assert.ok(!content.includes(">여행<"));
+});
+
+test("스토리가 없는 도메인은 색 없는 빈 카드로 뜬다", () => {
+  const reg = { domains: [...REG.domains, { key: "stage", name: "공연" }] };
+  const { content } = renderIndex([ISSUE], stories, reg);
+  assert.match(content, /class="category-card is-empty"/);
+  assert.match(content, /아직 신호가 없다/);
+  // 빈 카드는 링크가 아니다 — 갈 곳(최신 스토리)이 없다.
+  assert.ok(!content.includes('href="/2026-w31/stage/"'));
+});
+
+test("카드는 편집 순서가 아니라 실제 최신(시간순) 스토리로 이어진다", () => {
+  // book이 두 회차에 걸쳐 있다 — 최근 발행(issue2)이 카드에 나와야 한다,
+  // allStories()의 배열 순서(issue1이 먼저 온다)를 그대로 믿으면 안 된다.
+  const issue1 = { issue: "2026-w30", range: "2026.07.21 – 07.27", status: "ready" };
+  const issue2 = { issue: "2026-w31", range: "2026.07.28 – 08.03", status: "ready" };
+  const older = mk("2026-w30-book", "book", "도서", "지난주 도서.", "지난주 티저.");
+  older.range = issue1.range; older.issue = issue1; older.url = "/2026-w30/book/";
+  const newer = { ...stories.find((s) => s.slug === "book") };
+  const mixed = [older, newer, ...stories.filter((s) => s.slug !== "book")];
+  const { content } = renderIndex([issue2, issue1], mixed, REG);
+  assert.ok(content.includes('href="/2026-w31/book/"'), "최신 book 스토리로 이어져야 한다");
+  assert.ok(!content.includes("지난주 도서."), "지난주 스토리가 카드에 뜨면 안 된다");
+});
+
+test("통합 인사이트가 헤드라인(h1)+부연설명(insightNote)으로 나온다 — 2026-08-10 두 번째 라운드", () => {
+  const withNote = { ...ISSUE, insight: "헤드라인.", insightNote: "부연설명 문단." };
+  const { content } = renderIndex([withNote], stories, REG);
+  assert.match(content, /<h1 class="issue-insight"[^>]*>헤드라인\.<\/h1>/);
+  assert.match(content, /class="issue-insight-note"[^>]*>부연설명 문단\./);
+});
+
+test("하단 페이저 — 전체 아카이브 링크는 항상 있고, 다음 주는 홈에서 늘 없다", () => {
   const { content } = renderIndex([ISSUE], stories, REG);
-  assert.match(content, /data-empty/);
+  assert.match(content, /class="pager"/);
+  assert.match(content, /<a class="pager-now" href="[^"]*\/archive\/">전체 아카이브 보기<\/a>/);
+  assert.match(content, /class="pager-link pager-next is-off"/, "홈은 항상 최신이라 '다음 주'가 없어야 한다");
+});
+
+test("하단 페이저 — 이전 회차가 있으면 그 인쇄 진으로 이어진다", () => {
+  const prev = { issue: "2026-w30", range: "2026.07.21 – 07.27", status: "ready", insight: "지난주 헤드라인." };
+  const { content } = renderIndex([ISSUE, prev], stories, REG);
+  assert.match(content, /<a class="pager-link pager-prev" href="[^"]*\/2026-w30\/print\/">/);
+  assert.match(content, /지난주 헤드라인\./);
+  assert.ok(!content.includes("pager-prev is-off"), "이전 회차가 있는데 비활성으로 나오면 안 된다");
 });

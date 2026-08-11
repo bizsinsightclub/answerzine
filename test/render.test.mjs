@@ -121,3 +121,19 @@ test("noindex가 아니면 robots 메타를 넣지 않는다", () => {
   const html = page({ title: "t", description: "d", url: "/", content: "" });
   assert.ok(!html.includes("noindex"));
 });
+
+test("마스트헤드는 categoryNav를 영문 라벨 링크로 낸다 — 2026-08-10", () => {
+  const html = page({
+    title: "t", description: "d", url: "/", content: "",
+    categoryNav: [{ name: "Movie", href: "/2026-w31/movie/" }, { name: "Stage", href: null }],
+  });
+  assert.match(html, /class="category-nav"/);
+  assert.match(html, /<a href="[^"]*\/2026-w31\/movie\/">Movie<\/a>/);
+  // href가 없는 도메인(아직 통과분 없음)은 링크가 아니라 라벨만 낸다.
+  assert.match(html, /<span class="is-empty">Stage<\/span>/);
+});
+
+test("마스트헤드는 스크롤에 고정된다 — .ruleline 밑줄은 없다", () => {
+  const html = page({ title: "t", description: "d", url: "/", content: "" });
+  assert.ok(!html.includes('class="ruleline"'), "밑줄 괘선이 남아 있다");
+});

@@ -254,6 +254,15 @@ for (const f of files) {
       if (Li(issue.insightPrint) > max) fail(at2, `${Li(issue.insightPrint)}자 > 절대상한 ${max}자 — 인쇄 진 A4 예산이 빠듯하다.`);
       else if (Li(issue.insightPrint) > rec) warn(at2, `${Li(issue.insightPrint)}자 > 권장 ${rec}자.`);
     }
+    // insightNote — 2026-08-10 두 번째 라운드 도입. issue.insight(헤드라인) 밑에 붙는
+    // 부연설명이다. 웹 전용(인쇄 진은 A4 여유가 없어 헤드라인만 낸다) — 없어도 통과다,
+    // 있으면 길이만 잰다.
+    if (issue.insightNote) {
+      const [rec, max] = BUDGET.issueInsightNote;
+      const at3 = `${basename(f)} · issue.insightNote`;
+      if (Li(issue.insightNote) > max) fail(at3, `${Li(issue.insightNote)}자 > 절대상한 ${max}자.`);
+      else if (Li(issue.insightNote) > rec) warn(at3, `${Li(issue.insightNote)}자 > 권장 ${rec}자.`);
+    }
   }
 
   for (const st of stories) {

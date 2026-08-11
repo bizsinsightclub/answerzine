@@ -14,11 +14,12 @@ import { createServer } from "node:http";
 import { fileURLToPath } from "node:url";
 import { dirname } from "node:path";
 
-import { loadIssues, loadRegistry, allStories, neighbors } from "./lib/data.mjs";
+import { loadIssues, loadRegistry, allStories, neighbors, latestByDomain, visibleDomains } from "./lib/data.mjs";
 import { stylesheet } from "./lib/css.mjs";
 import { page } from "./lib/layout.mjs";
 import { renderStory } from "./lib/render-story.mjs";
 import { renderIndex } from "./lib/render-index.mjs";
+import { renderArchive } from "./lib/render-archive.mjs";
 import { renderZinePreview } from "./lib/render-zine.mjs";
 import { copyAssets, writeFile } from "./lib/assets.mjs";
 import { setBase, getBase, u, absolute } from "./lib/site.mjs";
@@ -79,6 +80,13 @@ export async function build({ root = ROOT, out = join(ROOT, "dist"), quiet = fal
   const issues = loadIssues(root);
   const stories = allStories(issues, registry);
 
+  // 마스트헤드 상단 내비 — 홈 카테고리 카드와 같은 목록·같은 "최신 스토리" 계산을 쓴다
+  // (data.mjs의 visibleDomains/latestByDomain). 한 번 계산해 모든 페이지에 그대로 물린다.
+  const categoryNav = visibleDomains(registry).map((d) => ({
+    name: d.nameEn ?? d.name,
+    href: latestByDomain(stories, d.key)?.url ?? null,
+  }));
+
   const write = (rel, content) => { writeFile(join(out, rel), content); files.push(rel); };
   const genQR = await loadQR();
   if (!genQR) warnings.push("qrcode가 없어 QR을 플레이스홀더로 남겼다. `npm install`로 설치하면 실제 스캔되는 코드가 나온다.");
@@ -90,7 +98,11 @@ export async function build({ root = ROOT, out = join(ROOT, "dist"), quiet = fal
 
   /* ── 아카이브 인덱스 ── */
   const idx = renderIndex(issues, stories, registry);
-  write("index.html", page({ ...idx, url: "/" }));
+  write("index.html", page({ ...idx, url: "/", categoryNav }));
+
+  /* ── 전체 아카이브 — 홈의 "전체 아카이브 보기" CTA가 여기로 온다 ── */
+  const archive = renderArchive(stories);
+  write("archive/index.html", page({ ...archive, url: "/archive/", categoryNav }));
 
   /* ── 회차·스토리·인쇄 진 ──
      2026-08-08부터 회차 목록 페이지(/YYYY-wNN/)는 만들지 않는다 — 홈 아카이브가 이미
@@ -110,7 +122,7 @@ export async function build({ root = ROOT, out = join(ROOT, "dist"), quiet = fal
 
     for (const s of mine) {
       const st = renderStory(s, neighbors(stories, s.id));
-      write(`${issue.issue}/${s.slug}/index.html`, page({ ...st, url: s.url }));
+      write(`${issue.issue}/${s.slug}/index.html`, page({ ...st, url: s.url, categoryNav }));
     }
   }
 
@@ -120,6 +132,7 @@ export async function build({ root = ROOT, out = join(ROOT, "dist"), quiet = fal
     description: "요청한 주소에 해당하는 회차가 없다.",
     url: "/404.html",
     noindex: true,
+    categoryNav,
     content: `<main class="shell"><h1>찾는 페이지가 없다.</h1>
 <p class="teaser">주소를 다시 확인하거나 전체 아카이브로 돌아간다.</p>
 <p><a class="btn" href="${u("/")}">전체 아카이브</a></p></main>`,

@@ -25,6 +25,17 @@ test("registry의 도메인 색(Paper 보정색)이 사이트 배경에서 AA를
   }
 });
 
+test("도메인 색(Paper 보정색) 풀블리드 위 흰 글자가 AA를 넘는다 — 홈 카테고리 카드", () => {
+  // 2026-08-10 도입: 카테고리 카드가 --dc-<key>(colorPaper)를 배경으로 풀블리드한다
+  // (design.md §2 불변식 3번의 다섯 번째 예외). 먹색 글자는 이 배경들 전부에서
+  // 4.5:1을 못 넘어 흰 글자만 쓴다 — 그 전제를 여기서 검증한다.
+  const reg = loadRegistry(".");
+  for (const d of reg.domains) {
+    const white = contrast("#FFFFFF", d.colorPaper);
+    assert.ok(white >= 4.5, `${d.key} 위 흰 글자 대비 ${white.toFixed(2)}:1 < 4.5:1`);
+  }
+});
+
 test("themeCSS는 :root와 .zine-page를 낸다", () => {
   const css = themeCSS();
   assert.match(css, /:root\s*\{[^}]*--bg:\s*#FFFFFF/);

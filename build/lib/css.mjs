@@ -60,8 +60,8 @@ body { caret-color: var(--ink); scrollbar-color: var(--tertiary) var(--bg); }
 `;
 
 const TYPE = `
-.kicker, .label, .meta, .stat-value, .btn, .seg, .nav-label,
-.masthead, h1, h2, h3, .mini-headline, .row-headline {
+.kicker, .label, .meta, .stat-value, .btn, .nav-label,
+.masthead, h1, h2, h3, .mini-headline {
   font-family: var(--sans);
 }
 
@@ -114,18 +114,39 @@ h3 { font-weight: 900; font-size: 22px; line-height: 1.15; letter-spacing: -.025
 const CHROME = `
 .shell { max-width: var(--shell); margin: 0 auto; padding: var(--s5) var(--s4) var(--s8); }
 
-.masthead { padding-top: var(--s3); }
-.masthead-top { display: flex; align-items: baseline; justify-content: space-between; gap: var(--s4); }
+/* 2026-08-10 두 번째 라운드: 마스트헤드가 스크롤 내내 상단에 붙는다 — 로고(좌)와
+   카테고리 내비(우)를 "콘텐츠 화면부터" 항상 같은 자리에서 볼 수 있어야 한다는 요청.
+   불투명 배경이 필요하다 — 안 그러면 고정된 채로 아래 콘텐츠가 그 밑으로 비쳐 겹친다. */
+.site-header { position: sticky; top: 0; z-index: 30; background: var(--bg); }
+.masthead { padding-top: var(--s3); padding-bottom: var(--s3); }
+.masthead-top { display: flex; align-items: center; justify-content: space-between; gap: var(--s5); flex-wrap: nowrap; }
 /* 워드마크는 2026-08-10부터 브래킷 마크 + "the answer company"만 남긴 축소판이다
    (기존의 큰 ANSWER/Zine 로고타입은 뺐다 — CLAUDE.md 참고). 배경을 투명화한 두 벌 중
    어두운 쪽(logo-dark)만 실제로 쓰인다 — 사이트가 단일 흰 테마라 밝은 쪽(logo-light)이
    보일 자리가 없다. 나중에 어두운 배경이 다시 생기면 그대로 켤 수 있게 마크업·스위치는
-   남겨 둔다. 마크가 가로로 넓고 얇은 비율이라(약 7.3:1) 높이가 아니라 너비로 재운다. */
-.wordmark { display: inline-block; text-decoration: none; color: var(--ink); line-height: 0; }
-.logo { height: auto; width: clamp(150px, 20vw, 230px); display: block; }
+   남겨 둔다. 마크가 가로로 넓고 얇은 비율이라(약 7.3:1) 높이가 아니라 너비로 재운다.
+   같은 날 두 번째 라운드에서 20% 키웠다(150→180 / 20vw→24vw / 230→276, 사용자 요청). */
+.wordmark { display: inline-block; text-decoration: none; color: var(--ink); line-height: 0; flex-shrink: 0; }
+.logo { height: auto; width: clamp(180px, 24vw, 276px); display: block; }
 .logo-light { display: none; }
 .intro .logo-light { display: block; }
 .intro .logo-dark { display: none; }
+
+/* 카테고리 상단 내비 — 2026-08-10 두 번째 라운드 도입. 홈의 카테고리 카드와 같은 목록·
+   같은 "최신 스토리" 링크를 쓴다(build.mjs가 한 번 계산해 물려준다). 좁은 화면에서는
+   줄바꿈 대신 가로 스크롤한다(참고 이미지의 nav.filters와 같은 처리) — 페이지 자체가
+   가로로 넘치면 안 되므로(§10 QA) 내비 안쪽에서만 스크롤을 흡수한다. */
+.category-nav {
+  display: flex; align-items: center; gap: var(--s5); overflow-x: auto;
+  scrollbar-width: none; -webkit-overflow-scrolling: touch;
+}
+.category-nav::-webkit-scrollbar { display: none; }
+.category-nav a, .category-nav span {
+  font-family: var(--sans); font-size: 12px; font-weight: 700; letter-spacing: .1em;
+  text-transform: uppercase; white-space: nowrap; text-decoration: none; color: var(--secondary);
+}
+.category-nav a:hover { color: var(--ink); }
+.category-nav span.is-empty { color: var(--divider); }
 
 /* 화면 우하단에 항상 떠 있는 CTA — 그 회차의 인쇄 지면으로 바로 간다.
    position:fixed라 마크업 위치(.masthead-top 안)와 무관하게 뷰포트 우하단에 앉는다. */
@@ -145,31 +166,21 @@ const CHROME = `
 }
 .back-link:hover { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
 
-/* 굵은 선 + 가는 선 — 신문 마스트헤드 관용구 */
-.ruleline { border-top: 3px solid var(--rule); border-bottom: 1px solid var(--rule); height: 5px; margin: var(--s3) 0 0; }
 .dateline { font-family: var(--sans); font-size: 12px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--secondary); margin-bottom: var(--s6); }
-/* 그 호 4편을 관통하는 통합 인사이트(issue.insight, 2026-08-08 도입). 개별 스토리의
-   헤드라인(산세리프 900)·풀쿼트(명조 700)와는 다른 자리라는 걸 폰트로도 구분한다 —
-   여기는 편집자의 목소리이지 어느 한 스토리의 목소리가 아니다. */
+/* 그 호 4편을 관통하는 통합 인사이트(issue.insight). 홈의 진짜 헤드라인이라 h1로 낸다 —
+   2026-08-10 두 번째 라운드에서 PC 기준 72px까지 키우고 이탤릭을 뺐다(사용자 요청,
+   "이탤릭은 쓰지 말도록"). 산세리프 900이라 개별 스토리 헤드라인과 같은 문법이지만,
+   더 큰 스케일로 "이 호를 관통하는 한 줄"이라는 위계를 표시한다. */
 .issue-insight {
-  font-family: var(--serif); font-weight: 700; font-style: italic; font-size: 19px;
-  line-height: 1.5; letter-spacing: -.01em; max-width: var(--measure);
-  margin: -20px 0 var(--s6);
+  font-family: var(--sans); font-weight: 900; font-size: clamp(34px, 6.5vw, 72px);
+  line-height: 1.04; letter-spacing: -.03em; max-width: 20ch; margin: 0 0 var(--s4);
 }
-
-.seg {
-  display: inline-flex; flex-wrap: wrap; gap: 2px; margin: 0 0 var(--s5);
-  padding: 4px; list-style: none; background: var(--surface); border-radius: 12px;
-  max-width: 100%;
-  /* --surface가 --bg와 같은 흰색이라(2026-08-10) 테두리 없이는 페이지에 묻힌다. */
-  border: 1px solid var(--divider);
+/* 부연설명 — 헤드라인이 압축한 것을 한 문단으로 풀어준다(2026-08-10 두 번째 라운드 도입,
+   issue.insightNote). 헤드라인 아래, 카테고리 그리드 위에 온다. */
+.issue-insight-note {
+  font-family: var(--serif); font-weight: 400; font-size: 18px; line-height: 1.6;
+  color: var(--secondary); max-width: var(--measure); margin: 0 0 var(--s6);
 }
-.seg button {
-  font-family: var(--sans); font-size: 13px; font-weight: 700; letter-spacing: .08em;
-  text-transform: uppercase; background: none; border: none; border-radius: 9px;
-  cursor: pointer; color: var(--tertiary); padding: 7px 14px; white-space: nowrap;
-}
-.seg button[aria-pressed="true"] { color: var(--ink); background: var(--bg); }
 
 .draft-flag {
   display: inline-block; font-family: var(--sans); font-size: 11px; font-weight: 700;
@@ -187,19 +198,68 @@ const LAYOUT = `
 `;
 
 const COMPONENTS = `
-/* 아카이브 리스트 — 모든 스토리가 위계 없이 카드 하나씩 나열된다. */
+/* 전체 아카이브(/archive/) 목록 — 2026-08-10 두 번째 라운드에서 되살렸다. 홈이
+   카테고리 카드로 바뀌면서 한 번 없앴던 평면 리스트를 별도 라우트로 다시 낸다. */
 .list { display: block; }
 .row { background: var(--surface); border: 1px solid var(--divider); border-radius: 16px; padding: var(--s4); }
 .row + .row { margin-top: var(--s4); }
 .row a { text-decoration: none; display: flex; align-items: center; gap: var(--s4); }
 .row a:hover .row-headline { text-decoration: underline; text-underline-offset: 3px; }
-/* 장르와 헤드라인이 같은 줄에 나란히 앉는다 — 위아래로 쌓지 않는다. */
 .row-line { flex: 1 1 auto; min-width: 0; margin: 0; display: flex; align-items: baseline; gap: var(--s3); flex-wrap: wrap; }
-.row-headline { font-weight: 900; font-size: 21px; line-height: 1.2; letter-spacing: -.025em; }
+.row-headline { font-family: var(--sans); font-weight: 900; font-size: 21px; line-height: 1.2; letter-spacing: -.025em; }
 .row-chevron {
   flex-shrink: 0; width: 34px; height: 34px; border-radius: 999px;
   background: var(--bg); display: flex; align-items: center; justify-content: center;
   color: var(--tertiary); font-family: var(--sans); font-size: 18px;
+}
+
+/* 카테고리 카드 그리드 — 2026-08-10 도입, 아카이브 인덱스(홈)를 전부 대체한다.
+   gap 1px + 그리드 배경색(--ink)으로 칸 사이 얇은 괘선을 만든다 — 카드 각각에
+   테두리를 그리는 게 아니라 gap이 만드는 틈으로 --ink가 비치는 방식이다. */
+.category-grid {
+  display: grid; grid-template-columns: repeat(2, 1fr); gap: 1px;
+  background: var(--ink); border: 1px solid var(--ink); margin: 0 0 var(--s6);
+}
+@media (max-width: 640px) { .category-grid { grid-template-columns: 1fr; } }
+
+/* 배경 풀블리드는 design.md §2 불변식 3번이 허용한 다섯 번째 자리다. 흰 글자만
+   쓴다 — colorPaper 위 흰 글자는 전 도메인 AA를 넘지만 먹색 글자는 못 넘는다
+   (test/theme.test.mjs가 검증한다). */
+.category-card {
+  display: flex; flex-direction: column; justify-content: space-between;
+  min-height: 260px; padding: var(--s6) var(--s5); background: var(--dc);
+  color: #fff; text-decoration: none;
+}
+.category-card:hover .category-card-headline { text-decoration: underline; text-underline-offset: 3px; }
+.category-card-eyebrow {
+  font-family: var(--sans); font-size: 11px; font-weight: 700; letter-spacing: .1em;
+  text-transform: uppercase; opacity: .85;
+}
+.category-card-name {
+  font-weight: 900; font-size: clamp(40px, 6.5vw, 72px); line-height: 1;
+  letter-spacing: -.03em; margin: var(--s4) 0; color: #fff;
+}
+.category-card-headline {
+  font-family: var(--sans); font-weight: 700; font-size: 17px;
+  line-height: 1.35; letter-spacing: -.01em; margin: 0; max-width: 34ch;
+}
+/* 그 도메인에 아직 통과분이 없을 때 — 근거(스토리)가 없는데 색만 칠하면
+   "발행됐다"는 인상을 준다. 색을 비우고 표면 취급(§1 "카드·필터는 1px 테두리로만
+   구분")으로 되돌아간다. */
+.category-card.is-empty {
+  background: var(--surface); color: var(--secondary);
+  outline: 1px dashed var(--divider); outline-offset: -1px;
+}
+.category-card.is-empty .category-card-name { color: var(--ink); }
+.category-card.is-empty .category-card-status { font-family: var(--sans); font-size: 13px; margin: 0; }
+/* 색 카드 위에서는 --divider/--tertiary(회색 계열)가 안 보인다 — 흰 계열로 덧쓴다. */
+.category-card .draft-flag { border-color: rgba(255,255,255,.6); color: #fff; }
+
+/* 참고 이미지의 가로 구분 밴드 — 정적이다, 움직이지 않는다(design.md §9). */
+.category-divider {
+  grid-column: 1 / -1; overflow: hidden; white-space: nowrap; background: var(--bg);
+  padding: 7px 0; font-family: var(--sans); font-weight: 900; font-size: 12px;
+  letter-spacing: .1em; text-transform: uppercase; color: var(--tertiary); text-align: center;
 }
 
 /* 2026-08-10 개편: 헤드라인 바로 아래(byline 다음)로 끌어올렸다 — 참고 목업의
@@ -265,9 +325,9 @@ const COMPONENTS = `
 .nav-label { font-family: var(--sans); font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--tertiary); }
 .nav-headline { font-family: var(--sans); font-weight: 700; font-size: 17px; letter-spacing: -.01em; }
 
-.empty-state { border-top: 1px solid var(--divider); padding: var(--s7) 0; color: var(--secondary); font-size: 16px; }
-
-/* 호 넘기기 — 잡지 한 권을 넘기는 동작. 스토리 내비(nav-row)와 축이 다르다. */
+/* 호 넘기기 — 잡지 한 권을 넘기는 동작. 스토리 내비(nav-row)와 축이 다르다.
+   2026-08-10 두 번째 라운드에서 홈 하단(카테고리 그리드 밑)에 처음 실렸다 — 이전/다음
+   주 인사이트 + 가운데 "전체 아카이브 보기"(render-index.mjs의 pager()). */
 .pager {
   display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: var(--s3);
   border-top: 1px solid var(--rule); border-bottom: 1px solid var(--divider);
@@ -279,7 +339,11 @@ const COMPONENTS = `
 .pager-dir { display: block; font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--tertiary); }
 .pager-issue { display: block; font-size: 15px; font-weight: 700; letter-spacing: -.01em; color: var(--ink); }
 .pager-link:hover .pager-issue { text-decoration: underline; text-underline-offset: 3px; }
-.pager-now { font-size: 13px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--secondary); white-space: nowrap; text-align: center; }
+.pager-now {
+  display: block; font-size: 13px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+  color: var(--secondary); white-space: nowrap; text-align: center; text-decoration: none;
+}
+.pager-now:hover { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
 .pager-count { display: block; font-size: 12px; font-weight: 400; color: var(--tertiary); font-variant-numeric: tabular-nums; }
 @media (max-width: 520px) {
   .pager { grid-template-columns: 1fr 1fr; }
@@ -346,7 +410,7 @@ const ZINE = `
 .zine-ruleline { border-top: 3px solid var(--ink); border-bottom: 1px solid var(--ink); height: 5px; margin: 2mm 0; }
 .zine-dateline { font-family: var(--sans); font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
 /* issue.insightPrint — 웹의 .issue-insight와 같은 자리지만 A4는 여유가 없어 한 줄로 줄인다. */
-.zine-insight { font-family: var(--serif); font-style: italic; font-weight: 700; font-size: 10.5px; margin: 1.5mm 0 0; }
+.zine-insight { font-family: var(--serif); font-weight: 700; font-size: 10.5px; margin: 1.5mm 0 0; }
 
 /* 스토리 한 편 = 한 행. 왼쪽은 본문, 오른쪽은 숫자 한 방(statcol) — 참고 목업의
    .sheet-story/.statcol 구조 그대로다. */
@@ -420,10 +484,13 @@ const INTRO = `
 /* app.js가 매 스크롤 프레임마다 두 줄을 직접 조절한다. will-change로 미리 레이어를 띄워둔다. */
 .js .intro-word { will-change: transform, opacity; }
 
-.intro-wordmark { margin: 0; display: flex; flex-direction: column; align-items: center; gap: .02em; }
+/* 2026-08-10 두 번째 라운드: 화면을 꽉 채우는 크기로 키웠다(사용자 요청) — "ANSWER ZINE"
+   이 인트로에서 화면의 절대적인 비중을 차지하도록. gap도 같이 키워 두 줄 사이 자간(여백)이
+   커 보이는 인상을 준다(요청: "THE ANSWER 와 ZINE 사이의 자간이 좀 더 넓어도 상관없음"). */
+.intro-wordmark { margin: 0; display: flex; flex-direction: column; align-items: center; gap: .06em; }
 .intro-word {
   display: block; font-family: var(--sans); font-weight: 700; letter-spacing: -.03em;
-  font-size: clamp(40px, 9vw, 130px); line-height: 1.05; white-space: nowrap;
+  font-size: clamp(56px, 15vw, 260px); line-height: 1.02; white-space: nowrap;
 }
 
 .intro-scroll {
@@ -453,7 +520,7 @@ const PRINT = `
 @media print {
   @page { size: A4; margin: 0; }
   html, body { margin: 0; padding: 0; background: #fff; letter-spacing: 0; }
-  .site-header, .shell, .seg, .intro,
+  .site-header, .shell, .intro,
   .print-btn, .zine-preview-cta {
     display: none !important;
   }

@@ -91,3 +91,21 @@ test("킥커는 모노스페이스가 아니다 — craft-floor", () => {
   assert.ok(m);
   assert.ok(!/monospace/.test(m[1]), "킥커에 monospace를 쓰면 안 된다");
 });
+
+test("이탤릭을 쓰지 않는다 — 2026-08-10 두 번째 라운드, 사용자 요청", () => {
+  assert.equal((css.match(/font-style:\s*italic/g) ?? []).length, 0, "font-style: italic이 남아 있다");
+});
+
+test("마스트헤드가 스크롤에 고정된다", () => {
+  const m = css.match(/\.site-header\s*\{([^}]*)\}/);
+  assert.ok(m, ".site-header 규칙이 있어야 한다");
+  assert.match(m[1], /position:\s*sticky/);
+  assert.match(m[1], /top:\s*0/);
+});
+
+test("카테고리 카드는 도메인 색을 배경으로 풀블리드한다 — §2 불변식 3번 다섯 번째 예외", () => {
+  const m = css.match(/\.category-card\s*\{([^}]*)\}/);
+  assert.ok(m, ".category-card 규칙이 있어야 한다");
+  assert.match(m[1], /background:\s*var\(--dc\)/);
+  assert.match(m[1], /color:\s*#fff/);
+});
