@@ -168,8 +168,11 @@ const CHROME = `
 .category-nav span.is-empty { color: var(--divider); }
 
 /* 화면 우하단에 항상 떠 있는 CTA — 그 회차의 인쇄 지면으로 바로 간다.
-   position:fixed라 마크업 위치(.masthead-top 안)와 무관하게 뷰포트 우하단에 앉는다. */
+   position:fixed라 마크업 위치(.masthead-top 안)와 무관하게 뷰포트 우하단에 앉는다.
+   2026-08-11 사용자 요청으로 화면에서 숨겼다 — 마크업·라우트(/print/)는 그대로 있고
+   버튼만 안 보인다. 되돌리려면 이 display:none 한 줄만 지우면 된다. */
 .header-cta {
+  display: none;
   position: fixed; right: var(--s5); bottom: var(--s5); z-index: 40;
   font-family: var(--sans); font-size: 12px; font-weight: 700; letter-spacing: .08em;
   text-transform: uppercase; color: var(--secondary); text-decoration: none;
@@ -633,7 +636,13 @@ const PRINT = `
    미리보기가 인쇄 결과와 같은 레이아웃으로 보인다(WYSIWYG). 배율은 `assets/zinebook.js`가
    `--zb-scale` 커스텀 프로퍼티로 계산해 넣는다. */
 const ZINEBOOK = `
+/* 2026-08-11 사용자 요청으로 화면에서 숨겼다 — 오버레이·인쇄 시트 마크업과 스크립트는
+   그대로 있고 진입 버튼만 안 보인다(§11 나머지 스펙은 전부 유효, 재도입 시 아래
+   display:none 한 줄만 지우면 된다). 버튼을 숨기는 김에 그 자리를 위해 남겨 두던
+   하단 여백(body.has-zb)도 같이 0으로 되돌린다 — 안 그러면 페이지 아래에 아무 이유
+   없는 빈 띠만 남는다. */
 .zb-cta {
+  display: none;
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 40;
   width: 100%; border: none; margin: 0; padding: 18px 16px;
   background: #000; color: #fff; cursor: pointer;
@@ -641,7 +650,7 @@ const ZINEBOOK = `
   letter-spacing: .12em; text-transform: uppercase; text-align: center;
 }
 .zb-cta:hover, .zb-cta:focus-visible { background: #1a1a1a; }
-body.has-zb { padding-bottom: 58px; }
+body.has-zb { padding-bottom: 0; }
 
 .zb-overlay {
   position: fixed; inset: 0; z-index: 200; display: flex; flex-direction: column;
