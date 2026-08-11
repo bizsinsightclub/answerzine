@@ -342,7 +342,7 @@ const COMPONENTS = `
    참고). 검정 바탕·흰 글자 마퀴이자 DIY 진을 여는 버튼이라 <button> 리셋이 필요하다. */
 .category-divider {
   grid-column: 1 / -1; overflow: hidden; white-space: nowrap;
-  display: flex; align-items: center; height: 64px;
+  display: flex; align-items: center; height: 58px;
   background: #16150F; border: 0; margin: 0; padding: 0; width: 100%;
   cursor: pointer; font: inherit;
 }
@@ -351,9 +351,11 @@ const COMPONENTS = `
   display: flex; white-space: nowrap;
   animation: marquee-scroll 18s linear infinite;
 }
+/* 2026-08-11 — 사용자 요청으로 밴드 10%↓(64→58px), 글자 두께 900→700(폭이 아니라
+   무게만 얇게, 크기는 밴드 축소분(40→36px)만 반영). */
 .marquee-track span {
-  font-family: var(--sans); font-weight: 900; font-size: 40px; letter-spacing: -.01em;
-  padding: 0 24px; text-transform: uppercase; color: #fff;
+  font-family: var(--sans); font-weight: 700; font-size: 36px; letter-spacing: -.01em;
+  padding: 0 22px; text-transform: uppercase; color: #fff;
 }
 @keyframes marquee-scroll {
   from { transform: translateX(0); }
