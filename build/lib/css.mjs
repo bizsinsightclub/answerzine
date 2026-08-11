@@ -290,15 +290,19 @@ const COMPONENTS = `
 }
 /* 2026-08-11 네 번째 라운드: PC 기준 40~48px 범위로 조정. 다섯 번째 라운드에서
    범위를 없애고 40px 고정값으로 좁혔다(사용자 요청 — "정확히 40pt"). 모바일에서도
-   과하지 않은 크기라(스토리 헤드라인이 이미 최대 58px까지 쓴다) 반응형 없이 고정했다. */
+   과하지 않은 크기라(스토리 헤드라인이 이미 최대 58px까지 쓴다) 반응형 없이 고정했다.
+   2026-08-11 열 번째 라운드: 사용자 요청으로 두 배(40px→80px)로 키웠다 — 스토리
+   헤드라인(최대 58px)보다도 커졌다. 카드 min-height(420px)가 바닥일 뿐 상한이 아니라
+   레이아웃이 깨지지는 않는다 — 긴 헤드라인은 카드가 그만큼 더 커져서 받아낸다. */
 .category-card-headline {
-  font-weight: 900; font-size: 40px; line-height: 1.1;
+  font-weight: 900; font-size: 80px; line-height: 1.1;
   letter-spacing: -.025em; margin: 0 0 var(--s3);
 }
 /* 제목 밑 한 줄 티저 — 2026-08-11 여섯 번째 라운드 도입(사용자 요청). story.teaser를
-   그대로 쓴다 — 새 필드가 필요 없다. */
+   그대로 쓴다 — 새 필드가 필요 없다. 열 번째 라운드에서 헤드라인과 같이 두 배(14px→
+   28px)로 키웠다 — max-width가 ch 단위라 글자 수 기준 줄바꿈 폭은 그대로 유지된다. */
 .category-card-teaser {
-  font-family: var(--sans); font-weight: 400; font-size: 14px; line-height: 1.5;
+  font-family: var(--sans); font-weight: 400; font-size: 28px; line-height: 1.5;
   margin: 0 0 var(--s4); max-width: 42ch; opacity: .85;
 }
 .category-card-date {

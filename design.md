@@ -457,11 +457,12 @@ site-header: position: sticky; top: 0 · 항상 화면 상단에 붙는다 · �
 
 ```
 그리드: repeat(2, 1fr) · gap 1px · 배경 --ink(칸 사이 괘선) · 640px 이하 1열 · 뷰포트 가장자리까지
-카드:   padding 24px/32px · min-height 280px
+카드:   padding var(--s7) 10px var(--s5) · min-height 420px (바닥일 뿐 상한 아님)
         기본: 배경 cardColor(밝은 파스텔) · 글자 --ink(검정)
         폴백(cardColor 없음): 배경 --dc-<key>(colorPaper, 어두운 톤) · 글자 흰색(.is-dark)
-태그:   우측 상단 절대 위치, 12px · 도메인명(nameEn 아님 — 한국어 그대로)
-헤드라인: 카드에서 가장 큰 글자, clamp(26px, 4.2vw, 46px) 900
+태그:   우측 상단 절대 위치, 12px, uppercase · nameCard(영문, registry.json 전용 필드)
+헤드라인: 카드에서 가장 큰 글자, 80px 900 (2026-08-11 열 번째 라운드 — 40px에서 두 배)
+티저:   헤드라인 아래 한 줄, 28px (같은 라운드에서 14px→두 배)
 ```
 
 사용자가 첨부한 참고 이미지(도메인별 색 타일 그리드)를 따른다 — 폰트·정확한 배치는
@@ -484,6 +485,15 @@ site-header: position: sticky; top: 0 · 항상 화면 상단에 붙는다 · �
 카드 하나 = 도메인 하나. 그 도메인의 **가장 최신 스토리**로 바로 이어진다(편집 순서가
 아니라 `range` 기준 실제 최신 — `build/lib/data.mjs`의 `latestByDomain()`). 아직 통과분이
 없는 도메인은 색을 채우지 않는다 — 근거 없이 색만 칠하면 "발행됐다"는 인상을 준다.
+
+> **2026-08-11 열 번째 라운드 — 태그 영문화 + 글자 두 배.** 우측 상단 태그가 그때까지
+> 한글 도메인명(`d.name`)을 냈는데, 사용자 요청으로 영문(Movies·Music·Books·YouTube)으로
+> 바꿨다. 마스트헤드 내비가 쓰는 `nameEn`(단수형: Movie·Music·YouTube·Book)과는 다른
+> 값이라 `registry.json`에 카드 전용 `nameCard`(복수형) 필드를 새로 추가했다 — 하나를
+> 억지로 겸용하면 어느 한쪽 표기가 틀어진다. 헤드라인·티저 글자 크기도 각각 정확히
+> 두 배로 키웠다(40→80px, 14→28px) — `min-height`는 바닥값이라 카드가 그만큼 더
+> 커지는 것으로 받아내고 레이아웃은 안 깨진다(`build/verify.mjs`의 가로 넘침 검사로
+> 375~1920px 실측 확인).
 
 두 장마다 한 번, 참고 이미지의 가로 구분 밴드를 낸다(`.category-divider`) — **정적이다,
 움직이지 않는다.** §9 "모션은 반응에만 쓴다" 원칙상 마퀴 스크롤 같은 장식용 애니메이션은

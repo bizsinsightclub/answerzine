@@ -25,15 +25,22 @@ import { latestByDomain, visibleDomains } from "./data.mjs";
 const cardPalette = (d) =>
   d.cardColor ? `background:${d.cardColor};` : `background:var(--dc-${d.key});`;
 
+/* 카드 우측 상단 라벨 — 2026-08-11 열 번째 라운드까지는 도메인 한글명(d.name)을 그대로
+   냈다. 사용자 요청으로 영문(d.nameCard — registry.json 전용 필드, 마스트헤드가 쓰는
+   d.nameEn과는 다른 복수형: Movies·Music·Books·YouTube)으로 바꿨다. nameCard가 없는
+   도메인(카드에 안 나오는 dormant 도메인)은 한글로 되돌아간다 — 안전망일 뿐 실제로는
+   호출되지 않는다(visibleDomains가 이미 걸러낸다). */
+const cardLabel = (d) => d.nameCard ?? d.name;
+
 /** 아직 스토리가 없는 도메인 — 색을 채우지 않는다. 근거(스토리)가 없는데
     카드에만 색을 칠하면 "발행됐다"는 인상을 준다. */
 const emptyCard = (d) => h`<div class="category-card is-empty">
-  <span class="category-card-tag">${d.name}</span>
+  <span class="category-card-tag">${cardLabel(d)}</span>
   <p class="category-card-status">아직 신호가 없다.</p>
 </div>`;
 
 const card = (d, s) => h`<a class="category-card${d.cardColor ? "" : " is-dark"}" data-reveal href="${u(s.url)}" style="${raw(cardPalette(d))}">
-  <span class="category-card-tag">${d.name}${s.draft ? raw(' <span class="draft-flag">작업 중</span>') : ""}</span>
+  <span class="category-card-tag">${cardLabel(d)}${s.draft ? raw(' <span class="draft-flag">작업 중</span>') : ""}</span>
   <h2 class="category-card-headline">${s.headline}</h2>
   <p class="category-card-teaser">${s.teaser}</p>
   <span class="category-card-date">최신 · ${s.range}</span>
