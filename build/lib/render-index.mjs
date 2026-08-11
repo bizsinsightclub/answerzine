@@ -44,7 +44,7 @@ const card = (d, s) => h`<a class="category-card${d.cardColor ? "" : " is-dark"}
    grid-column: 1 / -1로 항상 전체 폭을 차지해, 열 수가 바뀌어도(모바일 1열) 새 줄로
    떨어진다. */
 const divider = () => h`<div class="category-divider" aria-hidden="true">
-  전체 아카이브 · 카테고리별 최신 스토리 · 전체 아카이브 · 카테고리별 최신 스토리
+  전체 아카이브 · 카테고리별 최신 스토리
 </div>`;
 
 /**

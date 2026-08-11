@@ -132,16 +132,22 @@ const CHROME = `
    가운데 좁은 칼럼에 남아 있으면 앞뒤가 안 맞는다. */
 .shell-edge { padding: var(--s5) var(--edge) var(--s8); }
 @media (min-width: 768px) { .shell-edge { padding: var(--s6) var(--edge) var(--s9); } }
-.masthead-top { display: flex; align-items: center; justify-content: space-between; gap: var(--s5); flex-wrap: nowrap; }
+/* 2026-08-11 네 번째 라운드: 로고 옆 공백을 줄여 달라는 요청 — 로고·내비 사이 gap을
+   좁혔다(var(--s5) 24px → var(--s3) 12px). */
+.masthead-top { display: flex; align-items: center; justify-content: space-between; gap: var(--s3); flex-wrap: nowrap; }
 /* 워드마크는 2026-08-10부터 브래킷 마크 + "the answer company"만 남긴 축소판이다
    (기존의 큰 ANSWER/Zine 로고타입은 뺐다 — CLAUDE.md 참고). 배경을 투명화한 두 벌 중
    어두운 쪽(logo-dark)만 실제로 쓰인다 — 사이트가 단일 흰 테마라 밝은 쪽(logo-light)이
    보일 자리가 없다. 나중에 어두운 배경이 다시 생기면 그대로 켤 수 있게 마크업·스위치는
    남겨 둔다. 마크가 가로로 넓고 얇은 비율이라(약 7.3:1) 높이가 아니라 너비로 재운다.
    2026-08-10 두 번째 라운드에서 20% 키웠다(150→180 / 20vw→24vw / 230→276). 2026-08-11
-   세 번째 라운드에서 그 위에 30% 더 키웠다(180→234 / 24vw→31vw / 276→359, 사용자 요청). */
+   세 번째 라운드에서 그 위에 30% 더 키웠다(180→234 / 24vw→31vw / 276→359). 같은 날
+   네 번째 라운드에서 최댓값을 다시 50% 더 키웠다(276→359→539) — 다만 최솟값(mobile
+   바닥값)은 180px로 남겨 뒀다. 세 번째 라운드 값(234px)을 그대로 50% 올리면 좁은
+   화면(375px)에서 로고 하나가 뷰포트의 94%를 차지해 내비가 설 자리가 없어진다 —
+   "PC 기준" 요청이라 데스크톱 상한만 올리고 모바일 바닥은 손대지 않았다. */
 .wordmark { display: inline-block; text-decoration: none; color: var(--ink); line-height: 0; flex-shrink: 0; }
-.logo { height: auto; width: clamp(234px, 31vw, 359px); display: block; }
+.logo { height: auto; width: clamp(180px, 46.5vw, 539px); display: block; }
 .logo-light { display: none; }
 .intro .logo-light { display: block; }
 .intro .logo-dark { display: none; }
@@ -263,8 +269,11 @@ const COMPONENTS = `
   font-family: var(--sans); font-size: 12px; font-weight: 700; letter-spacing: .1em;
   text-transform: uppercase; opacity: .75;
 }
+/* 2026-08-11 네 번째 라운드: PC 기준(1280~1920px) 40~48px 사이에 오도록 조정
+   (사용자 요청) — clamp(26,4.2vw,46)은 1280px에서 이미 46px 상한에 붙어 좁은 PC
+   폭에서 더 못 컸다. */
 .category-card-headline {
-  font-weight: 900; font-size: clamp(26px, 4.2vw, 46px); line-height: 1.1;
+  font-weight: 900; font-size: clamp(32px, 3.2vw, 48px); line-height: 1.1;
   letter-spacing: -.025em; margin: 0 0 var(--s3); max-width: 92%;
 }
 .category-card-date {
