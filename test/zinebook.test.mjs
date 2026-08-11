@@ -38,15 +38,17 @@ test("하단 CTA 버튼 문구가 정확히 나온다", () => {
   assert.match(html, /<button[^>]*data-zb-open[^>]*>Create The Answer Zine<\/button>/);
 });
 
-test("플립북이 논리적 읽는 순서(표지→About→기사1~4→Notes→뒤표지) 8장으로 나온다", () => {
+test("그리드 미리보기가 논리적 읽는 순서(표지→About→기사1~4→Notes→뒤표지) 8장으로 나온다", () => {
+  // 2026-08-11 — 3D 페이지 넘김(한 번에 한 쪽)을 정적 전체 그리드로 바꿨다(사용자 요청 —
+  // "인쇄 전에 8쪽 전체를 봐야 한다"). 순서 자체(FLIP_ORDER)는 그대로 재사용한다.
   assert.deepEqual(FLIP_ORDER, [
     "cover-front", "about", "article-1", "article-2", "article-3", "article-4", "notes", "cover-back",
   ]);
   const html = renderZinebook({ issue: ISSUE, stories: FOUR });
-  const stage = html.slice(html.indexOf("data-zb-stage"), html.indexOf("zb-nav"));
+  const grid = html.slice(html.indexOf("data-zb-grid"), html.indexOf("zb-print-hint"));
   // 각 논리 페이지를 식별하는 문자열이 이 순서대로 나오는지 인덱스로 확인한다.
   const markers = ["ANSWER", "ABOUT", "테스트 헤드라인 1", "테스트 헤드라인 2", "테스트 헤드라인 3", "테스트 헤드라인 4", "NOTES", "ANSWERZINE.KR"];
-  const idx = markers.map((m) => stage.indexOf(m));
+  const idx = markers.map((m) => grid.indexOf(m));
   assert.ok(idx.every((i) => i > -1), `마커 중 못 찾은 게 있다: ${JSON.stringify(idx)}`);
   for (let i = 1; i < idx.length; i++) assert.ok(idx[i] > idx[i - 1], `${markers[i]}가 순서를 벗어났다`);
 });
@@ -88,6 +90,27 @@ test("4편에 못 미치면 확인 안 된 내용을 채우지 않고 결번 안
   assert.equal(count, 6);
 });
 
+test("기사 페이지가 5블록 전체를 낸다 — teaser 요약이 아니라 웹과 같은 전체 콘텐츠(사용자 요청)", () => {
+  const html = renderZinebook({ issue: ISSUE, stories: FOUR });
+  for (const s of ["현상.", "맥락.", "마무리.", "인용문 1.", "테스트 노트."]) {
+    assert.ok(html.includes(s), `${s} 누락 — 기사 페이지가 웹 스토리를 축약했다`);
+  }
+  // teaser는 texts[0]와 중복이라 뺐다 — 남아 있으면 안 된다.
+  assert.ok(!html.includes("테스트 티저 1"), "teaser가 남아 있다 — texts[0]와 중복된다");
+});
+
+test("About 페이지가 QR과 URL을 낸다(전달됐을 때) — 사용자 요청", () => {
+  const html = renderZinebook({ issue: ISSUE, stories: FOUR, qrSvg: "<svg data-test-qr></svg>", siteUrl: "https://example.com/" });
+  assert.match(html, /<div class="zb-qr"[^>]*><svg data-test-qr><\/svg><\/div>/);
+  assert.match(html, /https:\/\/example\.com\//);
+});
+
+test("About 페이지 — qrSvg가 없어도(npm install 안 한 로컬) 빌드는 그대로 성공한다", () => {
+  const html = renderZinebook({ issue: ISSUE, stories: FOUR, qrSvg: null, siteUrl: "https://example.com/" });
+  assert.ok(!html.includes('class="zb-qr"'), "qrSvg가 없는데 QR 자리가 그려졌다");
+  assert.match(html, /https:\/\/example\.com\//, "QR이 없어도 URL 텍스트는 남아야 한다");
+});
+
 test("출처 링크가 항상 보인다 — §9.9와 같은 원칙", () => {
   const html = renderZinebook({ issue: ISSUE, stories: FOUR });
   assert.match(html, /예시 출처/);
@@ -126,11 +149,21 @@ test("showChrome:false 페이지(인쇄 전용 라우트)에는 zinebook을 넘�
 /* ── CSS 계약 ── */
 const css = stylesheet([{ key: "book", color: "#34C759", colorPaper: "#217E38" }]);
 
-test("인쇄 시트는 이름 있는 페이지로 297×210mm를 쓴다 — 기존 A4 세로 인쇄를 건드리지 않는다", () => {
-  assert.match(css, /@page\s+zb-landscape\s*\{\s*size:\s*297mm\s+210mm/);
+test("인쇄 시트는 이름 있는 페이지로 A4 랜드스케이프를 쓴다 — 기존 A4 세로 인쇄를 건드리지 않는다", () => {
+  // 2026-08-11 — raw mm 치수(297mm 210mm)는 헤드리스 PDF 박스 자체는 맞게 나왔지만,
+  // 실제 인쇄 대화상자의 레이아웃(세로/가로) 토글은 landscape 키워드가 있어야 자동으로
+  // 맞춰진다는 걸 실측으로 확인해 갱신했다.
+  assert.match(css, /@page\s+zb-landscape\s*\{\s*size:\s*A4\s+landscape/);
   assert.match(css, /\.zb-sheet\s*\{[^}]*page:\s*zb-landscape/);
   // 기존 인쇄 진의 기본(이름 없는) @page는 그대로 A4다.
   assert.match(css, /@page\s*\{\s*size:\s*A4;\s*margin:\s*0;\s*\}/);
+});
+
+test("표지는 흰 배경·검정 글자다 — 2026-08-11 반전(사용자 요청)", () => {
+  const zbBlock = css.slice(css.indexOf(".zb-cta"), css.indexOf("@media (prefers-reduced-motion"));
+  const coverRule = /\.zb-panel--cover\s*\{[^}]*\}/.exec(zbBlock)[0];
+  assert.match(coverRule, /background:\s*#fff/);
+  assert.match(coverRule, /color:\s*#111/);
 });
 
 test("흑백만 쓴다 — 도메인 컬러를 참조하지 않는다(요구사항 #5)", () => {

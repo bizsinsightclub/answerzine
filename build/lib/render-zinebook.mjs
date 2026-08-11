@@ -1,27 +1,34 @@
 /**
- * DIY 진 — 인쇄용 미니 8쪽 진(A4 랜드스케이프 2장, 양면) + 그걸 미리 보는 3D 플립북 오버레이.
+ * DIY 진 — 인쇄용 미니 8쪽 진(A4 랜드스케이프 2장, 양면) + 인쇄 전 전체를 훑어보는
+ * 정적 그리드 미리보기.
  *
- * 2026-08-11 아홉 번째 라운드 신규 기능. 기존 "한 장 요약"(`/YYYY-wNN/print/`, A4 세로 1장,
+ * 2026-08-11 아홉 번째 라운드 신규, 같은 날 늦게 "Print Zine Refinement" 요청으로
+ * 대폭 개편(열두 번째 라운드 안팎). 기존 "한 장 요약"(`/YYYY-wNN/print/`, A4 세로 1장,
  * `render-zine.mjs`)과는 완전히 별개의 산출물이다 — 그건 그대로 둔다. 이건 그 주 상위
  * 4편을 접어서 만드는 물리적인 소책자용이다.
  *
- * 물리 구조(사용자 지정, 그대로 따른다):
+ * 물리 구조(사용자 지정, 그대로 따른다 — 실측으로 이미 올바른 새들스티치 임포지션임을
+ * 확인했다: 논리 페이지 1~8을 8/1, 2/7, 6/3, 4/5로 짝지으면 2장을 겹쳐 반으로 접었을 때
+ * 정확히 읽는 순서가 나온다):
  *   Sheet 1(겉장) 앞면 = [뒤표지 | 앞표지]        Sheet 1 뒷면 = [About | Notes]
  *   Sheet 2(속지) 앞면 = [기사4 | 기사1]           Sheet 2 뒷면 = [기사2 | 기사3]
- * 논리적 읽는 순서(플립북 미리보기가 이 순서로 넘긴다):
- *   앞표지 → About → 기사1 → 기사2 → 기사3 → 기사4 → Notes → 뒤표지  (총 8장)
+ * 논리적 읽는 순서(그리드 미리보기가 이 순서로 나열한다):
+ *   앞표지 → About+QR → 기사1 → 기사2 → 기사3 → 기사4 → Notes → 뒤표지  (총 8장)
  *
- * 8개 "논리 페이지" 콘텐츠를 각각 한 번만 만들고, 플립북(읽는 순서)과 인쇄 시트
- * (물리 배치)에 같은 문자열을 재사용한다 — 정본이 둘로 갈라지지 않는다(CLAUDE.md §9.3와
- * 같은 원칙). 데이터는 그 주(최신 회차) 편집 순서(점수순) 상위 4편이다. 4편에 못 미치면
- * (결번) 빈 칸에 확인 안 된 내용을 채우지 않는다 — §7.3 "확인되지 않은 숫자 게재 금지"와
- * 같은 원칙으로, 빈 슬롯은 "이 자리는 다음 호에" 안내만 낸다.
+ * 8개 "논리 페이지" 콘텐츠를 각각 한 번만 만들고, 그리드 미리보기와 인쇄 시트(물리 배치)에
+ * 같은 문자열을 재사용한다 — 정본이 둘로 갈라지지 않는다(CLAUDE.md §9.3와 같은 원칙).
  *
- * 표지(겉장, Sheet 1 앞면 전체)는 검정 배경·흰 글자 — 인쇄 시 진짜로 검게 나온다
- * (`printBackground: true` 가정, 대부분의 브라우저 인쇄 대화상자는 "배경 그래픽" 옵션을
- * 켜야 한다 — 안내 문구를 오버레이에 넣는다). 속지(About·Notes·기사)는 흰 배경·검정
- * 글자로 사이트 나머지와 통일한다 — "겉은 검정, 속은 흰색"이라는 실제 인쇄물의 표지/속지
- * 관례를 그대로 재현한다.
+ * 데이터는 "지금 홈 카드 그리드에 뜨는 도메인별 최신 스토리" 4편이다(build.mjs가
+ * data.mjs의 visibleDomains+latestByDomain으로 계산해 넘긴다) — 예전엔 "최신 회차 파일
+ * 안의 스토리"만 썼는데, 활성 도메인이 4개뿐이고 결번이 흔해진 지금은 최신 회차 파일
+ * 하나에 1~2편만 있는 주가 많아 진의 절반이 빈 채로 나가는 모순이 있었다. 결번 도메인도
+ * 지난 회차 스토리가 있으면 그걸 쓰는 게 홈 카드와 일관된다 — 한 번도 발행된 적 없는
+ * 도메인만 진짜 결번 플레이스홀더로 남는다(§7.3 "확인되지 않은 내용 채우지 않기"는 여전히
+ * 지킨다 — 없는 도메인에 억지로 내용을 채우지 않을 뿐).
+ *
+ * 표지(겉장, Sheet 1 앞면 절반)는 2026-08-11 흰 배경·검정 글자로 뒤집었다(사용자 요청) —
+ * "THE ANSWER ZINE"이 페이지에 거의 꽉 차게 눌러 담긴 느낌을 노린다. 속지(About·Notes·
+ * 기사)는 원래도 흰 배경·검정 글자였다.
  */
 import { h, raw, escapeHTML } from "./html.mjs";
 import { SITE } from "./layout.mjs";
@@ -30,8 +37,6 @@ import { blocksOf } from "./data.mjs";
 /* ── 아이콘 ── 전부 인라인 SVG. 래스터 이미지를 새로 안 만든다(요구사항 #5). */
 const ICON = {
   close: `<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M5 5L19 19M19 5L5 19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`,
-  prev: `<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M15 5L8 12L15 19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
-  next: `<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M9 5L16 12L9 19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
   print: `<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M6 9V3h12v6M6 18h12v3H6v-3zM3 9h18v7H3V9z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>`,
   check: `<svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><rect x="1" y="1" width="14" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M4 8.5L6.5 11L12 5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
   mark: `<svg viewBox="0 0 40 40" width="30" height="30" aria-hidden="true"><rect x="1" y="1" width="38" height="38" fill="none" stroke="currentColor" stroke-width="2"/><path d="M11 27L20 10L29 27M14.5 20H25.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>`,
@@ -60,9 +65,19 @@ function notesRuleSVG() {
 
 /* ── 8개 논리 페이지 콘텐츠 빌더 ── 각자 한 번만 호출되고, 플립북·인쇄 양쪽에 그대로 꽂힌다. */
 
+/**
+ * 표지 앞면 — 2026-08-11 흰 배경·검정 글자로 반전(사용자 요청, "White background + black
+ * typography... much more dominant and editorial"). "THE ANSWER ZINE" 세 줄이 페이지에
+ * 거의 꽉 차게 눌러 담긴 인상을 노린다 — 홈 인트로(`layout.mjs`의 `intro()`, "ANSWER"가
+ * 폭의 85~90%를 채우도록 의도적으로 가장자리에 닿는다)와 같은 원칙을 세로로도 적용한
+ * 것이다. 위아래 캡션으로 페이지 전체의 숨 쉴 틈은 유지하되(사용자 요청 — "still have
+ * some overall breathing room"), 타이포 자체는 좌우 여백 없이 폭 전체를 쓰고 세 줄
+ * 사이 간격을 최대한 좁힌다.
+ */
 function coverFront() {
   return h`<div class="zb-panel zb-panel--cover">
-  <div class="zb-cover-crop" aria-hidden="true">
+  <p class="zb-cover-eyebrow">ANSWER ZINE · 8P MINI ISSUE</p>
+  <div class="zb-cover-word-stack" aria-hidden="true">
     <span class="zb-cover-word">THE</span>
     <span class="zb-cover-word">ANSWER</span>
     <span class="zb-cover-word">ZINE</span>
@@ -80,17 +95,35 @@ function coverBack(issue) {
 </div>`;
 }
 
-function aboutPanel() {
+/**
+ * About + QR — 표지 바로 뒷장, 한 페이지 전체(사용자 요청 — "full booklet page, not
+ * a small section"). QR은 여백에 뜬 장식이 아니라 하단 띠(zb-about-scan)에 "웹에서
+ * 계속 갱신됩니다" 캡션 + URL 텍스트와 나란히 편집 요소로 구성한다 — /about/ 페이지의
+ * 실제 문구(render-about.mjs)를 A5 지면에 맞게 줄여 재사용한다(내용 자체를 새로 짓지
+ * 않는다 — 두 곳이 서로 다른 말을 하면 안 된다).
+ *
+ * `qrSvg`가 없으면(로컬에서 `npm install` 없이 빌드한 경우) 캡션과 URL 텍스트만 남기고
+ * QR 자리를 비운다 — 빌드는 그래도 성공해야 한다(§2.2).
+ */
+function aboutPanel({ qrSvg, siteUrl }) {
   return h`<div class="zb-panel zb-panel--about">
-  <p class="zb-eyebrow">ABOUT</p>
+  <p class="zb-eyebrow">ABOUT ANSWER ZINE</p>
   <h2 class="zb-heading">${SITE.tagline}</h2>
   <div class="zb-about-body">
-    <p>1위여도 이유를 못 대면 싣지 않는다. 7위여도 이유가 선명하면 싣는다 — 순위표가 아니라
-    "왜 팔렸는지"를 고른다.</p>
+    <p>순위는 결과다. 우리가 싣는 건 그 결과를 만든 계기다. 1위여도 이유를 못 대면 싣지
+    않고, 7위여도 이유가 선명하면 싣는다.</p>
     <p>도메인마다 실 구매·실 소비 숫자를 1차 출처에서 가져오고, 그 변화를 만든 계기를
-    특정한다. 둘 다 공개 출처로 확인되지 않으면 후보에서 뺀다.</p>
-    <p>이 8쪽은 그 주 통과분 중 상위 4편을 접어서 들고 다니는 판이다. 전체 아카이브는
-    웹에서 계속 갱신된다.</p>
+    특정한다. 숫자와 계기 둘 다 공개 출처로 확인되지 않으면 후보에서 뺀다 — 확인 안
+    되는 숫자를 싣는 것보다 결번이 낫다고 본다.</p>
+    <p>이 8쪽은 그 주 통과분 중 네 편을 접어서 들고 다니는 판이다. 웹은 지금도 갱신되고
+    있다.</p>
+  </div>
+  <div class="zb-about-scan">
+    ${qrSvg ? raw(`<div class="zb-qr" aria-hidden="true">${qrSvg}</div>`) : ""}
+    <div class="zb-about-scan-text">
+      <p class="zb-about-scan-label">전체 아카이브</p>
+      <p class="zb-about-scan-url">${escapeHTML(siteUrl)}</p>
+    </div>
   </div>
 </div>`;
 }
@@ -107,6 +140,13 @@ function notesPanel() {
 </div>`;
 }
 
+/**
+ * 기사 페이지 — 2026-08-11 전면 확장. 예전엔 헤드라인+티저+스탯+쿼트뿐이라 웹 스토리의
+ * 축약본이었다("promotional summary"). 사용자 요청대로 5블록 전부(현상→스탯→맥락→
+ * 쿼트+인사이트→마무리)를 웹과 같은 문장으로 낸다 — teaser는 뺐다(texts[0]이 이미 더
+ * 자세한 같은 역할이라 나란히 두면 중복이다). "누군가 이 진만 읽고도 이야기와 인사이트를
+ * 이해할 수 있어야 한다"는 요구를 그대로 따른 것 — 웹의 축약판이 아니라 인쇄판이다.
+ */
 function articlePanel(story, n, total) {
   if (!story) {
     return h`<div class="zb-panel zb-panel--article zb-panel--empty">
@@ -115,30 +155,35 @@ function articlePanel(story, n, total) {
     채우기보다 결번으로 둔다 — 다음 호에 채워진다.</p>
   </div>`;
   }
-  const { stat, quote } = blocksOf(story);
+  const { texts, stat, quote } = blocksOf(story);
+  const [t0, t1, t2] = texts;
   return h`<div class="zb-panel zb-panel--article">
   <p class="zb-eyebrow">인사이트 ${String(n).padStart(2, "0")}/${String(total).padStart(2, "0")} · ${story.domain}</p>
   <h2 class="zb-article-headline">${story.headline}</h2>
-  <p class="zb-article-teaser">${story.teaser}</p>
+  ${t0 ? raw(h`<p class="zb-article-body">${t0.text}</p>`) : ""}
   ${stat ? raw(h`<div class="zb-stat">
     <span class="zb-stat-label">${stat.label}</span>
     <span class="zb-stat-value">${stat.value}</span>
   </div>`) : ""}
-  ${quote ? raw(h`<p class="zb-quote">${quote.text}</p>`) : ""}
+  ${t1 ? raw(h`<p class="zb-article-body">${t1.text}</p>`) : ""}
+  ${quote ? raw(h`<p class="zb-quote"><span class="zb-quote-label">THE ANSWER</span>${quote.text}</p>`) : ""}
+  ${quote?.insight?.note ? raw(h`<p class="zb-insight-note">${quote.insight.note}</p>`) : ""}
+  ${t2 ? raw(h`<p class="zb-article-body zb-article-body--close">${t2.text}</p>`) : ""}
   ${stat?.sourceLabel ? raw(h`<p class="zb-source">출처 · ${stat.sourceLabel}</p>`) : ""}
 </div>`;
 }
 
 /**
  * 8개 논리 페이지를 한 번씩 만들어 이름으로 찾을 수 있는 맵을 반환한다.
- * `stories`는 최신 회차 편집 순서(점수순) 상위 4편 — 모자라면 null로 채워 결번을 낸다.
+ * `stories`는 지금 홈 카드 그리드에 뜨는 도메인별 최신 스토리 — 모자라면(한 번도
+ * 발행된 적 없는 도메인) null로 채워 결번을 낸다.
  */
-function buildPages({ issue, stories }) {
+function buildPages({ issue, stories, qrSvg, siteUrl }) {
   const four = [0, 1, 2, 3].map((i) => stories[i] ?? null);
   return {
     "cover-front": coverFront(),
     "cover-back": coverBack(issue),
-    about: aboutPanel(),
+    about: aboutPanel({ qrSvg, siteUrl }),
     notes: notesPanel(),
     "article-1": articlePanel(four[0], 1, 4),
     "article-2": articlePanel(four[1], 2, 4),
@@ -147,10 +192,13 @@ function buildPages({ issue, stories }) {
   };
 }
 
-/** 플립북이 넘기는 순서. §맨 위 주석의 "논리적 읽는 순서" 그대로. */
+/** 논리적 읽는 순서. §맨 위 주석 참고 — 그리드 미리보기·인쇄 시트 둘 다 이 순서를
+    기준으로 번호를 매긴다(그리드는 이 순서로 나열, 인쇄는 SHEETS가 별도로 접는 순서). */
 const FLIP_ORDER = ["cover-front", "about", "article-1", "article-2", "article-3", "article-4", "notes", "cover-back"];
 
-/** 물리 인쇄 시트 — 사용자가 지정한 그대로. 바꾸지 않는다. */
+/** 물리 인쇄 시트 — 사용자가 지정한 그대로. 바꾸지 않는다. 논리 페이지 1~8을
+    8/1, 2/7, 6/3, 4/5로 짝짓는 새들스티치 임포지션이 실제로 맞는지 실측으로
+    확인했다(2026-08-11) — 2장을 겹쳐 반으로 접으면 정확히 읽는 순서가 나온다. */
 const SHEETS = [
   { id: "sheet1-front", halves: ["cover-back", "cover-front"] },
   { id: "sheet1-back", halves: ["about", "notes"] },
@@ -158,15 +206,22 @@ const SHEETS = [
   { id: "sheet2-back", halves: ["article-2", "article-3"] },
 ];
 
-function flipStageHTML(pages) {
-  const leaves = FLIP_ORDER.map(
-    (key, i) => h`<div class="zb-leaf" data-zb-leaf="${i}" role="button" tabindex="0" aria-label="다음 쪽">
-    <div class="zb-leaf-face zb-leaf-front">${raw(pages[key])}</div>
-    <div class="zb-leaf-face zb-leaf-back" aria-hidden="true">${raw(ICON.mark)}</div>
-  </div>`
+/**
+ * 인쇄 전 전체 미리보기 — 2026-08-11 개편. 예전엔 3D 페이지 넘김으로 한 번에 한 쪽만
+ * 보여줬다("cropped, partial preview" — 사용자 지적). 8쪽을 읽는 순서 그대로 정적
+ * 그리드에 한 번에 다 낸다 — 인쇄 전에 전체 호를 훑어볼 수 있어야 한다는 요구를
+ * 그대로 따른 것. 회전·3D 변환 같은 연출은 없앴다 — "불필요한 장식·애니메이션·새
+ * UI 시스템을 더하지 말라"는 요구와도 맞는 방향(오히려 이전보다 단순해졌다).
+ */
+function gridPreviewHTML(pages) {
+  const tiles = FLIP_ORDER.map(
+    (key, i) => h`<figure class="zb-tile" data-zb-tile="${i}">
+    <figcaption class="zb-tile-num">${i + 1} / ${FLIP_ORDER.length}</figcaption>
+    <div class="zb-tile-face">${raw(pages[key])}</div>
+  </figure>`
   );
-  return h`<div class="zb-stage" data-zb-stage>
-  ${raw(leaves.join("\n"))}
+  return h`<div class="zb-grid" data-zb-grid>
+  ${raw(tiles.join("\n"))}
 </div>`;
 }
 
@@ -188,15 +243,14 @@ function printSheetsHTML(pages) {
  * 패턴). `issue`가 없으면(회차가 하나도 없는 초기 상태) 아무것도 렌더하지 않는다 —
  * CTA 바가 빈 진을 열어보여주는 것보다 아예 없는 게 낫다.
  */
-export function renderZinebook({ issue, stories }) {
+export function renderZinebook({ issue, stories, qrSvg, siteUrl }) {
   if (!issue) return "";
-  const pages = buildPages({ issue, stories });
-  const total = FLIP_ORDER.length;
+  const pages = buildPages({ issue, stories, qrSvg, siteUrl });
 
   return h`<button type="button" class="zb-cta" data-zb-open>Create The Answer Zine</button>
 <div class="zb-overlay" data-zb-overlay hidden>
   <div class="zb-toolbar">
-    <p class="zb-toolbar-title">이번 호 미니 진 미리보기</p>
+    <p class="zb-toolbar-title">이번 호 미니 진 — 8쪽 전체 미리보기</p>
     <div class="zb-toolbar-actions">
       <button type="button" class="zb-btn zb-btn--print" data-zb-print>${raw(ICON.print)}<span>Print Zine</span></button>
       <button type="button" class="zb-btn zb-btn--icon" data-zb-close aria-label="닫기">${raw(ICON.close)}</button>
@@ -204,13 +258,7 @@ export function renderZinebook({ issue, stories }) {
   </div>
 
   <div class="zb-viewer">
-    ${raw(flipStageHTML(pages))}
-  </div>
-
-  <div class="zb-nav">
-    <button type="button" class="zb-btn zb-btn--icon" data-zb-prev aria-label="이전 쪽">${raw(ICON.prev)}</button>
-    <span class="zb-indicator" data-zb-indicator aria-live="polite">1 / ${total}</span>
-    <button type="button" class="zb-btn zb-btn--icon" data-zb-next aria-label="다음 쪽">${raw(ICON.next)}</button>
+    ${raw(gridPreviewHTML(pages))}
   </div>
 
   <p class="zb-print-hint">인쇄할 때: 양면 인쇄 + 짧은 변 기준 뒤집기, 배경 그래픽 켜기.

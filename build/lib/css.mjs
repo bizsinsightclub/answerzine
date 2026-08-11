@@ -736,32 +736,34 @@ body.has-zb { padding-bottom: 0; }
 .zb-btn--print:hover:not(:disabled) { background: #e6e6e6; }
 .zb-btn--icon { padding: 9px; }
 
-.zb-viewer { flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; padding: var(--s5) 0; }
-.zb-stage {
-  position: relative; height: min(68vh, 560px); aspect-ratio: 148.5 / 210; max-width: 92vw;
-  perspective: 2600px;
+/* ── 전체 8쪽 그리드 미리보기 — 2026-08-11 개편 ──
+   예전엔 3D 페이지 넘김(perspective+rotateY)으로 한 번에 한 쪽만 보였다. 사용자가
+   "인쇄 전에 8쪽 전체를 볼 수 있어야 한다"고 요청해 정적 그리드로 바꿨다. 축소 배율은
+   JS 측정이 아니라 CSS 컨테이너 쿼리 단위(cqw)로 계산한다 — 타일 폭이 바뀌면(반응형)
+   배율도 자동으로 따라온다. */
+.zb-viewer { flex: 1; min-height: 0; overflow-y: auto; padding: var(--s5) 0; }
+.zb-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--s4);
+  max-width: 1100px; margin: 0 auto;
 }
-.zb-leaf {
-  position: absolute; inset: 0; transform-style: preserve-3d; transform-origin: left center;
-  transition: transform .68s cubic-bezier(.45, 0, .2, 1); cursor: pointer;
+@media (max-width: 900px) { .zb-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 480px) { .zb-grid { grid-template-columns: 1fr; } }
+.zb-tile { margin: 0; }
+.zb-tile-num {
+  font-family: var(--sans); font-size: 10.5px; font-weight: 700; letter-spacing: .08em;
+  color: rgba(255,255,255,.5); margin: 0 0 6px; font-variant-numeric: tabular-nums;
 }
-.js .zb-leaf { will-change: transform; }
-.zb-leaf-face {
-  position: absolute; inset: 0; overflow: hidden; backface-visibility: hidden;
-  /* 표지 패널은 검정 배경이라 검정 오버레이 위에서 바깥 그림자만으로는 페이지 가장자리가
-     안 보인다 — inset 흰 선을 같이 얹어 콘텐츠 색과 무관하게 "페이지 한 장"이라는 경계를
-     항상 보여준다. */
-  box-shadow: 0 10px 40px rgba(0,0,0,.4), inset 0 0 0 1px rgba(255,255,255,.3);
+/* aspect-ratio가 148.5:210(A5) 높이를 미리 확보해 둔다 — 컨테이너 쿼리는 크기가 이미
+   정해진 다음에야 값을 낸다(순환 의존 방지). container-type: inline-size가 이 요소의
+   폭을 1cqw = 1%로 등록하고, 안의 .zb-panel(561px 고정 디자인 캔버스)이 그 비율로
+   스스로 줄어든다 — 자바스크립트 리사이즈 리스너가 필요 없다. */
+.zb-tile-face {
+  position: relative; aspect-ratio: 148.5 / 210; overflow: hidden; container-type: inline-size;
+  box-shadow: 0 6px 24px rgba(0,0,0,.35), inset 0 0 0 1px rgba(255,255,255,.25);
 }
-.zb-leaf-back {
-  transform: rotateY(180deg); background: #ececec; color: #b9b9b9;
-  display: flex; align-items: center; justify-content: center;
-}
-
-.zb-nav { display: flex; align-items: center; justify-content: center; gap: var(--s5); padding-top: var(--s4); }
-.zb-indicator {
-  font-family: var(--sans); font-size: 12px; font-weight: 700; letter-spacing: .06em;
-  color: rgba(255,255,255,.7); font-variant-numeric: tabular-nums; min-width: 4.5em; text-align: center;
+.zb-tile-face .zb-panel {
+  position: absolute; top: 0; left: 0; width: 561px; height: 794px;
+  transform: scale(calc(100cqw / 561px)); transform-origin: top left;
 }
 .zb-print-hint {
   max-width: 640px; margin: var(--s3) auto 0; text-align: center;
@@ -771,29 +773,36 @@ body.has-zb { padding-bottom: 0; }
 /* ── 콘텐츠 패널 — 표지·About·Notes·기사 넷, 미리보기·인쇄 공용 ── */
 .zb-panel {
   display: flex; flex-direction: column; box-sizing: border-box;
-  padding: 30px 26px; background: #fff; color: #111; font-family: var(--serif);
+  padding: 34px 30px; background: #fff; color: #111; font-family: var(--serif);
   overflow: hidden;
 }
 .zb-half .zb-panel { position: absolute; inset: 0; }
-.zb-leaf-face .zb-panel {
-  position: absolute; top: 0; left: 0; width: 561px; height: 794px;
-  transform: scale(var(--zb-scale, .48)); transform-origin: top left;
-}
-.zb-panel--cover { background: #000; color: #fff; justify-content: flex-end; position: relative; }
-.zb-panel--cover-back { justify-content: center; align-items: center; text-align: center; gap: 12px; }
 
-/* 폴드(반쪽의 왼쪽 경계) 쪽으로 살짝 흘러나가 잘리는 효과 — 사용자가 요청한 "wrap-around
-   crop". -14px 정도만 흘려서 단어 자체는 여전히 읽힌다("HE"·"NSWER"처럼 통째로 잘리면
-   안 된다는 요구사항 1번의 "단어가 부자연스럽게 잘리면 안 된다"와 같은 원칙이다 — 여기서
-   "잘림"은 폴드에서 나는 의도된 디자인 크롭이지, 줄바꿈 사고가 아니다). */
-.zb-cover-crop { position: absolute; left: -14px; top: 44px; right: 0; overflow: hidden; }
+/* 표지 — 2026-08-11 흰 배경·검정 글자로 반전(사용자 요청). "THE ANSWER ZINE"이 페이지
+   세로 공간을 눌러 담듯 채운다 — 위(eyebrow)·아래(caption)로 숨 쉴 틈은 남기되, 그
+   사이 타이포는 폭·행간을 최대한 좁혀 밀도를 높인다. */
+.zb-panel--cover { background: #fff; color: #111; justify-content: space-between; position: relative; }
+.zb-panel--cover-back { justify-content: center; align-items: center; text-align: center; gap: 12px; background: #16150F; color: #fff; }
+
+.zb-cover-eyebrow {
+  font-family: var(--sans); font-size: 11px; font-weight: 700; letter-spacing: .14em;
+  text-transform: uppercase; color: #666; margin: 0;
+}
+/* 세 단어가 세로 공간 대부분을 차지한다 — flex:1 + center로 위아래 캡션 사이 남는
+   공간을 전부 흡수하고, 그 안에서 다시 justify-content:center로 뭉친다. line-height를
+   .86까지 좁혀 줄 사이 여백을 없앤다("very little unnecessary space"). 폭은 padding
+   끝까지 쓰고, "ANSWER"(가장 긴 단어) 기준으로 살짝 흘러도 overflow:hidden이 정리한다
+   — 홈 인트로(layout.mjs intro())가 이미 쓰는 "가장자리에 닿는" 원칙과 같다. */
+.zb-cover-word-stack {
+  flex: 1; display: flex; flex-direction: column; justify-content: center; min-height: 0;
+}
 .zb-cover-word {
-  display: block; font-family: var(--sans); font-weight: 900; font-size: 58px;
-  line-height: .96; letter-spacing: -.03em; white-space: nowrap;
+  display: block; font-family: var(--sans); font-weight: 900; font-size: 115px;
+  line-height: .86; letter-spacing: -.035em; white-space: nowrap;
 }
 .zb-cover-caption {
   position: relative; z-index: 1; font-family: var(--sans); font-size: 11px;
-  letter-spacing: .05em; color: rgba(255,255,255,.6); margin: 0;
+  letter-spacing: .05em; color: rgba(0,0,0,.55); margin: 0;
 }
 .zb-cover-mark { color: #fff; }
 .zb-cover-site { font-family: var(--sans); font-weight: 900; font-size: 15px; letter-spacing: .1em; margin: 0; }
@@ -804,24 +813,55 @@ body.has-zb { padding-bottom: 0; }
   font-family: var(--sans); font-size: 11px; font-weight: 700; letter-spacing: .14em;
   text-transform: uppercase; color: #666; margin: 0 0 12px;
 }
-.zb-heading { font-family: var(--sans); font-weight: 900; font-size: 23px; line-height: 1.2; letter-spacing: -.02em; margin: 0 0 14px; }
-.zb-about-body p { font-size: 13.5px; line-height: 1.7; margin: 0 0 10px; color: #333; }
+.zb-heading { font-family: var(--sans); font-weight: 900; font-size: 25px; line-height: 1.16; letter-spacing: -.02em; margin: 0 0 16px; }
+
+/* About — 표지 바로 뒷장, 페이지 전체(사용자 요청 — "not a small section of an A4
+   page"). 본문이 위쪽 대부분을 채우고, margin-top:auto로 QR 띠를 바닥에 고정한다. */
+.zb-panel--about { justify-content: flex-start; }
+.zb-about-body p { font-size: 14.5px; line-height: 1.75; margin: 0 0 12px; color: #222; }
+.zb-about-scan {
+  margin-top: auto; padding-top: 20px; border-top: 1px solid #ddd;
+  display: flex; align-items: center; gap: 16px;
+}
+.zb-qr { flex-shrink: 0; width: 92px; height: 92px; }
+.zb-qr svg { display: block; width: 100%; height: 100%; }
+.zb-about-scan-label {
+  font-family: var(--sans); font-size: 10.5px; font-weight: 700; letter-spacing: .1em;
+  text-transform: uppercase; color: #666; margin: 0 0 4px;
+}
+.zb-about-scan-url { font-family: var(--sans); font-size: 13px; font-weight: 700; color: #111; margin: 0; word-break: break-all; }
 
 .zb-panel--notes { position: relative; }
 /* SVG 루트에 calc() 퍼센트 크기를 주면 0×0으로 계산되는 경우가 있다(실측으로 발견) —
-   inset:0 + width/height:100%로 단순화한다. 패널 자체 padding(30px 26px) 안쪽까지만
-   차야 한다는 제약은 없다 — 줄이 여백까지 덮어도 노트 배경으로는 자연스럽다. */
+   inset:0 + width/height:100%로 단순화한다. 패널 자체 padding 안쪽까지만 차야 한다는
+   제약은 없다 — 줄이 여백까지 덮어도 노트 배경으로는 자연스럽다. */
 .zb-notes-bg { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 0; }
 .zb-notes-head { position: relative; z-index: 1; display: flex; align-items: center; justify-content: space-between; color: #111; }
 .zb-notes-hint { position: relative; z-index: 1; font-size: 12.5px; line-height: 1.7; color: #555; max-width: 30ch; margin: 8px 0 0; }
 
-.zb-article-headline { font-family: var(--sans); font-weight: 900; font-size: 25px; line-height: 1.18; letter-spacing: -.02em; margin: 0 0 10px; }
-.zb-article-teaser { font-family: var(--serif); font-weight: 700; font-size: 14.5px; line-height: 1.6; margin: 0 0 16px; }
-.zb-stat { display: flex; flex-direction: column; gap: 3px; padding: 12px 14px; border: 1px solid #ddd; margin: 0 0 16px; }
-.zb-stat-label { font-family: var(--sans); font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: #666; }
-.zb-stat-value { font-family: var(--sans); font-weight: 900; font-size: 20px; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
-.zb-quote { font-family: var(--serif); font-weight: 700; font-size: 15px; line-height: 1.55; padding-left: 12px; border-left: 2px solid #111; margin: 0 0 12px; }
-.zb-source { font-family: var(--sans); font-size: 10px; color: #777; margin-top: auto; }
+/* 기사 페이지 — 2026-08-11 전면 확장(사용자 요청, "same editorial quality and
+   substance as the website"). 5블록 전부(현상→스탯→맥락→쿼트+인사이트→마무리)가
+   한 페이지에 들어간다 — teaser는 뺐다(texts[0]와 중복). 여백을 자신 있게 쓰되
+   글자 크기·줄간격을 촘촘히 눌러 A5 한 장에 맞춘다. */
+.zb-article-headline { font-family: var(--sans); font-weight: 900; font-size: 26px; line-height: 1.14; letter-spacing: -.02em; margin: 0 0 12px; }
+.zb-article-body { font-family: var(--serif); font-size: 12.5px; line-height: 1.6; margin: 0 0 10px; color: #222; }
+.zb-article-body--close { margin-bottom: 0; }
+.zb-stat { display: flex; flex-direction: column; gap: 3px; padding: 10px 13px; border: 1px solid #ddd; margin: 0 0 12px; }
+.zb-stat-label { font-family: var(--sans); font-size: 9.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: #666; }
+.zb-stat-value { font-family: var(--sans); font-weight: 900; font-size: 18px; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+.zb-quote {
+  font-family: var(--serif); font-weight: 700; font-size: 14px; line-height: 1.5;
+  padding-left: 12px; border-left: 2px solid #111; margin: 0 0 8px;
+}
+.zb-quote-label {
+  display: block; font-family: var(--sans); font-weight: 700; font-size: 9.5px;
+  letter-spacing: .1em; color: #888; margin-bottom: 4px;
+}
+.zb-insight-note {
+  font-family: var(--sans); font-size: 10.5px; line-height: 1.55; color: #444;
+  background: #f7f7f5; border-left: 2px solid #111; padding: 8px 10px; margin: 0 0 12px;
+}
+.zb-source { font-family: var(--sans); font-size: 9.5px; color: #777; margin-top: auto; padding-top: 8px; }
 .zb-empty-note { font-size: 13.5px; line-height: 1.7; color: #777; }
 
 /* ── 인쇄 시트 — 화면엔 안 보인다. 실제 인쇄에서만 켜진다 ── */
@@ -855,7 +895,13 @@ body.has-zb { padding-bottom: 0; }
   .zb-sheet:last-child { break-after: auto; page-break-after: auto; }
   .zb-half { position: relative; width: 148.5mm; height: 210mm; box-sizing: border-box; overflow: hidden; }
   .zb-fold { width: 0; border-left: 1px dashed #ccc; }
-  @page zb-landscape { size: 297mm 210mm; margin: 0; }
+  /* 2026-08-11 — 사용자가 "Print를 누르면 세로로 최적화된다"고 보고. 헤드리스로
+     실측(preferCSSPageSize)하면 PDF 자체는 이미 297×210mm로 정확히 나왔다 — 문제는
+     페이지 박스 크기가 아니라, 크롬 인쇄 대화상자의 "레이아웃(세로/가로)" 토글이 raw
+     mm 치수(size: 297mm 210mm)만으로는 자동으로 가로를 고르지 않는다는 것이다.
+     landscape 키워드를 명시해야 그 토글 자체가 가로로 맞춰진다 — 페이지 박스
+     치수는 A4 landscape나 297mm 210mm나 동일하다. */
+  @page zb-landscape { size: A4 landscape; margin: 0; }
 }
 `;
 

@@ -24,7 +24,7 @@ import { renderAbout } from "./lib/render-about.mjs";
 import { renderZinePreview } from "./lib/render-zine.mjs";
 import { renderZinebook } from "./lib/render-zinebook.mjs";
 import { copyAssets, writeFile } from "./lib/assets.mjs";
-import { setBase, getBase, u } from "./lib/site.mjs";
+import { setBase, getBase, u, absolute } from "./lib/site.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, "..");
@@ -37,6 +37,23 @@ const FAVICON = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
 <rect x="5" y="22" width="18" height="2" fill="#F2EFE4"/>
 </svg>
 `;
+
+/**
+ * DIY 진의 About+QR 페이지용 QR SVG.
+ *
+ * 2026-08-11 재도입 — 2026-08-07에 이미 같은 목적(실물 인쇄 QR)으로 1회 승인받은
+ * 패턴을 그대로 따른다(과거 tools/make-og.mjs 계열 코드 참고, git 히스토리 dde2223).
+ * `npm install` 없이도 빌드는 성공해야 한다(§2.2) — 없으면 경고만 남기고 QR 없이 낸다.
+ */
+async function loadQR() {
+  try {
+    const mod = await import("qrcode");
+    const QRCode = mod.default ?? mod;
+    return async (text) => QRCode.toString(text, { type: "svg", margin: 0 });
+  } catch {
+    return null;
+  }
+}
 
 export async function build({ root = ROOT, out = join(ROOT, "dist"), quiet = false, base = process.env.BASE_PATH ?? "" } = {}) {
   const log = (...a) => { if (!quiet) console.log(...a); };
@@ -61,12 +78,25 @@ export async function build({ root = ROOT, out = join(ROOT, "dist"), quiet = fal
     href: latestByDomain(stories, d.key)?.url ?? null,
   }));
 
-  /* 하단 CTA → DIY 진 플립북/인쇄. 그 주(최신 회차) 편집 순서(점수순) 상위 4편을 쓴다
-     — issues[0]이 loadIssues()의 range 내림차순 정렬로 항상 최신이다(data.mjs). 한 번만
-     계산해 모든 showChrome 페이지에 그대로 물려준다(categoryNav와 같은 패턴). */
+  /* 하단 CTA → DIY 진 미리보기/인쇄.
+   *
+   * 2026-08-11 되돌림 — 예전엔 "최신 회차(issue) 안의 스토리"만 썼다. 그런데 활성
+   * 도메인이 4개뿐이고 그 주 결번이 흔해진 지금(§5), 최신 회차 파일 하나에는 보통
+   * 1~2편만 있다 — 나머지 자리가 "결번" 플레이스홀더로 비어, 홈에는 4장이 다 떠 있는데
+   * 진에는 절반이 빈 채로 나가는 모순이 생겼다. categoryNav와 똑같은 계산
+   * (visibleDomains + latestByDomain, data.mjs) — "홈 카드 그리드에 지금 뜨는 것"을
+   * 그대로 쓴다. 도메인이 결번이라도 지난 회차 스토리가 있으면 그걸 쓰고(카드와 동일),
+   * 한 번도 발행된 적 없는 도메인만 진짜 결번 플레이스홀더로 남는다.
+   */
   const latestIssue = issues[0] ?? null;
-  const latestStories = latestIssue ? stories.filter((s) => s.issue.issue === latestIssue.issue) : [];
-  const zinebook = renderZinebook({ issue: latestIssue, stories: latestStories });
+  const zineStories = visibleDomains(registry)
+    .map((d) => latestByDomain(stories, d.key))
+    .filter(Boolean);
+  const genQR = await loadQR();
+  if (!genQR) warnings.push("qrcode가 없어 DIY 진 About 페이지에 QR을 못 그렸다. `npm install`로 설치하면 실제 스캔되는 코드가 나온다.");
+  const siteUrl = absolute("/");
+  const qrSvg = genQR ? await genQR(siteUrl) : null;
+  const zinebook = renderZinebook({ issue: latestIssue, stories: zineStories, qrSvg, siteUrl });
 
   const write = (rel, content) => { writeFile(join(out, rel), content); files.push(rel); };
 

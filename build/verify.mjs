@@ -198,6 +198,57 @@ if (!chromium) {
       await page.close();
     }
 
+    /* --- DIY 진(8쪽 미니 진) 인쇄 — 랜드스케이프 A4, 4장(양면 2매) ---
+       2026-08-11 사용자 보고 "Print를 누르면 세로로 최적화된다" — @page 랜드스케이프
+       키워드 누락이 원인이었다(css.mjs ZINEBOOK 참고). preferCSSPageSize:true로
+       페이지 자체의 @page CSS가 실제로 적용되는지 실측한다(format을 강제하지 않는다
+       — 그러면 이 버그를 재현하지 못한다). 이 검사가 없으면 같은 회귀가 다시 조용히
+       들어와도 아무도 못 잡는다. */
+    if (issues.length) {
+      const page = await browser.newPage();
+      await page.goto(`${base}/`, { waitUntil: "networkidle" });
+      const buf = await page.pdf({ printBackground: true, preferCSSPageSize: true });
+      const str = buf.toString("latin1");
+      const mb = /\/MediaBox\s*\[\s*([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s*\]/.exec(str);
+      const pageCount = (str.match(/\/Type\s*\/Page[^s]/g) || []).length;
+      if (!mb) fail("ZINE", "DIY 진 인쇄 PDF에서 MediaBox를 못 읽었다.");
+      else {
+        const w = parseFloat(mb[3]) - parseFloat(mb[1]);
+        const h = parseFloat(mb[4]) - parseFloat(mb[2]);
+        if (w <= h) fail("ZINE", `DIY 진이 세로로 나온다(${(w/72*25.4).toFixed(1)}×${(h/72*25.4).toFixed(1)}mm) — landscape 키워드가 빠졌을 수 있다.`);
+        else ok(`DIY 진 인쇄 — 랜드스케이프 A4 (${(w/72*25.4).toFixed(1)}×${(h/72*25.4).toFixed(1)}mm)`);
+      }
+      if (pageCount !== 4) fail("ZINE", `DIY 진이 ${pageCount}페이지다. 물리 시트 4장(2장 양면)이어야 한다.`);
+      else ok("DIY 진 인쇄 — 4페이지(물리 A4 2장 양면)");
+
+      /* 2026-08-11 — 기사 페이지가 웹과 같은 전체 5블록 콘텐츠를 담게 되면서, 다음 주
+         스토리가 이번 주보다 길면 `.zb-panel`의 overflow:hidden이 소리 없이 내용을
+         자른다. 그리드 미리보기(화면)에서 각 패널의 실제 자식 콘텐츠 높이가 사용
+         가능한 높이를 넘는지 실측한다 — design.md의 A4 지면 실측과 같은 원칙이다.
+         오버레이가 hidden인 채면 .zb-grid 안이 전부 display:none이라 높이가 0으로
+         읽힌다 — 먼저 열어야 한다. */
+      await page.click(".category-divider");
+      await page.waitForTimeout(150);
+      const clip = await page.evaluate(() => {
+        const panels = [...document.querySelectorAll(".zb-grid .zb-panel")];
+        return panels
+          .map((p) => {
+            const cs = getComputedStyle(p);
+            const available = p.clientHeight - parseFloat(cs.paddingBottom);
+            let contentBottom = 0;
+            for (const child of p.children) {
+              const b = child.offsetTop + child.offsetHeight;
+              if (b > contentBottom) contentBottom = b;
+            }
+            return { label: p.querySelector("h2")?.textContent ?? p.className, over: Math.round(contentBottom - available) };
+          })
+          .filter((r) => r.over > 2); // 서브픽셀 반올림 오차 허용
+      });
+      await page.close();
+      if (clip.length) for (const c of clip) fail("ZINE", `"${c.label}" 콘텐츠가 페이지보다 ${c.over}px 길어 잘린다.`);
+      else ok("DIY 진 8쪽 전부 — 콘텐츠가 페이지 안에 들어간다 (overflow:hidden에 잘리지 않음)");
+    }
+
     /* --- 콘솔 에러 (§8 #14) ---
        2026-08-08부터 회차 목록 페이지(/YYYY-wNN/)가 없다 — 홈과 인쇄 진, 그리고 스토리
        페이지 전체를 대신 방문한다(예전에는 스토리 페이지가 이 목록에 아예 없었다). */
