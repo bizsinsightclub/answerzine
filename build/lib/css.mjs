@@ -26,6 +26,9 @@ const BASE = `
   --shell: 1240px;
   --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px; --s5: 24px;
   --s6: 32px; --s7: 48px; --s8: 64px; --s9: 96px;
+  /* 2026-08-11 세 번째 라운드 도입 — 엣지-투-엣지 페이지(마스트헤드·홈)의 최소 여백.
+     .shell(1240px 중앙 정렬)의 큰 거터 대신 이 값 하나만 쓴다. */
+  --edge: clamp(10px, 2vw, 24px);
 }
 
 *, *::before, *::after { box-sizing: border-box; }
@@ -116,18 +119,29 @@ const CHROME = `
 
 /* 2026-08-10 두 번째 라운드: 마스트헤드가 스크롤 내내 상단에 붙는다 — 로고(좌)와
    카테고리 내비(우)를 "콘텐츠 화면부터" 항상 같은 자리에서 볼 수 있어야 한다는 요청.
-   불투명 배경이 필요하다 — 안 그러면 고정된 채로 아래 콘텐츠가 그 밑으로 비쳐 겹친다. */
-.site-header { position: sticky; top: 0; z-index: 30; background: var(--bg); }
-.masthead { padding-top: var(--s3); padding-bottom: var(--s3); }
+   불투명 배경이 필요하다 — 안 그러면 고정된 채로 아래 콘텐츠가 그 밑으로 비쳐 겹친다.
+   2026-08-11 세 번째 라운드: ".shell"(max-width 1240px 중앙 정렬)을 벗었다 — 넓은
+   화면에서 로고가 가운데로 몰리고 좌우에 빈 공간이 남는다는 지적이었다. 이제 뷰포트
+   전체 폭이고, 로고·내비는 최소 여백만 두고 각자 코너에 붙는다. */
+.site-header { position: sticky; top: 0; z-index: 30; background: var(--bg); width: 100%; }
+.masthead { padding: var(--s3) var(--edge); }
+
+/* 홈 전용 — .shell(1240px 중앙 정렬)이 아니라 마스트헤드와 같은 최소 여백만 쓴다.
+   2026-08-11 세 번째 라운드: 데이트라인·통합 인사이트·페이저도 카드 그리드처럼
+   가장자리에 붙여 달라는 요청 — 넓은 화면에서 마스트헤드는 꽉 차는데 그 아래 텍스트만
+   가운데 좁은 칼럼에 남아 있으면 앞뒤가 안 맞는다. */
+.shell-edge { padding: var(--s5) var(--edge) var(--s8); }
+@media (min-width: 768px) { .shell-edge { padding: var(--s6) var(--edge) var(--s9); } }
 .masthead-top { display: flex; align-items: center; justify-content: space-between; gap: var(--s5); flex-wrap: nowrap; }
 /* 워드마크는 2026-08-10부터 브래킷 마크 + "the answer company"만 남긴 축소판이다
    (기존의 큰 ANSWER/Zine 로고타입은 뺐다 — CLAUDE.md 참고). 배경을 투명화한 두 벌 중
    어두운 쪽(logo-dark)만 실제로 쓰인다 — 사이트가 단일 흰 테마라 밝은 쪽(logo-light)이
    보일 자리가 없다. 나중에 어두운 배경이 다시 생기면 그대로 켤 수 있게 마크업·스위치는
    남겨 둔다. 마크가 가로로 넓고 얇은 비율이라(약 7.3:1) 높이가 아니라 너비로 재운다.
-   같은 날 두 번째 라운드에서 20% 키웠다(150→180 / 20vw→24vw / 230→276, 사용자 요청). */
+   2026-08-10 두 번째 라운드에서 20% 키웠다(150→180 / 20vw→24vw / 230→276). 2026-08-11
+   세 번째 라운드에서 그 위에 30% 더 키웠다(180→234 / 24vw→31vw / 276→359, 사용자 요청). */
 .wordmark { display: inline-block; text-decoration: none; color: var(--ink); line-height: 0; flex-shrink: 0; }
-.logo { height: auto; width: clamp(180px, 24vw, 276px); display: block; }
+.logo { height: auto; width: clamp(234px, 31vw, 359px); display: block; }
 .logo-light { display: none; }
 .intro .logo-light { display: block; }
 .intro .logo-dark { display: none; }
@@ -215,45 +229,56 @@ const COMPONENTS = `
 
 /* 카테고리 카드 그리드 — 2026-08-10 도입, 아카이브 인덱스(홈)를 전부 대체한다.
    gap 1px + 그리드 배경색(--ink)으로 칸 사이 얇은 괘선을 만든다 — 카드 각각에
-   테두리를 그리는 게 아니라 gap이 만드는 틈으로 --ink가 비치는 방식이다. */
+   테두리를 그리는 게 아니라 gap이 만드는 틈으로 --ink가 비치는 방식이다.
+   2026-08-11 세 번째 라운드: 뷰포트 가장자리에 완전히 닿는다(참고 이미지처럼 좌우
+   여백 없이) — 부모(.shell-edge)의 --edge 패딩만큼 음수 마진으로 상쇄한다.
+   "width: 100vw"/"calc(50% - 50vw)" 같은 뷰포트 기준 트릭은 안 쓴다 — 세로
+   스크롤바가 있는 데스크톱에서 그 방식이 가로 넘침을 만들 수 있다(§10 QA가
+   375~1920px 무넘침을 실측한다). --edge는 고정 토큰이라 이 문제가 없다. */
 .category-grid {
   display: grid; grid-template-columns: repeat(2, 1fr); gap: 1px;
-  background: var(--ink); border: 1px solid var(--ink); margin: 0 0 var(--s6);
+  background: var(--ink); border-top: 1px solid var(--ink); border-bottom: 1px solid var(--ink);
+  margin: 0 calc(var(--edge) * -1) var(--s6);
 }
 @media (max-width: 640px) { .category-grid { grid-template-columns: 1fr; } }
 
-/* 배경 풀블리드는 design.md §2 불변식 3번이 허용한 다섯 번째 자리다. 흰 글자만
-   쓴다 — colorPaper 위 흰 글자는 전 도메인 AA를 넘지만 먹색 글자는 못 넘는다
-   (test/theme.test.mjs가 검증한다). */
+/* 배경 풀블리드는 design.md §2 불변식 3번이 허용한 다섯 번째 자리다.
+   2026-08-11부터 위계가 바뀌었다 — 도메인명이 아니라 **스토리 헤드라인이 메인**
+   (가장 큰 글자)이고, 도메인명은 우측 상단의 작은 라벨이다(사용자 요청).
+   배경도 밝은 파스텔(cardColor)로 바뀌면서 글자색이 흰색→검은색(--ink)으로 뒤집혔다
+   — cardColor가 없는 도메인은 예전처럼 어두운 colorPaper+흰 글자로 남는다
+   (render-index.mjs의 cardPalette()가 인라인 style로 결정한다). 두 조합 다
+   test/theme.test.mjs가 AA를 검증한다. */
 .category-card {
-  display: flex; flex-direction: column; justify-content: space-between;
-  min-height: 260px; padding: var(--s6) var(--s5); background: var(--dc);
-  color: #fff; text-decoration: none;
+  position: relative; display: flex; flex-direction: column; justify-content: flex-end;
+  min-height: 280px; padding: var(--s6) var(--s5) var(--s5); text-decoration: none;
+  color: var(--ink);
 }
-.category-card:hover .category-card-headline { text-decoration: underline; text-underline-offset: 3px; }
-.category-card-eyebrow {
-  font-family: var(--sans); font-size: 11px; font-weight: 700; letter-spacing: .1em;
-  text-transform: uppercase; opacity: .85;
-}
-.category-card-name {
-  font-weight: 900; font-size: clamp(40px, 6.5vw, 72px); line-height: 1;
-  letter-spacing: -.03em; margin: var(--s4) 0; color: #fff;
+/* cardColor가 없는 도메인의 폴백 — 어두운 colorPaper 배경이라 흰 글자가 필요하다. */
+.category-card.is-dark { color: #fff; }
+.category-card.is-dark .draft-flag { border-color: rgba(255,255,255,.6); color: #fff; }
+.category-card:hover .category-card-headline { text-decoration: underline; text-underline-offset: 4px; }
+.category-card-tag {
+  position: absolute; top: var(--s5); right: var(--s5);
+  font-family: var(--sans); font-size: 12px; font-weight: 700; letter-spacing: .1em;
+  text-transform: uppercase; opacity: .75;
 }
 .category-card-headline {
-  font-family: var(--sans); font-weight: 700; font-size: 17px;
-  line-height: 1.35; letter-spacing: -.01em; margin: 0; max-width: 34ch;
+  font-weight: 900; font-size: clamp(26px, 4.2vw, 46px); line-height: 1.1;
+  letter-spacing: -.025em; margin: 0 0 var(--s3); max-width: 92%;
+}
+.category-card-date {
+  font-family: var(--sans); font-size: 11px; font-weight: 700; letter-spacing: .04em; opacity: .65;
 }
 /* 그 도메인에 아직 통과분이 없을 때 — 근거(스토리)가 없는데 색만 칠하면
-   "발행됐다"는 인상을 준다. 색을 비우고 표면 취급(§1 "카드·필터는 1px 테두리로만
-   구분")으로 되돌아간다. */
+   "발행됐다"는 인상을 준다. 색을 비우고 표면 취급(§1 "카드는 배경색이 아니라 1px
+   테두리로만 구분")으로 되돌아간다. */
 .category-card.is-empty {
   background: var(--surface); color: var(--secondary);
   outline: 1px dashed var(--divider); outline-offset: -1px;
 }
-.category-card.is-empty .category-card-name { color: var(--ink); }
+.category-card.is-empty .category-card-tag { color: var(--ink); opacity: 1; }
 .category-card.is-empty .category-card-status { font-family: var(--sans); font-size: 13px; margin: 0; }
-/* 색 카드 위에서는 --divider/--tertiary(회색 계열)가 안 보인다 — 흰 계열로 덧쓴다. */
-.category-card .draft-flag { border-color: rgba(255,255,255,.6); color: #fff; }
 
 /* 참고 이미지의 가로 구분 밴드 — 정적이다, 움직이지 않는다(design.md §9). */
 .category-divider {

@@ -16,7 +16,7 @@ before(async () => {
 });
 
 test("빌드가 기대한 파일을 만든다", () => {
-  for (const p of ["index.html", "archive/index.html", "404.html",
+  for (const p of ["index.html", "archive/index.html", "about/index.html", "404.html",
                    "assets/style.css", "assets/app.js", "assets/img/favicon.svg",
                    "2026-w31/book/index.html", "2026-w31/print/index.html"]) {
     assert.ok(existsSync(join(OUT, p)), `${p} 없음`);
@@ -28,11 +28,19 @@ test("전체 아카이브 페이지에 모든 스토리가 나온다", () => {
   for (const s of result.stories) assert.ok(html.includes(s.headline), `${s.headline} 누락`);
 });
 
-test("모든 페이지의 마스트헤드가 같은 카테고리 내비를 낸다", () => {
+test("About 페이지가 편집 명제(태그라인)를 낸다", () => {
+  const html = readFileSync(join(OUT, "about/index.html"), "utf8");
+  assert.ok(html.includes("순위 말고, 팔린 이유"), "태그라인 누락");
+});
+
+test("모든 페이지의 마스트헤드가 같은 카테고리 내비를 내고, About 링크를 포함한다", () => {
   const idx = readFileSync(join(OUT, "index.html"), "utf8");
   const story = readFileSync(join(OUT, "2026-w31/book/index.html"), "utf8");
   const archive = readFileSync(join(OUT, "archive/index.html"), "utf8");
-  for (const html of [idx, story, archive]) assert.match(html, /class="category-nav"/);
+  for (const html of [idx, story, archive]) {
+    assert.match(html, /class="category-nav"/);
+    assert.match(html, />About<\/a>/);
+  }
 });
 
 test("회차 목록 페이지는 더 이상 만들지 않는다 — 2026-08-08, 홈 아카이브로 대체", () => {

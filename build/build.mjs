@@ -20,6 +20,7 @@ import { page } from "./lib/layout.mjs";
 import { renderStory } from "./lib/render-story.mjs";
 import { renderIndex } from "./lib/render-index.mjs";
 import { renderArchive } from "./lib/render-archive.mjs";
+import { renderAbout } from "./lib/render-about.mjs";
 import { renderZinePreview } from "./lib/render-zine.mjs";
 import { copyAssets, writeFile } from "./lib/assets.mjs";
 import { setBase, getBase, u, absolute } from "./lib/site.mjs";
@@ -103,6 +104,10 @@ export async function build({ root = ROOT, out = join(ROOT, "dist"), quiet = fal
   /* ── 전체 아카이브 — 홈의 "전체 아카이브 보기" CTA가 여기로 온다 ── */
   const archive = renderArchive(stories);
   write("archive/index.html", page({ ...archive, url: "/archive/", categoryNav }));
+
+  /* ── About — 마스트헤드 상단 내비 맨 앞 링크 ── */
+  const about = renderAbout();
+  write("about/index.html", page({ ...about, url: "/about/", categoryNav }));
 
   /* ── 회차·스토리·인쇄 진 ──
      2026-08-08부터 회차 목록 페이지(/YYYY-wNN/)는 만들지 않는다 — 홈 아카이브가 이미

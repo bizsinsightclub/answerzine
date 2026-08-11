@@ -25,14 +25,28 @@ test("registry의 도메인 색(Paper 보정색)이 사이트 배경에서 AA를
   }
 });
 
-test("도메인 색(Paper 보정색) 풀블리드 위 흰 글자가 AA를 넘는다 — 홈 카테고리 카드", () => {
-  // 2026-08-10 도입: 카테고리 카드가 --dc-<key>(colorPaper)를 배경으로 풀블리드한다
-  // (design.md §2 불변식 3번의 다섯 번째 예외). 먹색 글자는 이 배경들 전부에서
+test("colorPaper 풀블리드 위 흰 글자가 AA를 넘는다 — 카테고리 카드의 cardColor 없는 폴백", () => {
+  // 2026-08-10 도입, 2026-08-11 cardColor 도입 후 이 조합은 cardColor가 없는 도메인의
+  // 폴백(.category-card.is-dark)에만 쓰인다. 먹색 글자는 colorPaper 배경 전부에서
   // 4.5:1을 못 넘어 흰 글자만 쓴다 — 그 전제를 여기서 검증한다.
   const reg = loadRegistry(".");
   for (const d of reg.domains) {
     const white = contrast("#FFFFFF", d.colorPaper);
     assert.ok(white >= 4.5, `${d.key} 위 흰 글자 대비 ${white.toFixed(2)}:1 < 4.5:1`);
+  }
+});
+
+test("cardColor 풀블리드 위 검은 글자(--ink)가 AA를 넘는다 — 카테고리 카드 기본 경로", () => {
+  // 2026-08-11 도입. cardColor는 밝은 파스텔이라 반대로 흰 글자는 못 쓴다(전 도메인
+  // 4.5:1 미만) — 검은 글자(--ink)만 쓴다는 전제를 여기서 검증한다.
+  const reg = loadRegistry(".");
+  const withCardColor = reg.domains.filter((d) => d.cardColor);
+  assert.ok(withCardColor.length > 0, "cardColor가 있는 도메인이 하나도 없다");
+  for (const d of withCardColor) {
+    const ink = contrast("#17150F", d.cardColor);
+    const white = contrast("#FFFFFF", d.cardColor);
+    assert.ok(ink >= 4.5, `${d.key} cardColor 위 검은 글자 대비 ${ink.toFixed(2)}:1 < 4.5:1`);
+    assert.ok(white < 4.5, `${d.key} cardColor 위 흰 글자가 AA를 넘는다(${white.toFixed(2)}:1) — 밝은 배경 전제가 깨졌다`);
   }
 });
 

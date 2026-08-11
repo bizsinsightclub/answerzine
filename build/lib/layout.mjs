@@ -91,15 +91,20 @@ ${showChrome ? `${showIntro ? intro() : ""}\n<div id="main-content">\n${header(p
 
 /**
  * 마스트헤드 — 2026-08-10 두 번째 라운드: 로고(좌)와 카테고리 내비(우)를 한 줄에 놓고
- * 스크롤 내내 상단에 고정한다(`.site-header { position: sticky; top: 0 }`). 로고는
- * ~20% 키웠다. 밑줄 괘선(`.ruleline`)은 뺐다 — 사용자 요청.
+ * 스크롤 내내 상단에 고정한다(`.site-header { position: sticky; top: 0 }`). 밑줄 괘선
+ * (`.ruleline`)은 뺐다 — 사용자 요청.
+ *
+ * 2026-08-11 세 번째 라운드: `.shell`(max-width 1240px 중앙 정렬)을 벗고 뷰포트 전체
+ * 폭으로 바꿨다 — 넓은 화면에서 로고 좌우로 빈 공간이 남는다는 지적이었다. 로고는
+ * 30% 더 키웠다(2026-08-10의 +20%에 이은 두 번째 확대). 내비 맨 앞에 "About" 링크를
+ * 추가했다(신규 `/about/` 라우트).
  *
  * `categoryNav`는 build.mjs가 한 번 계산해 모든 페이지에 그대로 물려준다 —
  * [{ name, href }] 배열. `href`가 없으면(그 도메인에 아직 통과분이 없으면) 링크 없는
  * 라벨로만 낸다. 영문 라벨(`nameEn`)은 domains/registry.json 단일 소스다.
  */
 function header(printUrl, categoryNav = []) {
-  return h`<header class="site-header shell" style="padding-bottom:0">
+  return h`<header class="site-header" style="padding-bottom:0">
   <div class="masthead">
     <div class="masthead-top">
       <a class="wordmark" href="${u("/")}" aria-label="${SITE.name} 홈">
@@ -107,6 +112,7 @@ function header(printUrl, categoryNav = []) {
         <img class="logo logo-dark" src="${u("/assets/img/logo-dark.png")}" alt="" aria-hidden="true" width="1971" height="270">
       </a>
       <nav class="category-nav" aria-label="카테고리">
+        <a href="${u("/about/")}">About</a>
         <a href="${u("/")}">All</a>
         ${categoryNav.map((c) =>
           raw(c.href ? h`<a href="${u(c.href)}">${c.name}</a>` : h`<span class="is-empty">${c.name}</span>`)

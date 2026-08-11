@@ -7,27 +7,35 @@
  * 이어진다.** 과거 스토리를 훑어보는 기능은 이제 스토리 페이지의 이전/다음 회차
  * 내비게이션(`.nav-row`)이 담당한다 — 시간순으로 정확히 움직인다(§9.2).
  *
- * 카드 배경에 도메인 색을 풀블리드로 채운다 — design.md §2 불변식 3번이 새로 허용한
- * 다섯 번째 자리다("배경 채색은 이 시스템에 없다"는 문장에 예외가 하나 생겼다).
- * 글자는 흰색만 쓴다 — `colorPaper` 위 흰 글자는 전 도메인 5.1:1 이상으로 AA(4.5:1)를
- * 넉넉히 넘지만, 먹색 글자는 전 도메인 4.5:1 미만이라 못 쓴다(test/theme.test.mjs가 검증).
+ * 2026-08-11 두 번째 개편 — 위계를 뒤집었다. 예전엔 도메인명이 카드에서 가장 큰
+ * 글자였다. 이제 **스토리 헤드라인이 메인(가장 큰 글자)이고, 도메인명은 우측 상단의
+ * 작은 라벨**이다(사용자 요청). 배경색도 `colorPaper`(어두운 톤, 흰 글자용)에서
+ * `domains/registry.json`의 새 `cardColor`(밝은 파스텔, 검은 글자용)로 바꿨다 — 둘은
+ * 대비 방향이 반대라 같이 못 쓴다. `cardColor`가 없는 도메인은 `colorPaper`+흰 글자로
+ * 되돌아간다(전 도메인 AA는 test/theme.test.mjs가 두 조합 다 검증한다).
  */
 import { h, raw } from "./html.mjs";
 import { u } from "./site.mjs";
 import { dateline, SITE } from "./layout.mjs";
 import { latestByDomain, visibleDomains } from "./data.mjs";
 
+/** 카드 배경·글자색. cardColor가 있으면 밝은 파스텔 + 검은 글자(기본), 없으면 예전처럼
+    colorPaper(어두운 톤) + 흰 글자로 되돌아간다(.is-dark 모디파이어 — CSS가 인라인
+    style 문자열을 뒤지지 않도록 클래스로 분기한다). */
+const cardPalette = (d) =>
+  d.cardColor ? `background:${d.cardColor};` : `background:var(--dc-${d.key});`;
+
 /** 아직 스토리가 없는 도메인 — 색을 채우지 않는다. 근거(스토리)가 없는데
     카드에만 색을 칠하면 "발행됐다"는 인상을 준다. */
 const emptyCard = (d) => h`<div class="category-card is-empty">
-  <h2 class="category-card-name">${d.name}</h2>
+  <span class="category-card-tag">${d.name}</span>
   <p class="category-card-status">아직 신호가 없다.</p>
 </div>`;
 
-const card = (d, s) => h`<a class="category-card" data-reveal href="${u(s.url)}" style="--dc: var(--dc-${raw(d.key)})">
-  <span class="category-card-eyebrow">최신 · ${s.range}${s.draft ? raw(' <span class="draft-flag">작업 중</span>') : ""}</span>
-  <h2 class="category-card-name">${d.name}</h2>
-  <p class="category-card-headline">${s.headline}</p>
+const card = (d, s) => h`<a class="category-card${d.cardColor ? "" : " is-dark"}" data-reveal href="${u(s.url)}" style="${raw(cardPalette(d))}">
+  <span class="category-card-tag">${d.name}${s.draft ? raw(' <span class="draft-flag">작업 중</span>') : ""}</span>
+  <h2 class="category-card-headline">${s.headline}</h2>
+  <span class="category-card-date">최신 · ${s.range}</span>
 </a>`;
 
 /* 참고 이미지의 가로 구분 밴드 — 정적이다(움직이지 않는다). design.md §9 "모션은
@@ -86,7 +94,7 @@ export function renderIndex(issues, stories, registry) {
     if ((i + 1) % 2 === 0 && i + 1 < tiles.length) withDividers.push(divider());
   });
 
-  const content = h`<main class="shell">
+  const content = h`<main class="shell-edge">
   <p class="dateline">${latest ? dateline(latest.range) : "준비 중"}</p>
   ${latest?.insight ? raw(h`<h1 class="issue-insight" data-reveal>${latest.insight}</h1>`) : ""}
   ${latest?.insightNote ? raw(h`<p class="issue-insight-note" data-reveal>${latest.insightNote}</p>`) : ""}

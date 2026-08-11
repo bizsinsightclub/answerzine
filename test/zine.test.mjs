@@ -116,7 +116,7 @@ test("진 본문도 이스케이프된다", () => {
 
 test("도메인당 카드 하나, 그 도메인의 최신 스토리로 이어진다", () => {
   const { content } = renderIndex([ISSUE], stories, REG);
-  const cards = content.match(/class="category-card"/g) ?? [];
+  const cards = content.match(/class="category-card(?: is-dark)?"/g) ?? [];
   assert.equal(cards.length, 4, "REG의 도메인 4개만큼 카드가 나와야 한다");
   for (const s of stories) {
     assert.match(content, new RegExp(`href="${s.url}"[\\s\\S]*?${s.headline.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`));
@@ -126,7 +126,7 @@ test("도메인당 카드 하나, 그 도메인의 최신 스토리로 이어진
 test("onclick을 쓰지 않는다 — 카드는 순수 링크다", () => {
   const { content } = renderIndex([ISSUE], stories, REG);
   assert.ok(!content.includes("onclick"));
-  assert.match(content, /<a class="category-card"/);
+  assert.match(content, /<a class="category-card(?: is-dark)?"/);
 });
 
 test("draft 회차의 최신 스토리 카드엔 '작업 중' 배지가 붙는다", () => {
@@ -150,7 +150,7 @@ test("인덱스가 최신 회차의 인쇄 링크를 준다", () => {
 test("뉴스·여행은 카드 그리드에서 빠진다 — 데이터가 아직 불안정한 도메인", () => {
   const withHidden = { domains: [...REG.domains, { key: "news", name: "뉴스" }, { key: "travel", name: "여행" }] };
   const { content } = renderIndex([ISSUE], stories, withHidden);
-  assert.equal((content.match(/class="category-card"/g) ?? []).length, 4, "뉴스·여행 카드까지 나오면 안 된다");
+  assert.equal((content.match(/class="category-card(?: is-dark)?"/g) ?? []).length, 4, "뉴스·여행 카드까지 나오면 안 된다");
   assert.ok(!content.includes(">뉴스<"));
   assert.ok(!content.includes(">여행<"));
 });

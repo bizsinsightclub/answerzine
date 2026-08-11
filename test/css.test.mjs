@@ -103,9 +103,14 @@ test("마스트헤드가 스크롤에 고정된다", () => {
   assert.match(m[1], /top:\s*0/);
 });
 
-test("카테고리 카드는 도메인 색을 배경으로 풀블리드한다 — §2 불변식 3번 다섯 번째 예외", () => {
-  const m = css.match(/\.category-card\s*\{([^}]*)\}/);
-  assert.ok(m, ".category-card 규칙이 있어야 한다");
-  assert.match(m[1], /background:\s*var\(--dc\)/);
-  assert.match(m[1], /color:\s*#fff/);
+test("카테고리 카드는 배경을 풀블리드한다 — §2 불변식 3번 다섯 번째 예외", () => {
+  // 배경색 자체는 render-index.mjs가 도메인마다 인라인 style로 넣는다(cardColor 또는
+  // colorPaper) — 여기서는 CSS가 두 글자색 경로(밝은 배경=먹색 기본, 어두운 배경=흰색
+  // .is-dark)를 갖췄는지만 본다. AA는 test/theme.test.mjs가 검증한다.
+  const base = css.match(/\.category-card\s*\{([^}]*)\}/);
+  assert.ok(base, ".category-card 규칙이 있어야 한다");
+  assert.match(base[1], /color:\s*var\(--ink\)/);
+  const dark = css.match(/\.category-card\.is-dark\s*\{([^}]*)\}/);
+  assert.ok(dark, ".category-card.is-dark 규칙이 있어야 한다");
+  assert.match(dark[1], /color:\s*#fff/);
 });
