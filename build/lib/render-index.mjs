@@ -46,14 +46,26 @@ const card = (d, s) => h`<a class="category-card${d.cardColor ? "" : " is-dark"}
   <span class="category-card-date">최신 · ${s.range}</span>
 </a>`;
 
-/* 참고 이미지의 가로 구분 밴드 — 정적이다(움직이지 않는다). design.md §9 "모션은
-   반응에만 쓴다"는 원칙상 순수 장식용 애니메이션(마퀴 스크롤 등)은 추가하지 않았다 —
-   포맷(가로 밴드가 행을 가른다)만 가져오고 그 안의 모션은 가져오지 않았다.
-   grid-column: 1 / -1로 항상 전체 폭을 차지해, 열 수가 바뀌어도(모바일 1열) 새 줄로
-   떨어진다. */
-const divider = () => h`<div class="category-divider" aria-hidden="true">
-  전체 아카이브 · 카테고리별 최신 스토리
-</div>`;
+/* 참고 이미지의 가로 구분 밴드 — grid-column: 1 / -1로 항상 전체 폭을 차지해,
+ * 열 수가 바뀌어도(모바일 1열) 새 줄로 떨어진다.
+ *
+ * 2026-08-11 되돌림 — "모션은 반응에만 쓴다"(design.md §9)는 원칙상 원래는 정적
+ * 텍스트였다("전체 아카이브 · 카테고리별 최신 스토리"). 사용자가 검정 바탕에 흰
+ * "THE ANSWER ZINE"이 무한 반복 스크롤되는 마퀴로 바꿔 달라고 명시적으로 요청 —
+ * §9 원칙의 예외로 design.md에 기록했다. 이어서 이 밴드를 클릭하면 하단에 숨겨둔
+ * DIY 진 CTA(`.zb-cta`, display:none)와 같은 오버레이가 열리도록 요청해, 순수
+ * 장식이 아니라 두 번째 진입점이 됐다 — `<button data-zb-open>`으로 만들고
+ * `assets/zinebook.js`가 `[data-zb-open]` 전부에 리스너를 붙이도록 갱신했다.
+ *
+ * 마퀴는 콘텐츠를 두 번 이어 붙이고 -50% translateX로 무한 반복한다(카드 뒤집기와
+ * 같은 이 파일의 다른 애니메이션들처럼 라이브러리 없이 순수 CSS). 각 절반이 가장
+ * 넓은 지원 뷰포트(1920px, design.md §10)보다 넓어야 이음매가 안 보인다 — 텍스트
+ * 6회 반복 폭이 1920px를 넉넉히 넘는다. `prefers-reduced-motion: reduce`는
+ * css.mjs의 전역 MOTION 규칙(`*` 선택자)이 이미 처리한다. */
+const MARQUEE_REPEAT = Array(6).fill("<span>THE ANSWER ZINE</span>").join("");
+const divider = () => h`<button type="button" class="category-divider" data-zb-open aria-label="이번 호 미니 진 열기">
+  <span class="marquee-track" aria-hidden="true">${raw(MARQUEE_REPEAT + MARQUEE_REPEAT)}</span>
+</button>`;
 
 /**
  * 하단 페이저 — 이전/다음 주 인사이트 + 전체 아카이브.

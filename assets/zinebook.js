@@ -23,9 +23,12 @@
   var DESIGN_W = 561;
 
   function boot() {
-    var cta = document.querySelector("[data-zb-open]");
+    // 2026-08-11 — 하단 고정 CTA(.zb-cta)는 화면에서 숨겼지만(display:none) 마크업은
+    // 남아 있다. 홈의 마퀴 밴드(.category-divider)도 같은 오버레이를 여는 두 번째
+    // 진입점이라 트리거가 하나 이상일 수 있다 — querySelectorAll로 전부 잡는다.
+    var ctas = Array.prototype.slice.call(document.querySelectorAll("[data-zb-open]"));
     var overlay = document.querySelector("[data-zb-overlay]");
-    if (!cta || !overlay) return;
+    if (!ctas.length || !overlay) return;
 
     var stage = overlay.querySelector("[data-zb-stage]");
     var leaves = Array.prototype.slice.call(overlay.querySelectorAll(".zb-leaf"));
@@ -83,10 +86,10 @@
       document.removeEventListener("keydown", onKey);
       window.removeEventListener("resize", queueScale);
       if (lastFocused && typeof lastFocused.focus === "function") lastFocused.focus();
-      else cta.focus();
+      else if (ctas[0]) ctas[0].focus();
     }
 
-    cta.addEventListener("click", open);
+    ctas.forEach(function (cta) { cta.addEventListener("click", open); });
     if (closeBtn) closeBtn.addEventListener("click", close);
     if (nextBtn) nextBtn.addEventListener("click", next);
     if (prevBtn) prevBtn.addEventListener("click", prev);

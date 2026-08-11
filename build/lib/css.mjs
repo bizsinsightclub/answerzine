@@ -338,11 +338,26 @@ const COMPONENTS = `
 .category-card.is-empty .category-card-tag { color: var(--ink); opacity: 1; }
 .category-card.is-empty .category-card-status { font-family: var(--sans); font-size: 13px; margin: 0; }
 
-/* 참고 이미지의 가로 구분 밴드 — 정적이다, 움직이지 않는다(design.md §9). */
+/* 가로 구분 밴드 — 2026-08-11 되돌림, design.md §9 예외(render-index.mjs 주석
+   참고). 검정 바탕·흰 글자 마퀴이자 DIY 진을 여는 버튼이라 <button> 리셋이 필요하다. */
 .category-divider {
-  grid-column: 1 / -1; overflow: hidden; white-space: nowrap; background: var(--bg);
-  padding: 7px 0; font-family: var(--sans); font-weight: 900; font-size: 12px;
-  letter-spacing: .1em; text-transform: uppercase; color: var(--tertiary); text-align: center;
+  grid-column: 1 / -1; overflow: hidden; white-space: nowrap;
+  display: flex; align-items: center; height: 64px;
+  background: #16150F; border: 0; margin: 0; padding: 0; width: 100%;
+  cursor: pointer; font: inherit;
+}
+.category-divider:focus-visible { outline: 2px solid #fff; outline-offset: -2px; }
+.marquee-track {
+  display: flex; white-space: nowrap;
+  animation: marquee-scroll 18s linear infinite;
+}
+.marquee-track span {
+  font-family: var(--sans); font-weight: 900; font-size: 40px; letter-spacing: -.01em;
+  padding: 0 24px; text-transform: uppercase; color: #fff;
+}
+@keyframes marquee-scroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
 }
 
 /* 2026-08-11 일곱 번째 라운드: 스토리 본문이 넓은 화면에서 왼쪽에만 몰려 있다는
