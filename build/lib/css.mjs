@@ -622,6 +622,175 @@ const PRINT = `
 }
 `;
 
+/* ── DIY 진 (플립북 + 인쇄 시트) ──────────────────────────────
+   2026-08-11 아홉 번째 라운드 신규. `.zb-` 접두사로 기존 클래스와 완전히 분리한다.
+   흑백만 쓴다(요구사항 #5) — 도메인 컬러(--dc-*)를 참조하지 않는다.
+
+   미리보기(.zb-leaf-face 안)와 인쇄(.zb-half 안)가 같은 `.zb-panel` 콘텐츠 마크업을
+   공유한다(render-zinebook.mjs). 인쇄에서는 148.5mm×210mm 반쪽을 그대로 채우고,
+   미리보기에서는 인쇄판과 같은 비율의 고정 캔버스(561×794px, 96dpi에서 148.5mm×210mm에
+   해당)를 그린 뒤 실제 화면 크기에 맞춰 `transform: scale()`로 축소한다 — 그래서
+   미리보기가 인쇄 결과와 같은 레이아웃으로 보인다(WYSIWYG). 배율은 `assets/zinebook.js`가
+   `--zb-scale` 커스텀 프로퍼티로 계산해 넣는다. */
+const ZINEBOOK = `
+.zb-cta {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 40;
+  width: 100%; border: none; margin: 0; padding: 18px 16px;
+  background: #000; color: #fff; cursor: pointer;
+  font-family: var(--sans); font-weight: 700; font-size: 14px;
+  letter-spacing: .12em; text-transform: uppercase; text-align: center;
+}
+.zb-cta:hover, .zb-cta:focus-visible { background: #1a1a1a; }
+body.has-zb { padding-bottom: 58px; }
+
+.zb-overlay {
+  position: fixed; inset: 0; z-index: 200; display: flex; flex-direction: column;
+  background: #000; color: #fff; padding: var(--s4) var(--s5) var(--s5);
+}
+.zb-overlay[hidden] { display: none !important; }
+
+.zb-toolbar { display: flex; align-items: center; justify-content: space-between; gap: var(--s4); flex-wrap: wrap; }
+.zb-toolbar-title {
+  font-family: var(--sans); font-size: 12px; font-weight: 700; letter-spacing: .1em;
+  text-transform: uppercase; color: rgba(255,255,255,.6); margin: 0;
+}
+.zb-toolbar-actions { display: flex; align-items: center; gap: var(--s3); }
+
+.zb-btn {
+  display: inline-flex; align-items: center; gap: 7px; cursor: pointer;
+  background: transparent; color: #fff; border: 1px solid rgba(255,255,255,.35);
+  border-radius: 8px; padding: 9px 13px;
+  font-family: var(--sans); font-size: 12px; font-weight: 700; letter-spacing: .06em;
+}
+.zb-btn:hover:not(:disabled) { border-color: rgba(255,255,255,.8); }
+.zb-btn:disabled { opacity: .3; cursor: default; }
+.zb-btn--print { background: #fff; color: #000; border-color: #fff; text-transform: uppercase; }
+.zb-btn--print:hover:not(:disabled) { background: #e6e6e6; }
+.zb-btn--icon { padding: 9px; }
+
+.zb-viewer { flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; padding: var(--s5) 0; }
+.zb-stage {
+  position: relative; height: min(68vh, 560px); aspect-ratio: 148.5 / 210; max-width: 92vw;
+  perspective: 2600px;
+}
+.zb-leaf {
+  position: absolute; inset: 0; transform-style: preserve-3d; transform-origin: left center;
+  transition: transform .68s cubic-bezier(.45, 0, .2, 1); cursor: pointer;
+}
+.js .zb-leaf { will-change: transform; }
+.zb-leaf-face {
+  position: absolute; inset: 0; overflow: hidden; backface-visibility: hidden;
+  /* 표지 패널은 검정 배경이라 검정 오버레이 위에서 바깥 그림자만으로는 페이지 가장자리가
+     안 보인다 — inset 흰 선을 같이 얹어 콘텐츠 색과 무관하게 "페이지 한 장"이라는 경계를
+     항상 보여준다. */
+  box-shadow: 0 10px 40px rgba(0,0,0,.4), inset 0 0 0 1px rgba(255,255,255,.3);
+}
+.zb-leaf-back {
+  transform: rotateY(180deg); background: #ececec; color: #b9b9b9;
+  display: flex; align-items: center; justify-content: center;
+}
+
+.zb-nav { display: flex; align-items: center; justify-content: center; gap: var(--s5); padding-top: var(--s4); }
+.zb-indicator {
+  font-family: var(--sans); font-size: 12px; font-weight: 700; letter-spacing: .06em;
+  color: rgba(255,255,255,.7); font-variant-numeric: tabular-nums; min-width: 4.5em; text-align: center;
+}
+.zb-print-hint {
+  max-width: 640px; margin: var(--s3) auto 0; text-align: center;
+  font-family: var(--sans); font-size: 11.5px; line-height: 1.6; color: rgba(255,255,255,.5);
+}
+
+/* ── 콘텐츠 패널 — 표지·About·Notes·기사 넷, 미리보기·인쇄 공용 ── */
+.zb-panel {
+  display: flex; flex-direction: column; box-sizing: border-box;
+  padding: 30px 26px; background: #fff; color: #111; font-family: var(--serif);
+  overflow: hidden;
+}
+.zb-half .zb-panel { position: absolute; inset: 0; }
+.zb-leaf-face .zb-panel {
+  position: absolute; top: 0; left: 0; width: 561px; height: 794px;
+  transform: scale(var(--zb-scale, .48)); transform-origin: top left;
+}
+.zb-panel--cover { background: #000; color: #fff; justify-content: flex-end; position: relative; }
+.zb-panel--cover-back { justify-content: center; align-items: center; text-align: center; gap: 12px; }
+
+/* 폴드(반쪽의 왼쪽 경계) 쪽으로 살짝 흘러나가 잘리는 효과 — 사용자가 요청한 "wrap-around
+   crop". -14px 정도만 흘려서 단어 자체는 여전히 읽힌다("HE"·"NSWER"처럼 통째로 잘리면
+   안 된다는 요구사항 1번의 "단어가 부자연스럽게 잘리면 안 된다"와 같은 원칙이다 — 여기서
+   "잘림"은 폴드에서 나는 의도된 디자인 크롭이지, 줄바꿈 사고가 아니다). */
+.zb-cover-crop { position: absolute; left: -14px; top: 44px; right: 0; overflow: hidden; }
+.zb-cover-word {
+  display: block; font-family: var(--sans); font-weight: 900; font-size: 58px;
+  line-height: .96; letter-spacing: -.03em; white-space: nowrap;
+}
+.zb-cover-caption {
+  position: relative; z-index: 1; font-family: var(--sans); font-size: 11px;
+  letter-spacing: .05em; color: rgba(255,255,255,.6); margin: 0;
+}
+.zb-cover-mark { color: #fff; }
+.zb-cover-site { font-family: var(--sans); font-weight: 900; font-size: 15px; letter-spacing: .1em; margin: 0; }
+.zb-cover-tagline { font-family: var(--serif); font-size: 12.5px; color: rgba(255,255,255,.7); margin: 0; }
+.zb-cover-issue { font-family: var(--sans); font-size: 10px; letter-spacing: .06em; color: rgba(255,255,255,.45); margin: 0; }
+
+.zb-eyebrow {
+  font-family: var(--sans); font-size: 11px; font-weight: 700; letter-spacing: .14em;
+  text-transform: uppercase; color: #666; margin: 0 0 12px;
+}
+.zb-heading { font-family: var(--sans); font-weight: 900; font-size: 23px; line-height: 1.2; letter-spacing: -.02em; margin: 0 0 14px; }
+.zb-about-body p { font-size: 13.5px; line-height: 1.7; margin: 0 0 10px; color: #333; }
+
+.zb-panel--notes { position: relative; }
+/* SVG 루트에 calc() 퍼센트 크기를 주면 0×0으로 계산되는 경우가 있다(실측으로 발견) —
+   inset:0 + width/height:100%로 단순화한다. 패널 자체 padding(30px 26px) 안쪽까지만
+   차야 한다는 제약은 없다 — 줄이 여백까지 덮어도 노트 배경으로는 자연스럽다. */
+.zb-notes-bg { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 0; }
+.zb-notes-head { position: relative; z-index: 1; display: flex; align-items: center; justify-content: space-between; color: #111; }
+.zb-notes-hint { position: relative; z-index: 1; font-size: 12.5px; line-height: 1.7; color: #555; max-width: 30ch; margin: 8px 0 0; }
+
+.zb-article-headline { font-family: var(--sans); font-weight: 900; font-size: 25px; line-height: 1.18; letter-spacing: -.02em; margin: 0 0 10px; }
+.zb-article-teaser { font-family: var(--serif); font-weight: 700; font-size: 14.5px; line-height: 1.6; margin: 0 0 16px; }
+.zb-stat { display: flex; flex-direction: column; gap: 3px; padding: 12px 14px; border: 1px solid #ddd; margin: 0 0 16px; }
+.zb-stat-label { font-family: var(--sans); font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: #666; }
+.zb-stat-value { font-family: var(--sans); font-weight: 900; font-size: 20px; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+.zb-quote { font-family: var(--serif); font-weight: 700; font-size: 15px; line-height: 1.55; padding-left: 12px; border-left: 2px solid #111; margin: 0 0 12px; }
+.zb-source { font-family: var(--sans); font-size: 10px; color: #777; margin-top: auto; }
+.zb-empty-note { font-size: 13.5px; line-height: 1.7; color: #777; }
+
+/* ── 인쇄 시트 — 화면엔 안 보인다. 실제 인쇄에서만 켜진다 ── */
+.zb-print-sheets { display: none; }
+@media print {
+  /* zinebook은 showChrome 페이지(홈·스토리·about·아카이브)에서만 존재한다 — 그 페이지의
+     평소 콘텐츠(#main-content, 마스트헤드)와 CTA 바까지 같이 인쇄되면 진 시트 앞뒤로
+     엉뚱한 페이지가 끼어든다(실측으로 발견 — 처음엔 4장이 아니라 7장이 나왔다). 인쇄
+     전용 라우트(/print/)는 showChrome:false라 #main-content·.site-header 자체가
+     DOM에 없으므로 이 규칙이 거기엔 영향을 주지 않는다. */
+  #main-content, .site-header, .zb-cta { display: none !important; }
+  /* body.has-zb의 하단 여백(고정 CTA 바 자리)이 인쇄까지 새어 들어가면, 마지막 시트
+     뒤에 그 몇십 px짜리 빈 공간만을 위한 5번째 빈 페이지가 생긴다 — 실측으로 발견했다
+     (처음엔 정확히 4장이 아니라 5장이 나왔다). 인쇄에서는 0으로 되돌린다. */
+  body.has-zb { padding-bottom: 0 !important; }
+  /* [hidden] 쪽이 명시도가 더 높아서(0,2,0 > 0,1,0) 오버레이를 한 번도 열지 않은 채
+     인쇄를 시도하면(Ctrl+P 등, "Print Zine" 버튼을 안 거치는 경로) 아래 display:block이
+     졌었다 — 실측으로 발견했다. 선택자에 [hidden]을 같이 걸어 명시도를 맞춘다. */
+  .zb-overlay, .zb-overlay[hidden] {
+    position: static !important; inset: auto; background: #fff !important; color: #111 !important;
+    padding: 0 !important; display: block !important;
+  }
+  .zb-toolbar, .zb-viewer, .zb-nav, .zb-print-hint { display: none !important; }
+  .zb-print-sheets { display: block !important; }
+
+  .zb-sheet {
+    page: zb-landscape; width: 297mm; height: 210mm; margin: 0;
+    display: flex; break-inside: avoid; page-break-inside: avoid;
+    break-after: page; page-break-after: always;
+  }
+  .zb-sheet:last-child { break-after: auto; page-break-after: auto; }
+  .zb-half { position: relative; width: 148.5mm; height: 210mm; box-sizing: border-box; overflow: hidden; }
+  .zb-fold { width: 0; border-left: 1px dashed #ccc; }
+  @page zb-landscape { size: 297mm 210mm; margin: 0; }
+}
+`;
+
 const MOTION = `
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
@@ -636,7 +805,7 @@ const MOTION = `
 
 export function stylesheet(domains = []) {
   // 시스템 폰트만 쓰므로(2026-08-10) __BASE__ 접두사가 필요한 @font-face가 없다.
-  return [themeCSS(), domainCSS(domains), BASE, TYPE, CHROME, LAYOUT, COMPONENTS, ZINE, INTRO, REVEAL, PRINT, MOTION]
+  return [themeCSS(), domainCSS(domains), BASE, TYPE, CHROME, LAYOUT, COMPONENTS, ZINE, INTRO, REVEAL, PRINT, ZINEBOOK, MOTION]
     .join("\n")
     .trim() + "\n";
 }

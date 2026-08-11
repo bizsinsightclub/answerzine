@@ -56,10 +56,15 @@ function intro() {
  */
 const OG_IMAGE = { path: "/assets/img/og.png", width: 1200, height: 630 };
 
-export function page({ title, description, url, content, noindex = false, bodyClass = "", showChrome = true, printUrl = null, showIntro = false, categoryNav = [] }) {
+export function page({ title, description, url, content, noindex = false, bodyClass = "", showChrome = true, printUrl = null, showIntro = false, categoryNav = [], zinebook = "" }) {
   const full = title === SITE.name ? title : `${title} — ${SITE.name}`;
   const canonical = absolute(url ?? "/");
   const ogImage = absolute(OG_IMAGE.path);
+  // zinebook은 showChrome 페이지에만 붙는다 — 인쇄 전용 라우트(/print/)는 showChrome:false라
+  // 애초에 이 인자를 안 받는다(build.mjs). has-zb는 css.mjs가 하단 CTA 바 높이만큼
+  // body에 여백을 주는 데 쓴다.
+  const zb = showChrome ? zinebook : "";
+  const bodyClasses = [bodyClass, zb ? "has-zb" : ""].filter(Boolean).join(" ");
 
   return `<!doctype html>
 <html lang="ko">
@@ -86,9 +91,11 @@ ${noindex ? '<meta name="robots" content="noindex">' : ""}
 <link rel="stylesheet" href="${u("/assets/style.css")}">
 <script>${BOOT}</script>
 </head>
-<body class="${escapeHTML(bodyClass)}">
+<body class="${escapeHTML(bodyClasses)}">
 ${showChrome ? `${showIntro ? intro() : ""}\n<div id="main-content">\n${header(printUrl, categoryNav)}\n${content}\n</div>` : content}
+${zb}
 <script src="${u("/assets/app.js")}" defer></script>
+${zb ? `<script src="${u("/assets/zinebook.js")}" defer></script>` : ""}
 </body>
 </html>
 `;
@@ -112,6 +119,11 @@ ${showChrome ? `${showIntro ? intro() : ""}\n<div id="main-content">\n${header(p
  * 사이트가 처음부터 흰 배경 하나뿐이고(§1), 인트로도 이미지가 아니라 텍스트라
  * `logo-light`가 표시될 자리가 구조적으로 없었다(죽은 코드). 어두운 배경이 다시
  * 생기면 그때 다시 만든다.
+ *
+ * 2026-08-11 아홉 번째 라운드: "All" 링크가 `/`(홈, 카테고리 카드 그리드)를 가리켰는데,
+ * 사용자 요청으로 `/archive/`(전체 스토리 평면 목록)로 바꿨다 — "전체"를 눌렀을 때
+ * 카드 그리드가 아니라 실제 전체 목록이 나오는 게 더 직관적이라는 판단이다. 홈 자체는
+ * 여전히 로고 클릭(`.wordmark`)으로 간다.
  */
 function header(printUrl, categoryNav = []) {
   return h`<header class="site-header" style="padding-bottom:0">
@@ -122,7 +134,7 @@ function header(printUrl, categoryNav = []) {
       </a>
       <nav class="category-nav" aria-label="카테고리">
         <a href="${u("/about/")}">About</a>
-        <a href="${u("/")}">All</a>
+        <a href="${u("/archive/")}">All</a>
         ${categoryNav.map((c) =>
           raw(c.href ? h`<a href="${u(c.href)}">${c.name}</a>` : h`<span class="is-empty">${c.name}</span>`)
         )}

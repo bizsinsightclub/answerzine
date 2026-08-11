@@ -163,6 +163,12 @@ dist/2026-w31/print/index.html A4 인쇄 진
 > 요구해 되돌렸다. `/print/` 페이지에는 지금 백링크와 "인쇄 / PDF로 저장" 버튼이 함께 있다
 > (`[data-print]` → `window.print()`, `assets/app.js`).
 
+> **DIY 진 — 2026-08-11 아홉 번째 라운드 신규.** `/print/`(A4 세로 1장 요약지)와는 별개로,
+> 하단 고정 CTA("Create The Answer Zine")를 누르면 그 주 상위 4편을 접어 만드는 A4 가로
+> 2장짜리 8쪽 소책자를 3D 플립북으로 미리 보고 인쇄할 수 있다. 새 라우트가 아니라
+> showChrome 페이지(홈·스토리·about·아카이브)에 오버레이로 얹힌다
+> (`build/lib/render-zinebook.mjs`, `assets/zinebook.js`). 명세는 `design.md` §11.
+
 **런타임 의존성은 0이다.** `dist/`는 순수 정적 HTML·CSS·JS다 — 폰트는 2026-08-10부터 시스템
 헬베티카 스택이라 자체 호스팅하지 않는다(design.md §3). 빌드 단계 devDependency는
 `playwright`(A4·콘솔 검증, OG 카드) 하나뿐이다 — 사용자 승인 사항이다 (§7.3). `qrcode`는

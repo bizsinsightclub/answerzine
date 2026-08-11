@@ -22,6 +22,7 @@ import { renderIndex } from "./lib/render-index.mjs";
 import { renderArchive } from "./lib/render-archive.mjs";
 import { renderAbout } from "./lib/render-about.mjs";
 import { renderZinePreview } from "./lib/render-zine.mjs";
+import { renderZinebook } from "./lib/render-zinebook.mjs";
 import { copyAssets, writeFile } from "./lib/assets.mjs";
 import { setBase, getBase, u } from "./lib/site.mjs";
 
@@ -60,24 +61,32 @@ export async function build({ root = ROOT, out = join(ROOT, "dist"), quiet = fal
     href: latestByDomain(stories, d.key)?.url ?? null,
   }));
 
+  /* 하단 CTA → DIY 진 플립북/인쇄. 그 주(최신 회차) 편집 순서(점수순) 상위 4편을 쓴다
+     — issues[0]이 loadIssues()의 range 내림차순 정렬로 항상 최신이다(data.mjs). 한 번만
+     계산해 모든 showChrome 페이지에 그대로 물려준다(categoryNav와 같은 패턴). */
+  const latestIssue = issues[0] ?? null;
+  const latestStories = latestIssue ? stories.filter((s) => s.issue.issue === latestIssue.issue) : [];
+  const zinebook = renderZinebook({ issue: latestIssue, stories: latestStories });
+
   const write = (rel, content) => { writeFile(join(out, rel), content); files.push(rel); };
 
   /* ── 스타일·스크립트·파비콘 ── */
   write("assets/style.css", stylesheet(registry.domains));
   write("assets/app.js", readFileSync(join(root, "assets/app.js"), "utf8"));
+  write("assets/zinebook.js", readFileSync(join(root, "assets/zinebook.js"), "utf8"));
   write("assets/img/favicon.svg", FAVICON);
 
   /* ── 아카이브 인덱스 ── */
   const idx = renderIndex(issues, stories, registry);
-  write("index.html", page({ ...idx, url: "/", categoryNav }));
+  write("index.html", page({ ...idx, url: "/", categoryNav, zinebook }));
 
   /* ── 전체 아카이브 — 홈의 "전체 아카이브 보기" CTA가 여기로 온다 ── */
   const archive = renderArchive(stories);
-  write("archive/index.html", page({ ...archive, url: "/archive/", categoryNav }));
+  write("archive/index.html", page({ ...archive, url: "/archive/", categoryNav, zinebook }));
 
   /* ── About — 마스트헤드 상단 내비 맨 앞 링크 ── */
   const about = renderAbout();
-  write("about/index.html", page({ ...about, url: "/about/", categoryNav }));
+  write("about/index.html", page({ ...about, url: "/about/", categoryNav, zinebook }));
 
   /* ── 회차·스토리·인쇄 진 ──
      2026-08-08부터 회차 목록 페이지(/YYYY-wNN/)는 만들지 않는다 — 홈 아카이브가 이미
@@ -91,7 +100,7 @@ export async function build({ root = ROOT, out = join(ROOT, "dist"), quiet = fal
 
     for (const s of mine) {
       const st = renderStory(s, neighbors(stories, s.id));
-      write(`${issue.issue}/${s.slug}/index.html`, page({ ...st, url: s.url, categoryNav }));
+      write(`${issue.issue}/${s.slug}/index.html`, page({ ...st, url: s.url, categoryNav, zinebook }));
     }
   }
 
