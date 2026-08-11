@@ -8,9 +8,14 @@
  * 이 세션에 이미 확정한 헬베티카+화이트/블랙 톤을 그대로 쓴다(CLAUDE.md 참고).
  *
  * `quote.insight.note`는 2026-08-08에 화면에서 뺐다가 이번 개편으로 다시 보인다
- * (design.md §2 불변식 2번 갱신). 원본 프로토타입처럼 폭 전체에서 한 칼럼이다 —
- * 리드/레일로 쪼개지 않는다. 출처 링크는 항상 보인다 — hover에 의존하던
+ * (design.md §2 불변식 2번 갱신). 출처 링크는 항상 보인다 — hover에 의존하던
  * 프로토타입의 출처 노출(§9.9)은 그대로 해소돼 있다.
+ *
+ * 2026-08-11 일곱 번째 라운드: 넓은 화면에서 본문이 왼쪽에만 몰려 있다는 지적으로,
+ * design.md §5.2/5.3이 이미 정의해 두고도 구현되지 않았던 12칼럼 비대칭 그리드
+ * (본문 1/span 7 + 근거 레일 9/span 4)를 실제로 붙였다 — `.story-grid`/`.story-col`/
+ * `.story-rail`(스탯·출처·인사이트를 담는다). 1200px 미만에서는 그냥 위아래로
+ * 쌓인다(레일이 본문보다 먼저 나온다 — "무슨 일이 왜 중요한지 먼저" 순서 유지).
  */
 import { h, raw, escapeHTML } from "./html.mjs";
 import { u } from "./site.mjs";
@@ -95,15 +100,19 @@ export function renderStory(story, { prev, next } = {}) {
       <p class="byline">BY ${SITE.name} · ${story.domain} 데이터 기반</p>
     </header>
 
+    <div class="story-grid">
+      <aside class="story-rail">
 ${raw(statPanel(stat, story))}
-${raw(insightNote(quote, story))}
-
-    <div class="story-body" data-reveal>
-${raw(body)}
-    </div>
-
-${raw(pullquote(quote, story))}
 ${raw(sourceBox(stat))}
+${raw(insightNote(quote, story))}
+      </aside>
+      <div class="story-col">
+        <div class="story-body" data-reveal>
+${raw(body)}
+        </div>
+${raw(pullquote(quote, story))}
+      </div>
+    </div>
   </article>
 
   <nav class="nav-row">

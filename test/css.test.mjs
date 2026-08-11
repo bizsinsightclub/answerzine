@@ -48,12 +48,24 @@ test("본문 측정은 45~75자 범위 안이다", () => {
   assert.ok(ch >= 45 && ch <= 75, `measure ${ch}ch가 45~75 밖이다`);
 });
 
-test("넓은 화면에서도 리드/레일로 쪼개지 않는다 — 원본처럼 한 칼럼이다", () => {
-  assert.ok(!/grid-template-columns:\s*repeat\(12,/.test(css), "12칼럼 그리드가 남아 있다");
-  assert.ok(!/\.rail\b/.test(css), "레일 클래스가 남아 있다");
-  // sticky 자체는 금지가 아니다 — 인트로 크로스페이드(.intro-inner)가 정당하게 쓴다.
-  // 여기서 막는 건 예전 스탯 카드 사이드레일(≥1200px 고정)의 부활이다.
-  assert.ok(!/\.stat-card[^{]*\{[^}]*position:\s*sticky/.test(css), "스탯 카드가 다시 sticky 레일이 됐다");
+// 2026-08-11 일곱 번째 라운드 되돌림: 위 테스트("리드/레일로 쪼개지 않는다")는
+// 2026-08-10 목업 기반 개편 때 명시적으로 세운 규칙이었다. 그런데 사용자가 넓은
+// 화면에서 본문이 왼쪽에만 몰려 있다고 다시 지적했고, design.md §5.2/5.3이 원래
+// 정의해 뒀던 12칼럼 비대칭 그리드(본문 1/span 7 + 근거 레일 9/span 4)를 실제로
+// 구현하는 쪽으로 되돌렸다 — 그 스펙 자체는 이번 세션 초반부터 문서에 있었고 코드만
+// 안 따라갔던 것이다. 아래 테스트가 새 계약이다.
+test("≥1200px에서 본문·근거 레일 12칼럼 그리드로 넓게 쓴다", () => {
+  assert.match(css, /grid-template-columns:\s*repeat\(12,\s*1fr\)/, "12칼럼 그리드가 있어야 한다");
+  assert.match(css, /\.story-col\s*\{[^}]*grid-column:\s*1\s*\/\s*span\s*7/, "본문 칼럼이 1/span 7이어야 한다");
+  assert.match(css, /\.story-rail\s*\{[^}]*grid-column:\s*9\s*\/\s*span\s*4/, "레일이 9/span 4여야 한다");
+  // 레일 컨테이너(.story-rail)는 sticky여도 된다 — 여기서 막는 건 개별 .stat-card가
+  // 다시 자체적으로 sticky 레일이 되는 옛 패턴이다.
+  assert.ok(!/\.stat-card[^{]*\{[^}]*position:\s*sticky/.test(css), "스탯 카드 자체가 sticky면 안 된다");
+});
+
+test("1200px 미만에서는 본문·레일이 한 칼럼으로 쌓인다", () => {
+  const before1200 = css.slice(0, css.indexOf("min-width: 1200px"));
+  assert.match(before1200, /\.story-grid\s*\{\s*display:\s*block/, "기본값은 한 칼럼 쌓임이어야 한다");
 });
 
 test("768px 브레이크포인트가 있다", () => {

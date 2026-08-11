@@ -318,9 +318,29 @@ const COMPONENTS = `
   letter-spacing: .1em; text-transform: uppercase; color: var(--tertiary); text-align: center;
 }
 
-/* 2026-08-10 개편: 헤드라인 바로 아래(byline 다음)로 끌어올렸다 — 참고 목업의
-   .stat-panel처럼 라벨(왼쪽)과 수치(오른쪽)를 한 줄에 나란히 둔다. 출처 링크는
-   여기서 뺐다 — source-box로 분리해 본문 뒤로 옮겼다. */
+/* 2026-08-11 일곱 번째 라운드: 스토리 본문이 넓은 화면에서 왼쪽에만 몰려 있다는
+   지적 — .shell(1240px)은 넓은데 본문·스탯·인사이트가 전부 --measure(68ch)로
+   막혀 왼쪽 절반만 쓰고 있었다. design.md §5.2/5.3이 원래 정의해 둔 "본문 한 칼럼 +
+   근거 레일" 12칼럼 비대칭 그리드를 여기서 실제로 구현한다 — 문서만 있고 코드가
+   없던 스펙이다. 좁은 화면(<1200px)에서는 그냥 위아래로 쌓인다(기존과 동일한
+   시각 순서 — 스탯·출처·인사이트가 본문보다 먼저 나온다). ≥1200px에서만 두 칼럼:
+   본문 1/span 7, 레일 9/span 4(세로 괘선), 레일은 position: sticky로 스크롤에 붙는다. */
+.story-grid { display: block; }
+.story-rail { margin-bottom: var(--s6); }
+@media (min-width: 1200px) {
+  .story-grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: var(--s7); align-items: start; }
+  /* grid-row: 1을 명시하지 않으면 auto-placement 커서가 DOM 순서(레일이 먼저)를
+     따라가다가 본문(1/span 7, 레일보다 앞 칼럼)을 다음 행으로 밀어낸다 — 실측으로
+     발견했다(레일 아래 빈 칸이 본문 위로 그대로 옮겨 붙었었다). 두 칼럼 다 1행에
+     고정해야 나란히 앉는다. */
+  .story-col { grid-column: 1 / span 7; grid-row: 1; min-width: 0; }
+  .story-rail {
+    grid-column: 9 / span 4; grid-row: 1; min-width: 0; margin-bottom: 0;
+    border-left: 1px solid var(--divider); padding-left: var(--s6);
+    position: sticky; top: 96px;
+  }
+}
+
 .stat-card {
   background: var(--surface); border: 1px solid var(--divider); border-radius: 16px;
   padding: var(--s5); margin: 0 0 var(--s6); max-width: var(--measure);
