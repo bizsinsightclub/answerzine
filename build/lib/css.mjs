@@ -605,11 +605,13 @@ const INTRO = `
    가늘어 보일 수 있어, -webkit-text-stroke로 획 자체를 두껍게 겹쳐 그린다 — 어느
    폴백 폰트에서도 결과가 비슷하게 두꺼워진다. em 단위라 clamp된 글자 크기에
    비례해서 커진다(작은 화면에서 획이 과하게 두꺼워지지 않는다). 미지원 브라우저
-   (Firefox 등)는 이 속성만 조용히 무시하고 900 굵기로 보인다 — 깨지지 않는다. */
+   (Firefox 등)는 이 속성만 조용히 무시하고 900 굵기로 보인다 — 깨지지 않는다.
+   그 다음 라운드에 "아직 안 두껍다"는 피드백으로 .075em까지 올라갔다가, 이후
+   사용자 요청으로 한 단계 전인 .045em으로 되돌렸다. */
 .intro-word {
   display: block; font-family: var(--sans); font-weight: 900; letter-spacing: -.03em;
   font-size: clamp(72px, 21vw, 380px); line-height: .98; white-space: nowrap;
-  -webkit-text-stroke: .075em currentColor;
+  -webkit-text-stroke: .045em currentColor;
 }
 
 .intro-scroll {
