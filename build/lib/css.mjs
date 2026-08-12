@@ -387,12 +387,23 @@ const COMPONENTS = `
   letter-spacing: -.02em; -webkit-text-stroke: 2px currentColor;
   text-transform: uppercase; opacity: .16; pointer-events: none;
 }
-/* 모바일은 카드 폭 자체가 좁아 큰 글자가 부담스럽다 — 사용자 요청("모바일은 자간
-   넓혀도 될듯")으로 줄 높이를 데스크톱보다 느슨하게 하고, 글자 크기·라벨 폭도
-   함께 줄였다. justify-content: space-between은 데스크톱과 공유한다 — 카드
-   위아래를 꽉 채우는 건 화면 크기와 무관하게 적용돼야 하는 규칙이다. */
+/* 2026-08-12 열두 번째 라운드 — 사용자 요청: "모바일 뷰에서는 자간 좀더 좁혀줘
+   글자를 키우던지 늘리던지 해서." 열 번째 라운드("모바일은 자간 넓혀도 될듯")와는
+   방향이 반대다 — 그때는 촘촘한 간격(justify-content:center 시절)이 좁은 카드에서
+   너무 빽빽해 보인다는 지적이었는데, 열한 번째 라운드에서 justify-content:
+   space-between으로 바뀌면서 이번엔 반대로 짧은 단어(BOOKS·MUSIC)의 낱글자 사이
+   간격이 오히려 넓어 보이게 됐다 — 카드가 길고 글자가 작을수록 space-between이
+   글자 사이에 남기는 빈 칸이 커진다. 사용자가 스스로 짚은 해법대로("글자를
+   키우던지 늘리던지") 간격 자체를 손대지 않고 글자를 더 크게(font-size 64→92px)
+   하고 줄 높이도 늘려(line-height 1.05→1.4, 즉 각 글자가 차지하는 세로 칸을
+   키움) 간격을 흡수한다 — space-between은 글자가 차지하는 공간이 커질수록
+   자동으로 사이 간격이 좁아지는 구조라, 이 레버 하나로 목적을 이룬다. 실측
+   결과 카드 4개 중 3개(MOVIES·MUSIC·YOUTUBE)는 간격이 완전히 0으로 붙고,
+   헤드라인이 가장 긴 BOOKS만 카드 자체가 커서 약간의 간격(~20px)이 남는다 —
+   카드 높이는 헤드라인 줄 수가 정하므로 완전한 균일함은 이 구조상 못 만든다.
+   커진 글자에 맞춰 라벨 폭도 92→116px로 넓혔다. */
 @media (max-width: 640px) {
-  .category-card-tag { width: 92px; font-size: 64px; line-height: 1.05; }
+  .category-card-tag { width: 116px; font-size: 92px; line-height: 1.4; }
 }
 /* 2026-08-11 네 번째 라운드: PC 기준 40~48px 범위로 조정. 다섯 번째 라운드에서
    범위를 없애고 40px 고정값으로 좁혔다(사용자 요청 — "정확히 40pt"). 모바일에서도
