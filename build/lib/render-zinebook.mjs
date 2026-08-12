@@ -170,8 +170,9 @@ function coverBack() {
  *
  * 2026-08-12 여섯 번째 라운드 — 두 가지를 뺐다(사용자 요청): "Answer Zine은 여기서
  * 멈추지 않습니다." 한 문장과, 하단 QR+URL 띠 전체. QR은 이 페이지의 장식이 아니라
- * 페이지 7 전용 콘텐츠로 옮겼다(아래 `scanPanel()` 참고) — 본문 텍스트만 남아 페이지
- * 전체를 순수하게 쓴다.
+ * 페이지 7 전용 콘텐츠로 옮겼다 — 본문 텍스트만 남아 페이지 전체를 순수하게 쓴다.
+ * (QR 자체는 2026-08-12 스무 번째 라운드에서 페이지 7이 통합 인사이트로 바뀌며
+ * 없어졌다 — 아래 `insightPanel()` 참고.)
  */
 function aboutPanel() {
   return h`<div class="zb-panel zb-panel--about">
@@ -189,21 +190,29 @@ function aboutPanel() {
 }
 
 /**
- * 스캔 페이지(구 Notes, 논리 키는 여전히 "notes" — `SHEETS`/`FLIP_ORDER`가 물리 배치
- * 계약이라 키 이름은 그대로 둔다). 2026-08-12 여섯 번째 라운드 — 이전 디자인(줄 쳐진
- * 노트 배경 + "NOTES" 라벨 + 메모 안내문)을 전부 빼고, 페이지 정중앙에 QR 코드
- * 하나만 남긴다(사용자 요청 — "Leave only the QR code perfectly centered"). QR은
- * About 페이지(2쪽)에서 옮겨왔다 — 거기는 이제 순수 텍스트 페이지다.
+ * 통합 인사이트 페이지(구 Notes → 구 스캔 페이지, 논리 키는 여전히 "notes" —
+ * `SHEETS`/`FLIP_ORDER`가 물리 배치 계약이라 키 이름은 그대로 둔다. 이 페이지가 내용을
+ * 바꾼 건 이번이 세 번째다 — 처음엔 줄 쳐진 메모란이었고, 2026-08-12 여섯 번째
+ * 라운드에서 QR 스캔 페이지가 됐다).
  *
- * `qrSvg`가 없으면(로컬에서 `npm install` 없이 빌드한 경우) 캡션만 남기고 QR 자리를
- * 비운다 — 빌드는 그래도 성공해야 한다(§2.2). URL 텍스트는 안 낸다 — 사용자 요청이
- * "QR + 'Scan for Mobile' 캡션, 그 외 없음"으로 명확했다.
+ * 2026-08-12 스무 번째 라운드 — 사용자 요청("page 7 삭제하고, UNEXPECTED & 오른쪽에
+ * 적혀있는 문단을 page 7 가운데 정렬+중간 맞춤으로 넣어줘")으로 QR을 완전히 빼고, 홈의
+ * 통합 인사이트(`.insight-lead` — 왼쪽 큰 단어 `issue.insight` + 오른쪽 분석 문단
+ * `issue.insightNote`, render-index.mjs 참고)를 그대로 옮겨왔다. 웹에서는 좌우 2단
+ * flex였지만 여기는 "가운데 정렬 + 중간 맞춤"이 요구라 한 칼럼으로 세로로 쌓고
+ * 페이지 정중앙(가로·세로 둘 다)에 놓는다 — `.zb-panel--insight`가 flex로 양 축을
+ * 다 가운데 맞추고, 안의 두 줄(`zb-insight-word`/`zb-insight-para`)은
+ * `text-align:center`다. QR·URL·"Scan for Mobile" 캡션은 전부 없어졌다 — 이 페이지의
+ * 목적이 "모바일로 이어준다"에서 "이번 호를 한 문장+한 문단으로 요약한다"로 바뀌었다.
  */
-function scanPanel({ qrSvg }) {
-  return h`<div class="zb-panel zb-panel--scan">
-  <div class="zb-scan-center">
-    ${qrSvg ? raw(`<div class="zb-qr zb-qr--large" aria-hidden="true">${qrSvg}</div>`) : ""}
-    <p class="zb-scan-caption">Scan for Mobile</p>
+function insightPanel(issue) {
+  const word = issue?.insight ?? "";
+  const note = issue?.insightNote ?? "";
+  if (!word && !note) return `<div class="zb-panel zb-panel--insight"></div>`;
+  return h`<div class="zb-panel zb-panel--insight">
+  <div class="zb-insight-center">
+    ${word ? raw(h`<p class="zb-insight-word">${word}</p>`) : ""}
+    ${note ? raw(h`<p class="zb-insight-para">${note}</p>`) : ""}
   </div>
 </div>`;
 }
@@ -241,6 +250,13 @@ function citationLine(stat, anchorDate) {
   return [outlet, date, stat.sourceUrl].filter(Boolean).join(" · ");
 }
 
+/** 배경 워터마크용 세로 글자 — 홈 카테고리 카드(render-index.mjs verticalLabel())와
+    같은 기법이다. 한 글자당 <span> 하나, flex column + space-between으로 워터마크
+    폭 전체에 고르게 펼쳐진다. 여기서 별도로 정의하는 이유는 이 파일이 스스로 완결된
+    렌더 모듈이라서다(splitCoverWord()도 같은 이유로 layout.mjs에서 안 끌어왔다). */
+const verticalWatermark = (label) =>
+  raw(label.split("").map((ch) => h`<span>${ch}</span>`).join(""));
+
 /**
  * 기사 페이지 — 2026-08-11 전면 확장. 예전엔 헤드라인+티저+스탯+쿼트뿐이라 웹 스토리의
  * 축약본이었다("promotional summary"). 사용자 요청대로 5블록 전부(현상→스탯→맥락→
@@ -252,6 +268,14 @@ function citationLine(stat, anchorDate) {
  * 도메인명)에서 영문 도메인명 하나("MOVIE")만, 우측 상단으로 바꿨다(사용자 요청).
  * `story.domainMeta.nameEn`(registry.json 단일 소스, `allStories()`가 주입)을 대문자로
  * 쓴다 — 없으면(테스트용 목 데이터 등) 한글 도메인명으로 되돌아간다.
+ *
+ * 2026-08-12 스무 번째 라운드 — 그 우측 상단 작은 라벨을 거대한 세로 배경 워터마크로
+ * 바꿨다(사용자 요청, "Move Category Label to Background Watermark" — 홈 카테고리
+ * 카드의 `.category-card-tag`와 정확히 같은 문법). `.zb-article-watermark`는
+ * `aria-hidden`이고, 실제 라벨 텍스트는 `.sr-only` 형제가 낸다(낱글자 나열은
+ * 스크린 리더에 뜻이 없다 — render-index.mjs와 같은 이유). 흑백 규칙(요구사항 #5,
+ * ZINEBOOK CSS는 도메인 컬러를 참조하지 않는다)을 지키려고 워터마크 색은 항상
+ * 회색조 리터럴(#000, 낮은 불투명도)이다 — 도메인마다 색이 달라지지 않는다.
  */
 function articlePanel(story) {
   if (!story) {
@@ -264,7 +288,8 @@ function articlePanel(story) {
   const [t0, t1, t2] = texts;
   const domainLabel = story.domainMeta?.nameEn ? story.domainMeta.nameEn.toUpperCase() : story.domain;
   return h`<div class="zb-panel zb-panel--article">
-  <p class="zb-article-domain">${domainLabel}</p>
+  <span class="zb-article-watermark" aria-hidden="true">${verticalWatermark(domainLabel)}</span>
+  <span class="sr-only">${domainLabel}</span>
   <h2 class="zb-article-headline">${story.headline}</h2>
   ${t0 ? raw(h`<p class="zb-article-body">${t0.text}</p>`) : ""}
   ${stat ? raw(h`<div class="zb-stat">
@@ -284,13 +309,13 @@ function articlePanel(story) {
  * `stories`는 지금 홈 카드 그리드에 뜨는 도메인별 최신 스토리 — 모자라면(한 번도
  * 발행된 적 없는 도메인) null로 채워 결번을 낸다.
  */
-function buildPages({ stories, qrSvg }) {
+function buildPages({ issue, stories }) {
   const four = [0, 1, 2, 3].map((i) => stories[i] ?? null);
   return {
     "cover-front": coverFront(),
     "cover-back": coverBack(),
     about: aboutPanel(),
-    notes: scanPanel({ qrSvg }),
+    notes: insightPanel(issue),
     "article-1": articlePanel(four[0]),
     "article-2": articlePanel(four[1]),
     "article-3": articlePanel(four[2]),
@@ -370,9 +395,9 @@ function printSheetsHTML(pages) {
  * 문구가 (2)다 — 툴바 안이라 인쇄 버튼을 보는 순간 항상 같이 보이고, `.zb-toolbar`
  * 전체가 인쇄에서는 숨는 규칙(css.mjs)을 그대로 물려받아 실제 진 지면에는 안
  * 찍힌다. */
-export function renderZinebook({ issue, stories, qrSvg }) {
+export function renderZinebook({ issue, stories }) {
   if (!issue) return "";
-  const pages = buildPages({ stories, qrSvg });
+  const pages = buildPages({ issue, stories });
 
   return h`<button type="button" class="zb-cta" data-zb-open>Create The Answer Zine</button>
 <div class="zb-overlay" data-zb-overlay hidden>

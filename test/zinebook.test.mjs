@@ -10,7 +10,10 @@ import { renderZinebook, FLIP_ORDER, SHEETS } from "../build/lib/render-zinebook
 import { page } from "../build/lib/layout.mjs";
 import { stylesheet } from "../build/lib/css.mjs";
 
-const ISSUE = { issue: "2026-w31", range: "2026.07.24 – 08.09" };
+const ISSUE = {
+  issue: "2026-w31", range: "2026.07.24 – 08.09",
+  insight: "TESTWORD", insightNote: "테스트 통합 인사이트 문단입니다.",
+};
 
 function mockStory(n, domain) {
   return {
@@ -93,8 +96,10 @@ test("그리드 미리보기가 논리적 읽는 순서(표지→About→기사1
   const grid = html.slice(html.indexOf("data-zb-grid"), html.indexOf("zb-print-sheets"));
   // 각 논리 페이지를 식별하는 문자열이 이 순서대로 나오는지 인덱스로 확인한다.
   // 2026-08-12 여섯 번째 라운드 — 표지 eyebrow, "NOTES" 라벨이 텍스트째 빠져(사용자 요청)
-  // 클래스명(zb-wrap-canvas--front)·새 캡션("Scan for Mobile")으로 마커를 바꿨다.
-  const markers = ['zb-wrap-canvas--front', "About", "테스트 헤드라인 1", "테스트 헤드라인 2", "테스트 헤드라인 3", "테스트 헤드라인 4", "Scan for Mobile", 'aria-label="뒤표지'];
+  // 클래스명(zb-wrap-canvas--front)으로 마커를 바꿨다. 2026-08-12 스무 번째 라운드 —
+  // 7쪽(구 스캔 페이지) 마커를 "Scan for Mobile"에서 통합 인사이트 단어(ISSUE.insight)로
+  // 바꿨다 — 그 페이지 내용 자체가 바뀌었다.
+  const markers = ['zb-wrap-canvas--front', "About", "테스트 헤드라인 1", "테스트 헤드라인 2", "테스트 헤드라인 3", "테스트 헤드라인 4", ISSUE.insight, 'aria-label="뒤표지'];
   const idx = markers.map((m) => grid.indexOf(m));
   assert.ok(idx.every((i) => i > -1), `마커 중 못 찾은 게 있다: ${JSON.stringify(idx)}`);
   for (let i = 1; i < idx.length; i++) assert.ok(idx[i] > idx[i - 1], `${markers[i]}가 순서를 벗어났다`);
@@ -118,7 +123,7 @@ test("인쇄 시트 4장이 그 순서·좌우 배치대로 마크업에 나온�
   assert.ok(s1f.indexOf('aria-label="뒤표지') < s1f.indexOf("zb-wrap-canvas--front"), "Sheet1 앞면은 [뒤표지 | 앞표지] 순이어야 한다");
 
   const s1b = sheetsHTML.slice(sheetsHTML.indexOf('sheet1-back'), sheetsHTML.indexOf('sheet2-front'));
-  assert.ok(s1b.indexOf("About") < s1b.indexOf("Scan for Mobile"), "Sheet1 뒷면은 [About | 스캔] 순이어야 한다");
+  assert.ok(s1b.indexOf("About") < s1b.indexOf(ISSUE.insight), "Sheet1 뒷면은 [About | 통합 인사이트] 순이어야 한다");
 
   const s2f = sheetsHTML.slice(sheetsHTML.indexOf('sheet2-front'), sheetsHTML.indexOf('sheet2-back'));
   assert.ok(s2f.indexOf("테스트 헤드라인 4") < s2f.indexOf("테스트 헤드라인 1"), "Sheet2 앞면은 [기사4 | 기사1] 순이어야 한다");
@@ -146,17 +151,20 @@ test("기사 페이지가 5블록 전체를 낸다 — teaser 요약이 아니�
   assert.ok(!html.includes("테스트 티저 1"), "teaser가 남아 있다 — texts[0]와 중복된다");
 });
 
-test("기사 헤더가 영문 도메인명 하나만, 우측 상단 라벨로 나온다 — 2026-08-12 여섯 번째 라운드(사용자 요청)", () => {
+test("기사 헤더가 영문 도메인명 하나만, 배경 세로 워터마크로 나온다 — 2026-08-12 스무 번째 라운드(사용자 요청, 우측 상단 작은 텍스트를 대체)", () => {
   const withMeta = { ...mockStory(1, "영화"), domainMeta: { key: "movie", name: "영화", nameEn: "Movie" } };
   const html = renderZinebook({ issue: ISSUE, stories: [withMeta, ...FOUR.slice(1)] });
-  assert.match(html, /<p class="zb-article-domain">MOVIE<\/p>/);
+  assert.match(html, /<span class="zb-article-watermark" aria-hidden="true">(<span>[A-Z]<\/span>){5}<\/span>/, "MOVIE 다섯 글자가 낱글자 span으로 안 나온다");
+  assert.match(html, /<span class="sr-only">MOVIE<\/span>/, "스크린 리더용 도메인명이 없다");
+  // 예전 우측 상단 작은 텍스트 라벨(.zb-article-domain)은 완전히 없어졌다.
+  assert.ok(!html.includes("zb-article-domain"), "옛 작은 텍스트 라벨 클래스가 남아 있다");
   // 예전 "인사이트 NN/총 · 도메인" 번호 매기기는 완전히 없어졌다.
   assert.ok(!html.includes("인사이트 01"), "예전 번호 매기기 라벨이 남아 있다");
 });
 
 test("domainMeta가 없으면(테스트 목 데이터 등) 한글 도메인명으로 되돌아간다", () => {
   const html = renderZinebook({ issue: ISSUE, stories: FOUR }); // FOUR는 domainMeta 없음
-  assert.match(html, /<p class="zb-article-domain">영화<\/p>/);
+  assert.match(html, /<span class="sr-only">영화<\/span>/);
 });
 
 test("인쇄용 출처 한 줄이 클릭 유도 문구 없이 매체명 · 날짜 · URL로 나온다 — 2026-08-12 여섯 번째 라운드(사용자 요청, 인쇄물은 링크를 못 누른다)", () => {
@@ -181,23 +189,26 @@ test("한터차트·예스24는 날짜·URL 없이 매체명만 낸다 — 2026-
 });
 
 test("About 페이지는 순수 텍스트다 — QR·URL이 없다(2026-08-12 여섯 번째 라운드, 사용자 요청)", () => {
-  const html = renderZinebook({ issue: ISSUE, stories: FOUR, qrSvg: "<svg data-test-qr></svg>" });
+  const html = renderZinebook({ issue: ISSUE, stories: FOUR });
   const about = html.slice(html.indexOf('data-zb-grid'), html.indexOf("테스트 헤드라인 1"));
-  assert.ok(!about.includes("data-test-qr"), "About 쪽에 QR이 아직 남아 있다");
   assert.ok(!about.includes("전체 아카이브"), "About 쪽에 예전 QR 라벨이 남아 있다");
   assert.ok(!about.includes("Answer Zine은 여기서 멈추지 않습니다"), "삭제 요청받은 문장이 남아 있다");
 });
 
-test("스캔 페이지(7쪽)가 QR + 'Scan for Mobile' 캡션만 낸다(전달됐을 때) — 사용자 요청", () => {
-  const html = renderZinebook({ issue: ISSUE, stories: FOUR, qrSvg: "<svg data-test-qr></svg>" });
-  assert.match(html, /<div class="zb-qr zb-qr--large"[^>]*><svg data-test-qr><\/svg><\/div>/);
-  assert.match(html, /<p class="zb-scan-caption">Scan for Mobile<\/p>/);
+test("7쪽이 QR 대신 통합 인사이트(issue.insight + issue.insightNote)를 가운데 정렬로 낸다 — 2026-08-12 스무 번째 라운드(사용자 요청)", () => {
+  const html = renderZinebook({ issue: ISSUE, stories: FOUR });
+  assert.match(html, /<div class="zb-panel zb-panel--insight">/);
+  assert.match(html, new RegExp(`<p class="zb-insight-word">${ISSUE.insight}</p>`));
+  assert.match(html, new RegExp(`<p class="zb-insight-para">${ISSUE.insightNote}</p>`));
+  // QR·URL·구 캡션이 전부 없어졌는지 확인한다.
+  assert.ok(!html.includes("zb-qr"), "QR 마크업이 남아 있다");
+  assert.ok(!html.includes("Scan for Mobile"), "구 캡션이 남아 있다");
 });
 
-test("스캔 페이지 — qrSvg가 없어도(npm install 안 한 로컬) 빌드는 그대로 성공한다", () => {
-  const html = renderZinebook({ issue: ISSUE, stories: FOUR, qrSvg: null });
-  assert.ok(!html.includes('class="zb-qr'), "qrSvg가 없는데 QR 자리가 그려졌다");
-  assert.match(html, /Scan for Mobile/, "QR이 없어도 캡션은 남아야 한다");
+test("7쪽 — issue에 insight/insightNote가 없어도 빌드는 그대로 성공한다(빈 패널)", () => {
+  const bareIssue = { issue: "2026-w31", range: "2026.07.24 – 08.09" };
+  const html = renderZinebook({ issue: bareIssue, stories: FOUR });
+  assert.match(html, /<div class="zb-panel zb-panel--insight"><\/div>/);
 });
 
 test("출처 링크가 항상 보인다 — §9.9와 같은 원칙", () => {

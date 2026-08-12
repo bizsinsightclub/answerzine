@@ -948,9 +948,14 @@ body.has-zb { padding-bottom: 0; }
   transform: scale(calc(100cqw / 561px)); transform-origin: top left;
 }
 /* ── 콘텐츠 패널 — 표지·About·Notes·기사 넷, 미리보기·인쇄 공용 ── */
+/* 2026-08-12 스무 번째 라운드 — 좌우 여백을 30px→18px로 줄였다(사용자 요청,
+   "Maximize Content Width... Reduce Lateral Padding"). 위아래도 34px→28px로 살짝
+   줄여 그만큼 콘텐츠가 쓸 수 있는 영역을 넓혔다. 표지(.zb-panel--cover)의 랩어라운드
+   캔버스(zb-wrap-viewport)는 이 패딩과 무관하다 — absolute 자식의 컨테이닝 블록은
+   조상의 패딩 박스 기준이라 패딩 값이 바뀌어도 561px 폭 계산이 그대로 유지된다. */
 .zb-panel {
   display: flex; flex-direction: column; box-sizing: border-box;
-  padding: 34px 30px; background: #fff; color: #111; font-family: var(--serif);
+  padding: 28px 18px; background: #fff; color: #111; font-family: var(--serif);
   overflow: hidden;
 }
 .zb-half .zb-panel { position: absolute; inset: 0; }
@@ -998,18 +1003,22 @@ body.has-zb { padding-bottom: 0; }
 .zb-panel--about { justify-content: flex-start; }
 .zb-about-body p { font-size: 19px; line-height: 1.7; margin: 0 0 20px; color: #222; }
 
-/* 스캔 페이지(7쪽, 구 Notes) — 2026-08-12 여섯 번째 라운드 신규. QR 하나만 페이지
-   정중앙에 두고(사용자 요청 — "perfectly centered"), 그 밑에 "Scan for Mobile" 캡션.
-   About 페이지에 있던 QR(zb-qr)을 그대로 옮겨왔다 — 인쇄 크기에 맞춰 더 크게
-   키웠다(92px→160px, --large 모디파이어). */
-.zb-panel--scan { align-items: center; justify-content: center; }
-.zb-scan-center { display: flex; flex-direction: column; align-items: center; gap: 18px; }
-.zb-qr { flex-shrink: 0; width: 92px; height: 92px; }
-.zb-qr svg { display: block; width: 100%; height: 100%; }
-.zb-qr--large { width: 160px; height: 160px; }
-.zb-scan-caption {
-  font-family: var(--sans); font-weight: 700; font-size: 15px; letter-spacing: .04em;
-  color: #111; margin: 0;
+/* 통합 인사이트 페이지(7쪽, 구 Notes → 구 스캔 페이지) — 2026-08-12 스무 번째
+   라운드(사용자 요청, "page 7 삭제하고 UNEXPECTED & 오른쪽 문단을 page 7 가운데
+   정렬+중간 맞춤으로"). QR(.zb-qr 등)은 완전히 없앴다 — 홈의 issue.insight(큰 단어) +
+   issue.insightNote(분석 문단)를 그대로 옮겨와 페이지 정중앙(가로·세로 둘 다)에
+   낸다. .zb-panel--insight가 flex로 양 축을 가운데 맞추고, 안의 두 줄은
+   text-align:center — "가운데 정렬"이 요구한 게 왼쪽 정렬이던 웹(.issue-insight-note)
+   과 달리 인쇄판은 문단까지 전부 중앙 정렬이다. */
+.zb-panel--insight { align-items: center; justify-content: center; }
+.zb-insight-center { display: flex; flex-direction: column; align-items: center; gap: 20px; max-width: 440px; }
+.zb-insight-word {
+  font-family: var(--sans); font-weight: 900; font-size: 56px; line-height: 1.05;
+  letter-spacing: -.02em; text-align: center; margin: 0;
+}
+.zb-insight-para {
+  font-family: var(--serif); font-size: 16px; line-height: 1.7; color: #333;
+  text-align: center; margin: 0;
 }
 
 /* 기사 페이지 — 2026-08-11 전면 확장(사용자 요청, "same editorial quality and
@@ -1019,22 +1028,44 @@ body.has-zb { padding-bottom: 0; }
    페이지를 fully 사용")으로 전 요소의 line-height·margin을 다시 키웠다. 헤더가
    "인사이트 NN/총 · 도메인"(흐름을 차지하는 문단)에서 우측 상단 절대 위치 라벨
    (.zb-article-domain)로 바뀌면서 그만큼 흐름 공간이 남아 여유가 생겼다 — 실측
-   (build/verify.mjs의 콘텐츠 잘림 검사)으로 한 페이지 안에 들어오는 걸 확인했다. */
-.zb-panel--article { position: relative; }
-.zb-article-domain {
-  position: absolute; top: 34px; right: 30px; z-index: 2;
-  font-family: var(--sans); font-size: 11px; font-weight: 700; letter-spacing: .12em;
-  text-transform: uppercase; color: #666; margin: 0;
+   (build/verify.mjs의 콘텐츠 잘림 검사)으로 한 페이지 안에 들어오는 걸 확인했다.
+   2026-08-12 스무 번째 라운드 — 세로 공간을 페이지 전체에 걸쳐 쓰도록(사용자 요청,
+   "Maximize Vertical Space & Eliminate Blank Bottom Gaps") justify-content:
+   space-between을 추가했다. .zb-panel이 이미 flex column이라(위 기본 규칙) 이 한
+   줄로 충분하다 — 예전엔 .zb-source에만 margin-top:auto를 걸어 그 앞의 빈 공간을
+   출처 줄 위 한 곳에 몰아넣었는데(짧은 기사일수록 쿼트/인사이트 블록과 출처 사이에
+   큰 여백 하나가 뭉쳐 보였다), 이제 space-between이 모든 블록 사이에 남는 공간을
+   고르게 나눠 배분한다 — 그래서 margin-top:auto를 뺐다(auto 마진이 있으면 flex
+   space-between이 무력화된다, 그 마진이 남는 공간을 전부 혼자 흡수해 버리기 때문).
+   각 블록에 남아 있는 margin-bottom 값들은 여전히 최소 간격(바닥값)으로 작동한다 —
+   콘텐츠가 페이지를 이미 꽉 채우면 space-between이 추가할 여유 공간이 없어 그
+   최소값 그대로 나온다. */
+.zb-panel--article { position: relative; z-index: 0; justify-content: space-between; }
+/* 배경 워터마크 — 2026-08-12 스무 번째 라운드, 우측 상단 작은 텍스트 라벨을 대체했다
+   (사용자 요청, "Move Category Label to Background Watermark" — 홈 카테고리 카드
+   .category-card-tag와 같은 문법: 세로로 쌓은 낱글자, 저채도, 콘텐츠보다 뒤 레이어).
+   흑백 규칙(요구사항 #5, ZINEBOOK CSS는 도메인 컬러를 참조하지 않는다)을 지키느라
+   색은 항상 검정 6% 불투명도다 — 도메인마다 안 달라진다. absolute+z-index:-1이라
+   flex 레이아웃(space-between 포함)에서 완전히 빠진다 — 다른 콘텐츠 블록의 간격
+   계산에 영향을 안 준다. .zb-panel--article의 z-index:0이 이 음수 z-index를 그
+   패널 안에 가둔다(안 그러면 옆 페이지로 새어나갈 수 있다, render-index.mjs의 같은
+   트릭과 동일한 이유). */
+.zb-article-watermark {
+  position: absolute; top: 0; right: 0; bottom: 0; width: 74px; z-index: -1;
+  display: flex; flex-direction: column; align-items: center; justify-content: space-between;
+  font-family: var(--sans); font-weight: 900; font-size: 58px; line-height: .8;
+  letter-spacing: -.02em; text-transform: uppercase; color: #000; opacity: .06; pointer-events: none;
 }
-.zb-article-headline { font-family: var(--sans); font-weight: 900; font-size: 26px; line-height: 1.22; letter-spacing: -.02em; margin: 6px 0 18px; }
-.zb-article-body { font-family: var(--serif); font-size: 13px; line-height: 1.8; margin: 0 0 16px; color: #222; }
+.zb-article-headline { font-family: var(--sans); font-weight: 900; font-size: 26px; line-height: 1.22; letter-spacing: -.02em; margin: 6px 0 18px; position: relative; z-index: 1; }
+.zb-article-body { font-family: var(--serif); font-size: 13px; line-height: 1.8; margin: 0 0 16px; color: #222; position: relative; z-index: 1; }
 .zb-article-body--close { margin-bottom: 0; }
-.zb-stat { display: flex; flex-direction: column; gap: 5px; padding: 14px 16px; border: 1px solid #ddd; margin: 0 0 18px; }
+.zb-stat { display: flex; flex-direction: column; gap: 5px; padding: 14px 16px; border: 1px solid #ddd; margin: 0 0 18px; position: relative; z-index: 1; break-inside: avoid; }
 .zb-stat-label { font-family: var(--sans); font-size: 9.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: #666; }
 .zb-stat-value { font-family: var(--sans); font-weight: 900; font-size: 18px; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
 .zb-quote {
   font-family: var(--serif); font-weight: 700; font-size: 14.5px; line-height: 1.65;
   padding-left: 14px; border-left: 2px solid #111; margin: 0 0 14px;
+  position: relative; z-index: 1; break-inside: avoid;
 }
 .zb-quote-label {
   display: block; font-family: var(--sans); font-weight: 700; font-size: 9.5px;
@@ -1043,9 +1074,10 @@ body.has-zb { padding-bottom: 0; }
 .zb-insight-note {
   font-family: var(--sans); font-size: 11px; line-height: 1.7; color: #444;
   background: #f7f7f5; border-left: 2px solid #111; padding: 12px 14px; margin: 0 0 18px;
+  position: relative; z-index: 1; break-inside: avoid;
 }
-.zb-source { font-family: var(--sans); font-size: 9.5px; line-height: 1.5; color: #777; margin-top: auto; padding-top: 12px; }
-.zb-empty-note { font-size: 13.5px; line-height: 1.7; color: #777; }
+.zb-source { font-family: var(--sans); font-size: 9.5px; line-height: 1.5; color: #777; margin: 0; padding-top: 12px; position: relative; z-index: 1; }
+.zb-empty-note { font-size: 13.5px; line-height: 1.7; color: #777; position: relative; z-index: 1; }
 
 /* ── 스티커 팔레트 — 미리보기 화면 하단(사용자 요청). 인쇄에는 안 나온다(도구지
    콘텐츠가 아니다) — 아래 @media print 블록이 숨긴다. 드래그·터치 로직은
