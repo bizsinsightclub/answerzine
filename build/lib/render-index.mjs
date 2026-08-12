@@ -18,6 +18,7 @@ import { h, raw, escapeHTML } from "./html.mjs";
 import { u } from "./site.mjs";
 import { dateline, SITE } from "./layout.mjs";
 import { latestByDomain, visibleDomains } from "./data.mjs";
+import { darken } from "./color.mjs";
 
 /** 여러 줄 제목 — 2026-08-12 사용자 요청("쉼표가 자연스럽게 오는 자리에 줄바꿈").
     `headlineLines`/`insightLines`처럼 정본 문자열을 줄 배열로 미리 쪼갠 표시용 필드가
@@ -30,22 +31,40 @@ const multiline = (lines) => raw(lines.map(escapeHTML).join("<br>"));
 const cardPalette = (d) =>
   d.cardColor ? `background:${d.cardColor};` : `background:var(--dc-${d.key});`;
 
-/* 카드 우측 상단 라벨 — 2026-08-11 열 번째 라운드까지는 도메인 한글명(d.name)을 그대로
+/* 카드 우측 세로 도메인 라벨 색 — 2026-08-12 사용자가 참고 스크린샷으로 지정했다.
+   cardColor와 같은 색상(hue) 계열이지만 훨씬 짙고 채도 높은 톤이다. 매번 손으로
+   고르지 않고 cardColor에서 명도만 낮춰 계산한다(color.mjs darken()) — 정본은
+   여전히 cardColor 하나뿐이다. cardColor가 없는 도메인(.is-dark 폴백)은 흰 글자
+   그대로 쓴다 — 이미 어두운 배경이라 별도 계산이 필요 없다. */
+const cardAccent = (d) => (d.cardColor ? darken(d.cardColor) : "#fff");
+
+/* 카드 라벨 — 2026-08-11 열 번째 라운드까지는 도메인 한글명(d.name)을 그대로
    냈다. 사용자 요청으로 영문(d.nameCard — registry.json 전용 필드, 마스트헤드가 쓰는
    d.nameEn과는 다른 복수형: Movies·Music·Books·YouTube)으로 바꿨다. nameCard가 없는
    도메인(카드에 안 나오는 dormant 도메인)은 한글로 되돌아간다 — 안전망일 뿐 실제로는
    호출되지 않는다(visibleDomains가 이미 걸러낸다). */
 const cardLabel = (d) => d.nameCard ?? d.name;
 
+/** 카드 라벨을 한 글자씩 세로로 쌓는다 — 2026-08-12 사용자가 참고 스크린샷으로 요청
+    ("우측 카테고리 세로 글"). 한 글자당 <span> 하나, flex column + space-between으로
+    카드 세로 폭 전체에 고르게 펼쳐진다(글자 수가 다른 "MUSIC"(5)·"MOVIES"(6)·
+    "BOOKS"(5)·"YOUTUBE"(7)가 전부 같은 글자 크기를 쓰면서도 카드 높이를 꽉 채운다). */
+const verticalLabel = (label) =>
+  raw(label.split("").map((ch) => h`<span>${ch}</span>`).join(""));
+
 /** 아직 스토리가 없는 도메인 — 색을 채우지 않는다. 근거(스토리)가 없는데
-    카드에만 색을 칠하면 "발행됐다"는 인상을 준다. */
+    카드에만 색을 칠하면 "발행됐다"는 인상을 준다. 세로 라벨은 색 있는 카드
+    전용 장식이라(cardAccent가 실제 배경색에서 계산된다) 빈 카드는 예전처럼
+    작은 가로 라벨로 남긴다 — 배경이 없는데 색 계산을 할 대상 자체가 없다. */
 const emptyCard = (d) => h`<div class="category-card is-empty">
-  <span class="category-card-tag">${cardLabel(d)}</span>
+  <span class="category-card-tag-empty">${cardLabel(d)}</span>
   <p class="category-card-status">아직 신호가 없다.</p>
 </div>`;
 
 const card = (d, s) => h`<a class="category-card${d.cardColor ? "" : " is-dark"}" data-reveal href="${u(s.url)}" style="${raw(cardPalette(d))}">
-  <span class="category-card-tag">${cardLabel(d)}${s.draft ? raw(' <span class="draft-flag">작업 중</span>') : ""}</span>
+  <span class="category-card-tag" aria-hidden="true" style="color:${cardAccent(d)}">${verticalLabel(cardLabel(d))}</span>
+  <span class="sr-only">${cardLabel(d)}</span>
+  ${s.draft ? raw('<span class="draft-flag">작업 중</span>') : ""}
   <h2 class="category-card-headline">${s.headlineLines ? multiline(s.headlineLines) : s.headline}</h2>
   <p class="category-card-teaser">${s.teaser}</p>
   <span class="category-card-date">최신 · ${s.range}</span>

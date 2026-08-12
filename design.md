@@ -459,15 +459,49 @@ site-header: position: sticky; top: 0 · 항상 화면 상단에 붙는다 · �
 
 ```
 그리드: repeat(2, 1fr) · gap 1px · 배경 --ink(칸 사이 괘선) · 640px 이하 1열 · 뷰포트 가장자리까지
-카드:   padding var(--s7) 10px var(--s5) · min-height 420px (바닥일 뿐 상한 아님)
+카드:   padding var(--s7) 96px var(--s5) 24px · min-height 420px (바닥일 뿐 상한 아님)
         가로 정렬 왼쪽(align-items:flex-start · text-align:left) · 세로 중앙(justify-content:center)
         기본: 배경 cardColor(밝은 파스텔) · 글자 --ink(검정)
         폴백(cardColor 없음): 배경 --dc-<key>(colorPaper, 어두운 톤) · 글자 흰색(.is-dark)
-태그:   우측 상단 절대 위치, 12px, uppercase · nameCard(영문, registry.json 전용 필드)
+세로 라벨(.category-card-tag): 우측 전체 높이, 폭 76px, 낱글자 <span> 세로 적재
+        (flex column + space-between) · 900 40px · 색 = darken(cardColor)(§아래 참고)
 헤드라인: 카드에서 가장 큰 글자, 80px 900 (2026-08-11 열 번째 라운드 — 40px에서 두 배)
         headlineLines가 있으면 <br>로 여러 줄(§데이터 계약 참고), 없으면 한 줄
 티저:   헤드라인 아래 한 줄, 28px (같은 라운드에서 14px→두 배)
 ```
+
+> **2026-08-12 여덟 번째 라운드 — 우측 태그를 세로 통 라벨로, 좌측 여백을 넓혔다.**
+> 사용자가 참고 스크린샷(핑크 배경의 영화 카드, 우측에 "MOVIES"가 한 글자씩 세로로
+> 크게 적재돼 있고 좌측 여백이 예전보다 넉넉한 예시)을 보내며 "4가지 모두 이 룰을
+> apply해줘"라고 요청.
+> - **좌측 여백**을 10px→24px로 넓혔다. 우측은 세로 라벨 밴드(76px + 여유 20px = 96px)
+>   만큼 패딩을 비워 헤드라인·티저 텍스트가 라벨과 안 겹치게 한다.
+> - **우측 태그**를 "12px 작은 가로 라벨"에서 "카드 전체 높이를 채우는 세로 글자
+>   더미"로 바꿨다. `render-index.mjs`의 `verticalLabel()`이 `nameCard`("MOVIES" 등)를
+>   한 글자씩 `<span>`으로 쪼개고, CSS가 `flex-direction:column; justify-content:
+>   space-between`으로 카드 세로 폭 전체에 고르게 편다 — 글자 수가 다른 도메인
+>   (MUSIC 5자·MOVIES 6자·BOOKS 5자·YOUTUBE 7자)도 전부 같은 글자 크기(40px)를
+>   쓰면서 카드 높이를 꽉 채운다(간격만 늘고 줄어든다). 시각적으로만 배열한 낱글자
+>   나열이라 `aria-hidden="true"`를 걸고, 실제 라벨 텍스트는 신설한 `.sr-only`
+>   유틸리티 클래스로 정상적인 한 단어("MOVIES")를 스크린 리더에 낸다.
+> - **색** — 참고 스크린샷의 세로 글자가 카드 배경(cardColor)과 같은 색상(hue)
+>   계열이지만 훨씬 짙고 채도 높은 톤이었다. `domains/registry.json`에 또 하나의
+>   수동 색 필드를 얹는 대신(cardColor·colorPaper·color 세 필드가 이미 있다),
+>   신설한 `build/lib/color.mjs`의 `darken(cardColor)`로 **계산**한다 — 정본은
+>   여전히 cardColor 하나뿐이다. 색상(hue)은 유지한 채 명도만 20%로 낮추고 채도를
+>   최소 55%까지 끌어올린다 — 파스텔 원색은 채도가 낮아 그대로 어둡게만 하면
+>   탁한 회갈색이 된다. **예외** — 원색이 채도 10% 미만인 무채색(예: music의
+>   `#E9E9E9`, 거의 회색)이면 채도를 억지로 끌어올리지 않는다. 무채색에서 hue는
+>   계산상 임의값(0=빨강)이라, 강제로 채도를 높이면 원래 색과 무관한 색(회색
+>   카드에 짙은 빨강)이 나온다 — 무채색은 무채색으로만 어둡게 한다.
+>   대비는 `test/color.test.mjs`가 4개 활성 도메인 전부 WCAG 큰 텍스트 기준(3:1,
+>   본문 기준 4.5:1이 아니다 — 40px 900은 "large text"에 해당한다)으로 검증한다.
+> - **빈 카드(스토리 없음)** 는 이 처리에서 뺐다 — 세로 라벨 색 계산이 cardColor
+>   (실제 배경색)를 전제하는데, 빈 카드는 근거 없이 색을 안 칠하는 표면(§7.2)이라
+>   전제 자체가 성립하지 않는다. 예전의 작은 가로 라벨(`.category-card-tag-empty`로
+>   이름을 바꿨다)을 그대로 남긴다.
+> - **draft 배지**(작업 중)는 우측 상단이 세로 라벨 자리가 되면서 헤드라인 위
+>   흐름으로 옮겼다.
 
 > **2026-08-12 — 좌측 정렬로 되돌림 + 헤드라인 줄바꿈 도입.** 두 가지 사용자 요청:
 > 1. **가로 정렬을 다시 왼쪽으로.** 2026-08-11 여섯 번째 라운드에서 세로·가로 모두

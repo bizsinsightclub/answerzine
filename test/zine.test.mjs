@@ -163,6 +163,26 @@ test("onclick을 쓰지 않는다 — 카드는 순수 링크다", () => {
   assert.match(content, /<a class="category-card(?: is-dark)?"/);
 });
 
+test("우측 세로 도메인 라벨 — 한 글자씩 <span>으로 쌓이고, 실제 라벨은 sr-only로 낸다 — 2026-08-12 사용자 요청(참고 스크린샷)", () => {
+  const withCardColor = { domains: REG.domains.map((d) => ({ ...d, cardColor: "#F890CD", nameCard: "MOVIES" })) };
+  const { content } = renderIndex([ISSUE], stories, withCardColor);
+  // 낱글자가 각각 <span>으로 나온다 — 연속 문자열 "MOVIES"는 aria-hidden 태그 안에
+  // 없어야 한다(스크린 리더가 한 글자씩 읽지 않도록).
+  assert.match(content, /<span class="category-card-tag" aria-hidden="true" style="color:#[0-9a-f]{6}">(?:<span>[A-Z]<\/span>){6}<\/span>/);
+  assert.match(content, /<span class="sr-only">MOVIES<\/span>/);
+});
+
+test("cardColor가 없는 도메인(.is-dark 폴백)도 세로 라벨을 쓴다 — 색만 흰색으로 고정된다", () => {
+  const { content } = renderIndex([ISSUE], stories, REG); // REG는 cardColor가 없다
+  assert.match(content, /<span class="category-card-tag" aria-hidden="true" style="color:#fff">/);
+});
+
+test("스토리가 없는 빈 카드는 세로 라벨이 아니라 예전 작은 가로 라벨을 쓴다 — 세로 라벨 색은 cardColor에서 계산되는데 빈 카드는 배경색이 없다", () => {
+  const emptyReg = { domains: [...REG.domains, { key: "stage", name: "공연" }] };
+  const { content } = renderIndex([ISSUE], stories, emptyReg);
+  assert.match(content, /<span class="category-card-tag-empty">공연<\/span>/);
+});
+
 test("draft 회차의 최신 스토리 카드엔 '작업 중' 배지가 붙는다", () => {
   // noindex는 스토리 페이지 자체의 일이다 (render.test.mjs "draft 스토리는 noindex를 요청한다").
   const draft = { ...ISSUE, status: "draft" };

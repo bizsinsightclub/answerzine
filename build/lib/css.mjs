@@ -62,6 +62,16 @@ body { letter-spacing: 0; }
 img { max-width: 100%; height: auto; display: block; }
 a { color: inherit; }
 
+/* 화면엔 안 보이지만 스크린 리더는 읽는 텍스트 — 2026-08-12 홈 카테고리 카드의
+   세로 글자 라벨(.category-card-tag, aria-hidden)과 짝을 이룬다. 시각적으로는
+   글자를 한 자씩 쌓아 장식하지만, 그 낱글자 나열 자체는 스크린 리더에 뜻이 없다
+   (예: "M" "O" "V" "I" "E" "S"를 하나씩 읽는다) — 실제 도메인명은 이 클래스로
+   숨겨서 정상적인 한 단어로 낸다. */
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
+}
+
 /* 브라우저가 그리는 표면도 팔레트에서 지정한다.
    impeccable craft-floor: "the parts you did not draw still carry the design." */
 ::selection { background: var(--ink); color: var(--bg); }
@@ -295,22 +305,47 @@ const COMPONENTS = `
    요청해 가로 정렬만 다시 왼쪽으로 뒤집었다(align-items:center→flex-start,
    text-align:center→left). 세로 중앙 정렬(justify-content:center)은 그대로 둔다 —
    요청이 가로 정렬 한정이었다. */
+/* 2026-08-12 여덟 번째 라운드 — 사용자가 참고 스크린샷으로 좌측 여백·우측 세로
+   도메인 라벨·라벨 색까지 지정했다. 왼쪽은 24px로 넓혔다(예전 10px보다 숨 쉴 틈을
+   더 준다). 오른쪽은 세로 라벨 밴드(.category-card-tag, 아래) 폭만큼 96px를
+   비워 헤드라인·티저 텍스트가 라벨과 안 겹치게 한다. */
 .category-card {
   position: relative; display: flex; flex-direction: column; align-items: flex-start;
   justify-content: center; text-align: left;
-  min-height: 420px; padding: var(--s7) 10px var(--s5); text-decoration: none;
+  min-height: 420px; padding: var(--s7) 96px var(--s5) 24px; text-decoration: none;
   color: var(--ink);
 }
 /* cardColor가 없는 도메인의 폴백 — 어두운 colorPaper 배경이라 흰 글자가 필요하다. */
 .category-card.is-dark { color: #fff; }
 .category-card.is-dark .draft-flag { border-color: rgba(255,255,255,.6); color: #fff; }
+/* draft 배지가 세로 라벨 옆(우측 상단 절대 위치)이 아니라 헤드라인 위 흐름으로
+   옮겨갔다(2026-08-12 여덟 번째 라운드 — 세로 라벨이 그 자리를 차지하면서). */
+.category-card > .draft-flag { margin-bottom: var(--s3); }
 .category-card:hover .category-card-headline { text-decoration: underline; text-underline-offset: 4px; }
-/* 태그도 텍스트와 같은 10px 우측 여백으로 맞췄다 — 헤드라인만 좁히면 태그와
-   가장자리 거리가 안 맞아 보인다. */
-.category-card-tag {
+
+/* 빈 카드(스토리 없음, is-empty) 전용 — 색이 없는 무채색 표면이라 세로 라벨(아래)의
+   전제(cardAccent = cardColor에서 계산한 색)가 성립하지 않는다. 예전의 작은 가로
+   라벨을 그대로 남긴다. */
+.category-card-tag-empty {
   position: absolute; top: var(--s5); right: 10px;
   font-family: var(--sans); font-size: 12px; font-weight: 700; letter-spacing: .1em;
   text-transform: uppercase; opacity: .75;
+}
+
+/* 우측 세로 도메인 라벨 — 2026-08-12 여덟 번째 라운드 신규(사용자 요청, 참고
+   스크린샷). 한 글자당 <span> 하나(render-index.mjs verticalLabel()), flex column +
+   space-between으로 카드 세로 폭 전체에 고르게 펼쳐진다 — 글자 수가 다른
+   "MUSIC"(5)·"MOVIES"(6)·"BOOKS"(5)·"YOUTUBE"(7)가 전부 같은 글자 크기를 쓰면서도
+   카드 높이를 꽉 채운다(글자 사이 간격만 늘고 줄어든다). 글자색은 인라인
+   style(cardAccent, render-index.mjs)로 카드마다 다르게 들어간다 — CSS에는 굵기·
+   크기 같은 형태만 정의한다. aria-hidden 처리돼 있다 — 실제 라벨 텍스트는
+   .sr-only 형제 요소가 낸다(낱글자 나열은 스크린 리더에 뜻이 없다). */
+.category-card-tag {
+  position: absolute; top: 0; right: 0; bottom: 0; width: 76px;
+  display: flex; flex-direction: column; align-items: center; justify-content: space-between;
+  padding: 28px 0;
+  font-family: var(--sans); font-weight: 900; font-size: 40px; line-height: 1;
+  text-transform: uppercase;
 }
 /* 2026-08-11 네 번째 라운드: PC 기준 40~48px 범위로 조정. 다섯 번째 라운드에서
    범위를 없애고 40px 고정값으로 좁혔다(사용자 요청 — "정확히 40pt"). 모바일에서도
