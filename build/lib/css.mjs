@@ -333,18 +333,32 @@ const COMPONENTS = `
 }
 
 /* 우측 세로 도메인 라벨 — 2026-08-12 여덟 번째 라운드 신규(사용자 요청, 참고
-   스크린샷). 한 글자당 <span> 하나(render-index.mjs verticalLabel()), flex column +
-   space-between으로 카드 세로 폭 전체에 고르게 펼쳐진다 — 글자 수가 다른
-   "MUSIC"(5)·"MOVIES"(6)·"BOOKS"(5)·"YOUTUBE"(7)가 전부 같은 글자 크기를 쓰면서도
-   카드 높이를 꽉 채운다(글자 사이 간격만 늘고 줄어든다). 글자색은 인라인
-   style(cardAccent, render-index.mjs)로 카드마다 다르게 들어간다 — CSS에는 굵기·
-   크기 같은 형태만 정의한다. aria-hidden 처리돼 있다 — 실제 라벨 텍스트는
+   스크린샷). 한 글자당 <span> 하나(render-index.mjs verticalLabel()) — 글자 수가
+   다른 "MUSIC"(5)·"MOVIES"(6)·"BOOKS"(5)·"YOUTUBE"(7)가 전부 같은 글자 크기를
+   쓴다. 세로 배치 방식(간격을 촘촘히 모을지 꽉 채울지)은 아래 아홉 번째 라운드
+   주석 참고 — 여덟 번째 라운드 당시의 space-between 배치는 그때 대체됐다. 글자색은
+   인라인 style(cardAccent, render-index.mjs)로 카드마다 다르게 들어간다 — CSS에는
+   굵기·크기 같은 형태만 정의한다. aria-hidden 처리돼 있다 — 실제 라벨 텍스트는
    .sr-only 형제 요소가 낸다(낱글자 나열은 스크린 리더에 뜻이 없다). */
+/* 2026-08-12 아홉 번째 라운드 — 사용자 요청으로 더 두껍고("THICK"), 살짝 박스를
+   넘치는 느낌으로, 글자 사이는 더 촘촘하게 바꿨다. font-weight:900은 이미 상한값이라
+   (var(--sans) 시스템 스택엔 900 초과 웨이트가 없다) 더 굵어 보이게 하는 실제 레버는
+   둘이다 — (1) font-size를 40→58px로 키워 각 글자가 76px 폭 박스에 거의 맞닿거나
+   살짝 넘치게 하고(overflow를 clip하는 부모가 없어 실제로 카드 경계를 살짝 넘어간다),
+   (2) -webkit-text-stroke로 글자 윤곽에 한 겹을 더해 시각적 무게를 더한다(색은
+   인라인 style의 cardAccent를 그대로 따라가도록 currentColor). "글자 간격"은 가로
+   letter-spacing이 아니라 세로로 쌓인 글자 사이 간격을 말한다 — 예전엔
+   justify-content: space-between으로 카드 높이 전체에 고르게 펼쳤는데(단어 길이가
+   달라도 항상 꽉 채우려고), 그러면 글자 사이가 넓게 벌어져 보인다. justify-content:
+   center + line-height: .78로 바꿔 글자를 가운데로 촘촘히 모으고, 줄 높이를 줄여
+   글자 사이 여백 자체를 줄였다 — 단어 길이가 다르면 뭉치는 높이도 달라지지만(짧은
+   "BOOKS"는 작게, 긴 "YOUTUBE"는 크게 뭉친다), 그게 곧 사용자가 요청한 "약간
+   초과되는 느낌"과 맞아떨어진다(긴 단어일수록 위아래로 더 넘칠 수 있다). */
 .category-card-tag {
   position: absolute; top: 0; right: 0; bottom: 0; width: 76px;
-  display: flex; flex-direction: column; align-items: center; justify-content: space-between;
-  padding: 28px 0;
-  font-family: var(--sans); font-weight: 900; font-size: 40px; line-height: 1;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  font-family: var(--sans); font-weight: 900; font-size: 74px; line-height: .74;
+  letter-spacing: -.02em; -webkit-text-stroke: 1.5px currentColor;
   text-transform: uppercase;
 }
 /* 2026-08-11 네 번째 라운드: PC 기준 40~48px 범위로 조정. 다섯 번째 라운드에서
