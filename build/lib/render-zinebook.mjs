@@ -31,7 +31,6 @@
  * 기사)는 원래도 흰 배경·검정 글자였다.
  */
 import { h, raw, escapeHTML } from "./html.mjs";
-import { SITE } from "./layout.mjs";
 import { blocksOf } from "./data.mjs";
 
 /* ── 아이콘 ── 전부 인라인 SVG. 래스터 이미지를 새로 안 만든다(요구사항 #5). */
@@ -109,25 +108,30 @@ function coverBack() {
 /**
  * About + QR — 표지 바로 뒷장, 한 페이지 전체(사용자 요청 — "full booklet page, not
  * a small section"). QR은 여백에 뜬 장식이 아니라 하단 띠(zb-about-scan)에 "웹에서
- * 계속 갱신됩니다" 캡션 + URL 텍스트와 나란히 편집 요소로 구성한다 — /about/ 페이지의
- * 실제 문구(render-about.mjs)를 A5 지면에 맞게 줄여 재사용한다(내용 자체를 새로 짓지
- * 않는다 — 두 곳이 서로 다른 말을 하면 안 된다).
+ * 계속 갱신됩니다" 캡션 + URL 텍스트와 나란히 편집 요소로 구성한다.
+ *
+ * 2026-08-12 다섯 번째 라운드 — 사용자가 이 페이지 본문을 통째로 지정해 교체했다.
+ * `render-about.mjs`(웹의 /about/ 문구)를 줄여 재사용하던 이전 방식과 달리, 이 카피는
+ * 웹 About 페이지와 다른 문구다 — 명시적 요청이라 그대로 옮긴다(웹 /about/은 안 건드림).
+ * 제목은 "About"(36px, `.zb-about-title`) 하나뿐이고, 본문은 18~24px 사이에서 실측으로
+ * 페이지 높이에 맞춘 크기를 쓴다(`.zb-about-body p`). 문단 사이 여백으로 원문의 빈 줄을
+ * 표현하고, 한 문단 안의 개행은 `<br>`로 그대로 살린다.
  *
  * `qrSvg`가 없으면(로컬에서 `npm install` 없이 빌드한 경우) 캡션과 URL 텍스트만 남기고
  * QR 자리를 비운다 — 빌드는 그래도 성공해야 한다(§2.2).
  */
 function aboutPanel({ qrSvg, siteUrl }) {
   return h`<div class="zb-panel zb-panel--about">
-  <p class="zb-eyebrow">ABOUT ANSWER ZINE</p>
-  <h2 class="zb-heading">${SITE.tagline}</h2>
+  <h2 class="zb-about-title">About</h2>
   <div class="zb-about-body">
-    <p>순위는 결과다. 우리가 싣는 건 그 결과를 만든 계기다. 1위여도 이유를 못 대면 싣지
-    않고, 7위여도 이유가 선명하면 싣는다.</p>
-    <p>도메인마다 실 구매·실 소비 숫자를 1차 출처에서 가져오고, 그 변화를 만든 계기를
-    특정한다. 숫자와 계기 둘 다 공개 출처로 확인되지 않으면 후보에서 뺀다 — 확인 안
-    되는 숫자를 싣는 것보다 결번이 낫다고 본다.</p>
-    <p>이 8쪽은 그 주 통과분 중 네 편을 접어서 들고 다니는 판이다. 웹은 지금도 갱신되고
-    있다.</p>
+    <p>Answer Zine은 ‘트렌드 뉴스’가 아닙니다.</p>
+    <p>영화가 흥행했다.<br>책이 1위에 올랐다.<br>노래가 잘 팔렸다.<br>밈이 유행했다.</p>
+    <p>Answer Zine은 여기서 멈추지 않습니다.</p>
+    <p>그런데, 왜?</p>
+    <p>결과보다 이유를 봅니다.<br>순위보다 왜 팔렸는지를 봅니다.<br>유행보다 무엇이
+    유행을 만들었는지를 봅니다.</p>
+    <p>모두가 볼 수 있는 결과에서<br>아무도 묻지 않았던 이유를 찾아냅니다.</p>
+    <p>그게 Answer Zine이 보는 것입니다.</p>
   </div>
   <div class="zb-about-scan">
     ${qrSvg ? raw(`<div class="zb-qr" aria-hidden="true">${qrSvg}</div>`) : ""}

@@ -719,11 +719,20 @@ THE·ZINE은 오른쪽으로, ANSWER는 왼쪽으로 갈라지며 그 뒤의 아
 접었을 때 캔버스가 잘려 보인다. 속지(About·Notes·기사)는 원래도 흰 배경·검정 글자였다.
 
 **About 페이지는 표지 바로 뒷장, 페이지 전체를 쓴다**(사용자 요청 — "not a small section of
-an A4 page"). `render-about.mjs`(웹의 실제 About 문구)를 A5 지면에 맞게 줄여 재사용한다 —
-내용을 새로 짓지 않는다(두 곳이 서로 다른 말을 하면 안 된다). 하단에 `margin-top:auto`로
-고정한 QR 띠(`.zb-about-scan`)에 QR 코드(`qrcode` npm 패키지, 빌드 시점에 SVG로 굽는다 —
-§2.2 devDependency 참고) + "전체 아카이브" 라벨 + URL 텍스트를 나란히 놓는다 — 여백에 뜬
-장식이 아니라 편집 요소로 구성한다(사용자 요청).
+an A4 page"). 하단에 `margin-top:auto`로 고정한 QR 띠(`.zb-about-scan`)에 QR 코드
+(`qrcode` npm 패키지, 빌드 시점에 SVG로 굽는다 — §2.2 devDependency 참고) + "전체 아카이브"
+라벨 + URL 텍스트를 나란히 놓는다 — 여백에 뜬 장식이 아니라 편집 요소로 구성한다(사용자
+요청).
+
+> **본문 — 2026-08-12 다섯 번째 라운드, 사용자가 통째로 교체.** 처음엔
+> `render-about.mjs`(웹의 실제 About 문구)를 A5 지면에 맞게 줄여 재사용했다 — "두 곳이
+> 서로 다른 말을 하면 안 된다"는 원칙이었다. 이번 라운드에서 사용자가 이 페이지 전용
+> 카피를 직접 지정해 교체를 요청했다 — 웹 `/about/`과는 다른 문구다(웹 쪽은 안
+> 건드렸다). 제목은 "About" 하나, 36px(`.zb-about-title`). 본문은 시(詩)처럼 짧은
+> 문단이 이어지는 구조라 사용자가 준 범위(18~24px) 중 하한인 18px로 잡아야 QR 띠까지
+> 한 페이지 안에 들어왔다 — 실측(`build/verify.mjs`의 콘텐츠 잘림 검사)으로 확인했다.
+> 웹 About과 내용이 갈리는 걸 명시적으로 받아들인 예외이므로, 나중에 웹 `/about/`
+> 문구를 바꿀 일이 있어도 이 페이지를 자동으로 맞출 필요는 없다.
 
 **기사 페이지는 웹과 같은 5블록 전체를 낸다**(사용자 요청 — "same editorial quality and
 substance as the website... not a promotional summary"). `blocksOf(story)`의 texts[0]

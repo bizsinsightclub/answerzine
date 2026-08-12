@@ -47,7 +47,7 @@ test("그리드 미리보기가 논리적 읽는 순서(표지→About→기사1
   const html = renderZinebook({ issue: ISSUE, stories: FOUR });
   const grid = html.slice(html.indexOf("data-zb-grid"), html.indexOf("zb-print-hint"));
   // 각 논리 페이지를 식별하는 문자열이 이 순서대로 나오는지 인덱스로 확인한다.
-  const markers = ["ANSWER ZINE · 8P MINI ISSUE", "ABOUT", "테스트 헤드라인 1", "테스트 헤드라인 2", "테스트 헤드라인 3", "테스트 헤드라인 4", "NOTES", 'aria-label="뒤표지'];
+  const markers = ["ANSWER ZINE · 8P MINI ISSUE", "About", "테스트 헤드라인 1", "테스트 헤드라인 2", "테스트 헤드라인 3", "테스트 헤드라인 4", "NOTES", 'aria-label="뒤표지'];
   const idx = markers.map((m) => grid.indexOf(m));
   assert.ok(idx.every((i) => i > -1), `마커 중 못 찾은 게 있다: ${JSON.stringify(idx)}`);
   for (let i = 1; i < idx.length; i++) assert.ok(idx[i] > idx[i - 1], `${markers[i]}가 순서를 벗어났다`);
@@ -71,7 +71,7 @@ test("인쇄 시트 4장이 그 순서·좌우 배치대로 마크업에 나온�
   assert.ok(s1f.indexOf('aria-label="뒤표지') < s1f.indexOf("8쪽 진"), "Sheet1 앞면은 [뒤표지 | 앞표지] 순이어야 한다");
 
   const s1b = sheetsHTML.slice(sheetsHTML.indexOf('sheet1-back'), sheetsHTML.indexOf('sheet2-front'));
-  assert.ok(s1b.indexOf("ABOUT") < s1b.indexOf("NOTES"), "Sheet1 뒷면은 [About | Notes] 순이어야 한다");
+  assert.ok(s1b.indexOf("About") < s1b.indexOf("NOTES"), "Sheet1 뒷면은 [About | Notes] 순이어야 한다");
 
   const s2f = sheetsHTML.slice(sheetsHTML.indexOf('sheet2-front'), sheetsHTML.indexOf('sheet2-back'));
   assert.ok(s2f.indexOf("테스트 헤드라인 4") < s2f.indexOf("테스트 헤드라인 1"), "Sheet2 앞면은 [기사4 | 기사1] 순이어야 한다");

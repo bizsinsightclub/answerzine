@@ -822,12 +822,16 @@ body.has-zb { padding-bottom: 0; }
   font-family: var(--sans); font-size: 11px; font-weight: 700; letter-spacing: .14em;
   text-transform: uppercase; color: #666; margin: 0 0 12px;
 }
-.zb-heading { font-family: var(--sans); font-weight: 900; font-size: 25px; line-height: 1.16; letter-spacing: -.02em; margin: 0 0 16px; }
 
 /* About — 표지 바로 뒷장, 페이지 전체(사용자 요청 — "not a small section of an A4
-   page"). 본문이 위쪽 대부분을 채우고, margin-top:auto로 QR 띠를 바닥에 고정한다. */
+   page"). 본문이 위쪽 대부분을 채우고, margin-top:auto로 QR 띠를 바닥에 고정한다.
+   2026-08-12 다섯 번째 라운드 — 사용자가 본문 전체를 새 카피로 교체하며 제목 크기(36px)·
+   본문 크기(18~24px)를 직접 지정했다(render-zinebook.mjs aboutPanel() 주석 참고).
+   본문은 시(詩)처럼 짧은 문단이 이어지는 구조라 18px(범위 하한)로 잡아 QR 띠까지
+   한 페이지 안에 들어오게 실측했다. */
+.zb-about-title { font-family: var(--sans); font-weight: 900; font-size: 36px; line-height: 1.1; letter-spacing: -.02em; margin: 0 0 22px; }
 .zb-panel--about { justify-content: flex-start; }
-.zb-about-body p { font-size: 14.5px; line-height: 1.75; margin: 0 0 12px; color: #222; }
+.zb-about-body p { font-size: 18px; line-height: 1.5; margin: 0 0 14px; color: #222; }
 .zb-about-scan {
   margin-top: auto; padding-top: 20px; border-top: 1px solid #ddd;
   display: flex; align-items: center; gap: 16px;
