@@ -466,7 +466,8 @@ site-header: position: sticky; top: 0 · 항상 화면 상단에 붙는다 · �
         폴백(cardColor 없음): 배경 --dc-<key>(colorPaper, 어두운 톤) · 글자 흰색(.is-dark)
 세로 라벨(.category-card-tag): 우측 전체 높이, 데스크톱 폭 140px·900·120px·line-height .78,
         모바일(≤640px) 92px·64px·line-height 1.05(자간 더 느슨하게) · 낱글자 <span> 세로 적재
-        (flex column + center) · -webkit-text-stroke 1px · 색 = darken(cardColor)(§아래 참고)
+        (flex column + space-between, 2026-08-12 열한 번째 라운드부터 카드 위아래
+        가장자리까지 꽉 채운다) · -webkit-text-stroke 2px · 색 = darken(cardColor)(§아래 참고)
         · 2026-08-12 열 번째 라운드부터 z-index:-1 + opacity:.16 + pointer-events:none —
         헤드라인 뒤 배경 워터마크. 그래서 카드 우측 패딩도 96px→24px로 돌아갔다(§아래 참고).
 헤드라인: 카드에서 가장 큰 글자, 80px 900 (2026-08-11 열 번째 라운드 — 40px에서 두 배)
@@ -612,6 +613,21 @@ site-header: position: sticky; top: 0 · 항상 화면 상단에 붙는다 · �
 >   읽힌다. `.category-card-tag`는 이제 장식이 명확해져 `pointer-events: none`도
 >   같이 추가했다(원래도 aria-hidden 처리라 클릭 대상이 아니었지만, 이제 시각적
 >   레이어링과도 일치한다).
+
+> **2026-08-12 열한 번째 라운드 — 라벨이 카드 위아래를 꽉 채우게, 스트로크는 더
+> 굵게.** 사용자 요청: "문구가 공백없이 꽉차도록 수정 좀 더 볼드하게. 자간을
+> 좁히라는 얘기는 아니고." 열 번째 라운드에서 `justify-content: center`로 글자를
+> 카드 한가운데 뭉쳤더니, 짧은 단어(BOOKS·MUSIC)는 카드 위아래로 빈 공백이 크게
+> 남았다 — "공백없이 꽉차게"는 그 여백을 없애 달라는 뜻이었다. 사용자가 명시적으로
+> "자간(글자 사이 간격)을 좁히라는 게 아니다"라고 짚어서, 글자 사이를 더 좁히는
+> 방향이 아니라 `justify-content: space-between`으로 되돌려 **카드 세로 폭
+> 전체에 걸쳐 첫 글자~마지막 글자가 위아래 가장자리에 닿도록** 폈다(아홉 번째
+> 라운드 이전과 같은 배치 방식이지만, 이번엔 배경 워터마크 상태 그대로다 — 열
+> 번째 라운드의 z-index/opacity 레이어링은 그대로 유지). "더 볼드하게"는
+> `font-weight: 900`이 이미 상한이라 `-webkit-text-stroke`를 1px→2px로 굵혀
+> 받았다 — 불투명도(.16)는 그대로 둬서 헤드라인을 덮지 않는다는 열 번째 라운드
+> 전제가 안 깨지게 했다. Playwright 스크린샷(데스크톱·모바일)으로 4개 카드 모두
+> 라벨이 카드 위아래 가장자리에 닿는 것과 헤드라인 가독성을 확인했다.
 
 ### 스탯 카드 (근거 레일)
 

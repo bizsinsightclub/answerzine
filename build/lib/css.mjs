@@ -370,17 +370,27 @@ const COMPONENTS = `
    명시해 이 스태킹 컨텍스트를 그 카드 안에 가둔다(안 그러면 음수 z-index가 카드
    밖 — 옆 카드나 그리드 배경 — 으로 새어나갈 수 있다). aria-hidden·포인터 이벤트
    모두 원래도 장식용이라 pointer-events:none을 더해 안전하게 한다. */
+/* 2026-08-12 열한 번째 라운드 — 사용자 요청: "문구가 공백없이 꽉차도록 수정 좀
+   더 볼드하게. 자간을 좁히라는 얘기는 아니고." 배경 워터마크로 바뀐 뒤
+   justify-content: center로 글자를 카드 한가운데 뭉쳐놨더니, 짧은 단어(BOOKS·
+   MUSIC)는 카드 위아래로 빈 공백이 크게 남았다 — "공백없이 꽉차게"는 그 빈 위아래
+   공백을 없애 달라는 뜻이다. 명시적으로 "자간(글자 사이 간격)을 좁히라는 게
+   아니다"라고 짚었으므로, 열 번째 라운드 이전(space-between)으로 되돌린다 —
+   글자 사이를 좁히는 대신 카드 세로 폭 전체에 걸쳐 첫 글자~마지막 글자가 위아래
+   가장자리에 닿도록 편다. "더 볼드하게"는 font-weight:900이 이미 상한이라
+   -webkit-text-stroke를 1px→2px로 굵혀 받는다(불투명도 .16은 그대로 — 헤드라인을
+   덮지 않는다는 열 번째 라운드 전제는 안 바뀐다). */
 .category-card-tag {
   position: absolute; top: 0; right: 0; bottom: 0; width: 140px; z-index: -1;
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  display: flex; flex-direction: column; align-items: center; justify-content: space-between;
   font-family: var(--sans); font-weight: 900; font-size: 120px; line-height: .78;
-  letter-spacing: -.02em; -webkit-text-stroke: 1px currentColor;
+  letter-spacing: -.02em; -webkit-text-stroke: 2px currentColor;
   text-transform: uppercase; opacity: .16; pointer-events: none;
 }
-/* 모바일은 카드 폭 자체가 좁아 세로 낱글자가 촘촘하면 더 빽빽해 보인다 — 사용자
-   요청("모바일은 자간 넓혀도 될듯")으로 줄 높이를 풀어 글자 사이를 데스크톱보다
-   느슨하게 하고, 글자 크기·라벨 폭도 함께 줄였다(그래야 느슨해진 줄 높이만큼
-   전체 라벨이 카드 높이를 넘기지 않는다). */
+/* 모바일은 카드 폭 자체가 좁아 큰 글자가 부담스럽다 — 사용자 요청("모바일은 자간
+   넓혀도 될듯")으로 줄 높이를 데스크톱보다 느슨하게 하고, 글자 크기·라벨 폭도
+   함께 줄였다. justify-content: space-between은 데스크톱과 공유한다 — 카드
+   위아래를 꽉 채우는 건 화면 크기와 무관하게 적용돼야 하는 규칙이다. */
 @media (max-width: 640px) {
   .category-card-tag { width: 92px; font-size: 64px; line-height: 1.05; }
 }
