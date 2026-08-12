@@ -246,6 +246,21 @@ const CHROME = `
   font-family: var(--serif); font-weight: 400; font-size: 18px; line-height: 1.6;
   color: var(--secondary); margin: 0; flex: 1 1 320px; max-width: 44ch; text-align: left;
 }
+/* 2026-08-12 스물한 번째 라운드 — 사용자가 스크린샷으로 지정: insightNote 안의
+   인용부호로 감싼 리드 문장(§5.5 3단 구조의 1단, "장 제목이 재정의다" 기법)을
+   나머지 분석 문단과 시각적으로 분리한다 — 리드는 굵고 밝게, 분석 문단은 얇고
+   옅게. render-index.mjs의 splitInsightNote()가 문자열을 쪼개 이 두 클래스로
+   나눠 낸다. 리드 문장이 없는(인용부호로 안 시작하는) 과거 회차는 이 클래스들이
+   안 쓰이고 .issue-insight-note가 예전처럼 통짜 문단 하나로 남는다 — 기존 동작
+   보존. */
+.insight-note-lead {
+  font-family: var(--serif); font-weight: 700; font-size: 20px; line-height: 1.4;
+  color: var(--ink); margin: 0 0 var(--s3);
+}
+.insight-note-body {
+  font-family: var(--serif); font-weight: 400; font-size: 16px; line-height: 1.6;
+  color: var(--secondary); margin: 0;
+}
 
 .draft-flag {
   display: inline-block; font-family: var(--sans); font-size: 11px; font-weight: 700;

@@ -188,6 +188,18 @@ node tools/crop-png.mjs --matte <입력.png> <출력.png> [여백px]   # 여백 
 
 **자간 하한은 −0.04em이다.** 실사용은 −0.01 ~ −0.035em. `test/css.test.mjs`가 강제한다.
 
+> **2026-08-12 스물한 번째 라운드 — `issue.insightNote`를 리드+바디 두 줄로 시각
+> 분리.** CLAUDE.md §5.5가 이미 정의한 3단 구조("인용부호로 감싼 한 문장짜리 명제로
+> 연다" → 이번 호에서 어떻게 나타났는지 → 구조적 어휘로 확장)는 지금까지 화면에서
+> 한 문단(`.issue-insight-note`, 18px/400/`var(--secondary)`)으로만 보였다 —
+> 사용자가 스크린샷으로 그 1단(인용부호 문장)을 굵고 밝게, 나머지를 옅게 나눠 달라고
+> 요청했다. `render-index.mjs`의 `splitInsightNote()`가 문자열 선두의 `"…"` 패턴을
+> 정규식으로 찾아 리드(`.insight-note-lead`, 20px/700/`var(--ink)`)와 바디
+> (`.insight-note-body`, 16px/400/`var(--secondary)`)로 쪼갠다. 데이터 필드
+> (`issue.insightNote`)는 안 바뀐다 — 렌더링만 갈린다. 리드 패턴이 없는(인용부호로
+> 안 시작하는) 과거 회차 문구는 예전처럼 `.issue-insight-note` 통짜 문단 하나로
+> 남는다 — `test/zine.test.mjs`가 두 경로 다 검증한다.
+
 > 예전엔 여기서 "어두운 배경(Night)의 밝은 텍스트는 번져 보이므로 본문 자간을 양수로
 > 보정한다"고 적혀 있었다. 그 별도 보정은 실제 CSS(`body { letter-spacing: 0; }`)에 없던
 > 서술이었다 — 사이트가 흰 배경 하나뿐인 지금은 애초에 해당하지 않는다.

@@ -25,6 +25,29 @@ import { darken } from "./color.mjs";
     있으면 <br>로 이어 보여주고, 없으면 원래 한 줄 문자열을 그대로 쓴다(호출부에서 분기). */
 const multiline = (lines) => raw(lines.map(escapeHTML).join("<br>"));
 
+/** 통합 인사이트 부연설명(issue.insightNote)을 인용부호로 감싼 리드 문장과 그 뒤
+    분석 문단으로 쪼갠다(CLAUDE.md §5.5 3단 구조의 1단 — "인용부호로 감싼 한 문장짜리
+    명제로 연다"). 2026-08-12 스물한 번째 라운드 — 사용자가 스크린샷으로 지정: 화면에서
+    리드 문장은 굵고 밝게, 이어지는 분석 문단은 옅게 보이도록 별도 렌더한다. 문두가
+    큰따옴표로 시작하지 않으면(리드 없이 바로 분석 문단인 과거 회차) null을 돌려주고,
+    호출부가 예전처럼 통짜 문단 하나로 되돌아간다 — 그 형식의 기존 동작을 그대로
+    보존한다. */
+const LEAD_QUOTE = /^"([^"]+)"\s*(.*)$/s;
+function splitInsightNote(note) {
+  const m = LEAD_QUOTE.exec(note);
+  if (!m || !m[2].trim()) return null;
+  return { lead: `"${m[1]}"`, body: m[2].trim() };
+}
+
+function insightNoteHTML(note) {
+  const split = splitInsightNote(note);
+  if (!split) return h`<p class="issue-insight-note" data-reveal>${note}</p>`;
+  return h`<div class="issue-insight-note" data-reveal>
+  <p class="insight-note-lead">${split.lead}</p>
+  <p class="insight-note-body">${split.body}</p>
+</div>`;
+}
+
 /** 카드 배경·글자색. cardColor가 있으면 밝은 파스텔 + 검은 글자(기본), 없으면 예전처럼
     colorPaper(어두운 톤) + 흰 글자로 되돌아간다(.is-dark 모디파이어 — CSS가 인라인
     style 문자열을 뒤지지 않도록 클래스로 분기한다). */
@@ -154,7 +177,7 @@ export function renderIndex(issues, stories, registry) {
   <p class="dateline">WEEKLY ANSWER</p>
   <div class="insight-lead">
     ${latest?.insight ? raw(h`<h1 class="issue-insight" data-reveal>${latest.insightLines ? multiline(latest.insightLines) : latest.insight}</h1>`) : ""}
-    ${latest?.insightNote ? raw(h`<p class="issue-insight-note" data-reveal>${latest.insightNote}</p>`) : ""}
+    ${latest?.insightNote ? raw(insightNoteHTML(latest.insightNote)) : ""}
   </div>
 
   <div class="category-grid">

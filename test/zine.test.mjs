@@ -244,7 +244,28 @@ test("통합 인사이트가 헤드라인(h1)+부연설명(insightNote)으로 �
   const withNote = { ...ISSUE, insight: "헤드라인.", insightNote: "부연설명 문단." };
   const { content } = renderIndex([withNote], stories, REG);
   assert.match(content, /<h1 class="issue-insight"[^>]*>헤드라인\.<\/h1>/);
-  assert.match(content, /class="issue-insight-note"[^>]*>부연설명 문단\./);
+  // 인용부호로 시작하지 않는 문단은 예전처럼 <p> 하나로 통짜 렌더된다 — 리드/바디로
+  // 안 쪼개진다(아래 새 테스트가 쪼개지는 경우를 확인한다).
+  assert.match(content, /<p class="issue-insight-note" data-reveal>부연설명 문단\.<\/p>/);
+});
+
+test("insightNote가 인용부호로 시작하면 리드 문장(굵게)과 분석 문단(옅게)으로 쪼개 낸다 — 2026-08-12 스물한 번째 라운드(사용자 요청)", () => {
+  const withQuote = {
+    ...ISSUE, insight: "UNEXPECTED",
+    insightNote: '"짧은 명제가 있다." 그 뒤로 분석 문단이 이어진다. 문장이 더 있다.',
+  };
+  const { content } = renderIndex([withQuote], stories, REG);
+  assert.match(content, /<div class="issue-insight-note" data-reveal>/);
+  // h 태그드 템플릿이 큰따옴표를 &quot;로 이스케이프한다(escapeHTML() 통과 — §9.7).
+  assert.match(content, /<p class="insight-note-lead">&quot;짧은 명제가 있다\.&quot;<\/p>/);
+  assert.match(content, /<p class="insight-note-body">그 뒤로 분석 문단이 이어진다\. 문장이 더 있다\.<\/p>/);
+});
+
+test("insightNote가 인용부호로 시작하지만 뒤에 본문이 없으면(인용문뿐) 쪼개지 않는다", () => {
+  const quoteOnly = { ...ISSUE, insight: "UNEXPECTED", insightNote: '"이것뿐이다."' };
+  const { content } = renderIndex([quoteOnly], stories, REG);
+  assert.match(content, /<p class="issue-insight-note" data-reveal>&quot;이것뿐이다\.&quot;<\/p>/);
+  assert.ok(!content.includes("insight-note-lead"), "본문 없는 인용문인데도 쪼개졌다");
 });
 
 test("하단 페이저 — 전체 아카이브 링크는 항상 있고, 다음 주는 홈에서 늘 없다", () => {
