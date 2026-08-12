@@ -30,35 +30,52 @@
  * "THE ANSWER ZINE"이 페이지에 거의 꽉 차게 눌러 담긴 느낌을 노린다. 속지(About·Notes·
  * 기사)는 원래도 흰 배경·검정 글자였다.
  */
-import { h, raw, escapeHTML } from "./html.mjs";
+import { h, raw } from "./html.mjs";
 import { blocksOf } from "./data.mjs";
 
 /* ── 아이콘 ── 전부 인라인 SVG. 래스터 이미지를 새로 안 만든다(요구사항 #5). */
 const ICON = {
   close: `<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M5 5L19 19M19 5L5 19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`,
   print: `<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M6 9V3h12v6M6 18h12v3H6v-3zM3 9h18v7H3V9z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>`,
-  check: `<svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><rect x="1" y="1" width="14" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M4 8.5L6.5 11L12 5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
 };
 
 /**
- * 줄 쳐진 노트 배경 — 요구사항 #5(레이아웃 요소는 인라인 SVG).
+ * 진 꾸미기 스티커 — 2026-08-12 일곱 번째 라운드 신규(사용자 요청, 참고 이미지의
+ * 플랫 지오메트릭 스티커 그리드). 전부 인라인 SVG, 래스터 이미지 없음(요구사항 #5와
+ * 같은 원칙). 10종, 참고 이미지의 색·형태 어휘(원·부채꼴·아치·고리·반원·네잎클로버·
+ * 팩맨·점 4개·별·꽃)를 흑백이 아닌 원색으로 재현했다 — 스티커는 장식 레이어라
+ * "흑백만 쓴다"(요구사항 #5, 본문 규칙) 제약 밖이다.
  *
- * 각 논리 페이지 HTML은 한 번만 만들어 플립북·인쇄 두 군데에 그대로 재사용한다(파일
- * 맨 위 주석) — 그래서 이 SVG도 최종 문서에 두 번 나온다. `<pattern id="...">` +
- * `url(#...)` 참조 방식을 썼다가 문서에 같은 id가 두 번 생겨 패턴이 깨지는 걸
- * 실측으로 발견했다(id는 문서 전체에서 유일해야 한다). id 없이 `<line>`을 반복해
- * 찍는 방식으로 바꿔 그 문제 자체를 없앴다.
+ * `assets/zinebook.js`는 이 SVG를 직접 그리지 않는다 — 팔레트 칩의 `innerHTML`을
+ * 그대로 복제해 캔버스에 놓는다. 그래서 스티커 모양은 여기 한 곳에만 정의된다.
  */
-function notesRuleSVG() {
-  const rows = 20;
-  const gap = 280 / rows;
-  const lines = Array.from({ length: rows }, (_, i) => {
-    const y = (gap * (i + 1) - gap / 2).toFixed(1);
-    return `<line x1="0" y1="${y}" x2="200" y2="${y}" stroke="#d9d9d9" stroke-width="0.6"/>`;
-  }).join("");
-  // width/height="100%" 속성을 명시한다 — CSS의 calc() 퍼센트 크기가 SVG 루트에서
-  // 0×0으로 계산되는 경우가 있어(css.mjs .zb-notes-bg 주석 참고) 속성으로도 이중 지정한다.
-  return h`<svg class="zb-notes-bg" width="100%" height="100%" viewBox="0 0 200 280" preserveAspectRatio="none" aria-hidden="true">${raw(lines)}</svg>`;
+const STICKERS = [
+  { id: "circle-red", svg: `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="45" fill="#E8453C"/></svg>` },
+  { id: "quarter-yellow", svg: `<svg viewBox="0 0 100 100"><path d="M0 0 H100 A100 100 0 0 1 0 100 Z" fill="#F4B400"/></svg>` },
+  { id: "arch-pink", svg: `<svg viewBox="0 0 100 100"><path d="M10 92 V50 A40 40 0 0 1 90 50 V92 Z" fill="#F2A6C6"/></svg>` },
+  { id: "ring-green", svg: `<svg viewBox="0 0 100 100"><path d="M50 8 A42 42 0 1 1 8 50" fill="none" stroke="#1E8E5A" stroke-width="16" stroke-linecap="round"/></svg>` },
+  { id: "dome-blue", svg: `<svg viewBox="0 0 100 100"><path d="M50 5 A45 45 0 0 0 50 95 H10 V5 Z" fill="#1C4FA0"/></svg>` },
+  { id: "clover-orange", svg: `<svg viewBox="0 0 100 100"><path d="M50 50 L50 10 A40 40 0 0 1 90 50 Z M50 50 L90 50 A40 40 0 0 1 50 90 Z M50 50 L50 90 A40 40 0 0 1 10 50 Z M50 50 L10 50 A40 40 0 0 1 50 10 Z" fill="#E8720C"/></svg>` },
+  { id: "pacman-red", svg: `<svg viewBox="0 0 100 100"><path d="M50 50 L90 30 A45 45 0 1 1 90 70 Z" fill="#E8453C"/></svg>` },
+  { id: "dots-yellow", svg: `<svg viewBox="0 0 100 100"><circle cx="30" cy="30" r="18" fill="#F4B400"/><circle cx="70" cy="30" r="18" fill="#F4B400"/><circle cx="30" cy="70" r="18" fill="#F4B400"/><circle cx="70" cy="70" r="18" fill="#F4B400"/></svg>` },
+  { id: "burst-green", svg: `<svg viewBox="0 0 100 100"><path d="M50 5 L61 39 L95 39 L67 60 L78 95 L50 74 L22 95 L33 60 L5 39 L39 39 Z" fill="#1E8E5A"/></svg>` },
+  { id: "flower-blue", svg: `<svg viewBox="0 0 100 100"><circle cx="50" cy="25" r="22" fill="#1C4FA0"/><circle cx="75" cy="50" r="22" fill="#1C4FA0"/><circle cx="50" cy="75" r="22" fill="#1C4FA0"/><circle cx="25" cy="50" r="22" fill="#1C4FA0"/></svg>` },
+];
+
+/**
+ * 스티커 팔레트 — 미리보기 화면 하단(사용자 요청 — "on the bottom of the preview
+ * page"). 인쇄에는 안 나온다(`.zb-sticker-palette`를 `@media print`가 숨긴다) — 팔레트
+ * 자체는 도구지 콘텐츠가 아니다. 드래그·터치 로직은 전부 `assets/zinebook.js`가
+ * 맡는다 — 여기서는 마크업만 낸다.
+ */
+function stickerPaletteHTML() {
+  const chips = STICKERS.map(
+    (s) => h`<button type="button" class="zb-sticker-chip" data-zb-sticker="${s.id}" aria-label="스티커 놓기: ${s.id}">${raw(s.svg)}</button>`
+  );
+  return h`<div class="zb-sticker-palette" data-zb-sticker-palette>
+  <p class="zb-sticker-hint">스티커를 진 위로 끌어놓아 꾸며보세요. 놓은 스티커는 다시 끌어 옮길 수 있고, 두 번 탭하면 지워집니다.</p>
+  <div class="zb-sticker-tray">${raw(chips.join(""))}</div>
+</div>`;
 }
 
 /* ── 8개 논리 페이지 콘텐츠 빌더 ── 각자 한 번만 호출되고, 플립북·인쇄 양쪽에 그대로 꽂힌다. */
@@ -91,11 +108,15 @@ function wraparoundCanvas(side) {
 </div>`;
 }
 
+/**
+ * 2026-08-12 여섯 번째 라운드 — eyebrow·caption 텍스트를 뺐다(사용자 요청, "delete
+ * texts"). 랩어라운드 타이포만 남는다 — 위아래 여백은 `.zb-wrap-viewport`가
+ * `position:absolute; inset:0`로 패널 전체를 이미 차지하고 있어 텍스트를 빼도
+ * 레이아웃이 그대로다.
+ */
 function coverFront() {
   return h`<div class="zb-panel zb-panel--cover">
-  <p class="zb-cover-eyebrow">ANSWER ZINE · 8P MINI ISSUE</p>
   ${raw(wraparoundCanvas("front"))}
-  <p class="zb-cover-caption">직접 접어 만드는 8쪽 진 · 이번 호 큐레이션</p>
 </div>`;
 }
 
@@ -106,9 +127,8 @@ function coverBack() {
 }
 
 /**
- * About + QR — 표지 바로 뒷장, 한 페이지 전체(사용자 요청 — "full booklet page, not
- * a small section"). QR은 여백에 뜬 장식이 아니라 하단 띠(zb-about-scan)에 "웹에서
- * 계속 갱신됩니다" 캡션 + URL 텍스트와 나란히 편집 요소로 구성한다.
+ * About — 표지 바로 뒷장, 한 페이지 전체(사용자 요청 — "full booklet page, not
+ * a small section").
  *
  * 2026-08-12 다섯 번째 라운드 — 사용자가 이 페이지 본문을 통째로 지정해 교체했다.
  * `render-about.mjs`(웹의 /about/ 문구)를 줄여 재사용하던 이전 방식과 달리, 이 카피는
@@ -117,42 +137,66 @@ function coverBack() {
  * 페이지 높이에 맞춘 크기를 쓴다(`.zb-about-body p`). 문단 사이 여백으로 원문의 빈 줄을
  * 표현하고, 한 문단 안의 개행은 `<br>`로 그대로 살린다.
  *
- * `qrSvg`가 없으면(로컬에서 `npm install` 없이 빌드한 경우) 캡션과 URL 텍스트만 남기고
- * QR 자리를 비운다 — 빌드는 그래도 성공해야 한다(§2.2).
+ * 2026-08-12 여섯 번째 라운드 — 두 가지를 뺐다(사용자 요청): "Answer Zine은 여기서
+ * 멈추지 않습니다." 한 문장과, 하단 QR+URL 띠 전체. QR은 이 페이지의 장식이 아니라
+ * 페이지 7 전용 콘텐츠로 옮겼다(아래 `scanPanel()` 참고) — 본문 텍스트만 남아 페이지
+ * 전체를 순수하게 쓴다.
  */
-function aboutPanel({ qrSvg, siteUrl }) {
+function aboutPanel() {
   return h`<div class="zb-panel zb-panel--about">
   <h2 class="zb-about-title">About</h2>
   <div class="zb-about-body">
     <p>Answer Zine은 ‘트렌드 뉴스’가 아닙니다.</p>
     <p>영화가 흥행했다.<br>책이 1위에 올랐다.<br>노래가 잘 팔렸다.<br>밈이 유행했다.</p>
-    <p>Answer Zine은 여기서 멈추지 않습니다.</p>
     <p>그런데, 왜?</p>
     <p>결과보다 이유를 봅니다.<br>순위보다 왜 팔렸는지를 봅니다.<br>유행보다 무엇이
     유행을 만들었는지를 봅니다.</p>
     <p>모두가 볼 수 있는 결과에서<br>아무도 묻지 않았던 이유를 찾아냅니다.</p>
     <p>그게 Answer Zine이 보는 것입니다.</p>
   </div>
-  <div class="zb-about-scan">
-    ${qrSvg ? raw(`<div class="zb-qr" aria-hidden="true">${qrSvg}</div>`) : ""}
-    <div class="zb-about-scan-text">
-      <p class="zb-about-scan-label">전체 아카이브</p>
-      <p class="zb-about-scan-url">${escapeHTML(siteUrl)}</p>
-    </div>
+</div>`;
+}
+
+/**
+ * 스캔 페이지(구 Notes, 논리 키는 여전히 "notes" — `SHEETS`/`FLIP_ORDER`가 물리 배치
+ * 계약이라 키 이름은 그대로 둔다). 2026-08-12 여섯 번째 라운드 — 이전 디자인(줄 쳐진
+ * 노트 배경 + "NOTES" 라벨 + 메모 안내문)을 전부 빼고, 페이지 정중앙에 QR 코드
+ * 하나만 남긴다(사용자 요청 — "Leave only the QR code perfectly centered"). QR은
+ * About 페이지(2쪽)에서 옮겨왔다 — 거기는 이제 순수 텍스트 페이지다.
+ *
+ * `qrSvg`가 없으면(로컬에서 `npm install` 없이 빌드한 경우) 캡션만 남기고 QR 자리를
+ * 비운다 — 빌드는 그래도 성공해야 한다(§2.2). URL 텍스트는 안 낸다 — 사용자 요청이
+ * "QR + 'Scan for Mobile' 캡션, 그 외 없음"으로 명확했다.
+ */
+function scanPanel({ qrSvg }) {
+  return h`<div class="zb-panel zb-panel--scan">
+  <div class="zb-scan-center">
+    ${qrSvg ? raw(`<div class="zb-qr zb-qr--large" aria-hidden="true">${qrSvg}</div>`) : ""}
+    <p class="zb-scan-caption">Scan for Mobile</p>
   </div>
 </div>`;
 }
 
-function notesPanel() {
-  return h`<div class="zb-panel zb-panel--notes">
-  ${raw(notesRuleSVG())}
-  <div class="zb-notes-head">
-    <p class="zb-eyebrow">NOTES</p>
-    ${raw(ICON.check)}
-  </div>
-  <p class="zb-notes-hint">이번 호에서 다시 찾아볼 것, 사고 싶은 것, 확인하고 싶은 숫자 —
-  여백에 적어 둔다.</p>
-</div>`;
+/**
+ * 인쇄용 출처 한 줄 — 2026-08-12 여섯 번째 라운드 도입. 인쇄물은 링크를 못 누른다
+ * (사용자 요청 — "users cannot click links... replace with a detailed formal
+ * citation"). 웹의 `sourceLabel`("뉴스1 Nbox 확인하기" 같은 클릭 유도 문구)은 인쇄에서
+ * 뜻이 없다 — "확인하기" 같은 클릭 동사를 떼고, 매체명 · 확정된 기준일(`story.anchorDate`,
+ * 이미 검증된 날짜다) · 원본 URL 순서로 다시 조합한다.
+ *
+ * **한계— 저자·정확한 기사 제목은 못 채웠다.** 이번 세션은 네트워크 egress 프록시가
+ * 실제 출처 도메인(news1.kr·edaily.co.kr 등)을 차단해 원문을 열어 바이라인·정확한
+ * 표제를 확인할 수 없었다(§7.3 "확인되지 않은 사실을 싣지 않는다" — 저자명·기사 제목을
+ * 지어내지 않는다). 그중 한터차트·예스24 두 출처는 애초에 기사가 아니라 실시간 차트
+ * 페이지라 저자 바이라인 자체가 없다. 매체명·날짜·URL(전부 이미 QA를 통과한 검증된
+ * 값)만으로 조합했다 — 사람이 원문을 열어 저자·표제를 추가하거나, 네트워크가 열리면
+ * 다시 채워야 한다.
+ */
+function citationLine(stat, anchorDate) {
+  if (!stat?.sourceLabel) return "";
+  const outlet = stat.sourceLabel.replace(/\s*확인하기\s*$/, "");
+  const date = anchorDate ? anchorDate.replace(/-/g, ".") : "";
+  return [outlet, date, stat.sourceUrl].filter(Boolean).join(" · ");
 }
 
 /**
@@ -161,19 +205,24 @@ function notesPanel() {
  * 쿼트+인사이트→마무리)를 웹과 같은 문장으로 낸다 — teaser는 뺐다(texts[0]이 이미 더
  * 자세한 같은 역할이라 나란히 두면 중복이다). "누군가 이 진만 읽고도 이야기와 인사이트를
  * 이해할 수 있어야 한다"는 요구를 그대로 따른 것 — 웹의 축약판이 아니라 인쇄판이다.
+ *
+ * 2026-08-12 여섯 번째 라운드 — 헤더를 "인사이트 01/04 · 영화"(번호 매기기 + 한글
+ * 도메인명)에서 영문 도메인명 하나("MOVIE")만, 우측 상단으로 바꿨다(사용자 요청).
+ * `story.domainMeta.nameEn`(registry.json 단일 소스, `allStories()`가 주입)을 대문자로
+ * 쓴다 — 없으면(테스트용 목 데이터 등) 한글 도메인명으로 되돌아간다.
  */
-function articlePanel(story, n, total) {
+function articlePanel(story) {
   if (!story) {
     return h`<div class="zb-panel zb-panel--article zb-panel--empty">
-    <p class="zb-eyebrow">인사이트 ${String(n).padStart(2, "0")}/${String(total).padStart(2, "0")}</p>
     <p class="zb-empty-note">이 자리는 통과분이 4편에 못 미쳐 비웠다. 확인 안 되는 이야기를
     채우기보다 결번으로 둔다 — 다음 호에 채워진다.</p>
   </div>`;
   }
   const { texts, stat, quote } = blocksOf(story);
   const [t0, t1, t2] = texts;
+  const domainLabel = story.domainMeta?.nameEn ? story.domainMeta.nameEn.toUpperCase() : story.domain;
   return h`<div class="zb-panel zb-panel--article">
-  <p class="zb-eyebrow">인사이트 ${String(n).padStart(2, "0")}/${String(total).padStart(2, "0")} · ${story.domain}</p>
+  <p class="zb-article-domain">${domainLabel}</p>
   <h2 class="zb-article-headline">${story.headline}</h2>
   ${t0 ? raw(h`<p class="zb-article-body">${t0.text}</p>`) : ""}
   ${stat ? raw(h`<div class="zb-stat">
@@ -184,7 +233,7 @@ function articlePanel(story, n, total) {
   ${quote ? raw(h`<p class="zb-quote"><span class="zb-quote-label">THE ANSWER</span>${quote.text}</p>`) : ""}
   ${quote?.insight?.note ? raw(h`<p class="zb-insight-note">${quote.insight.note}</p>`) : ""}
   ${t2 ? raw(h`<p class="zb-article-body zb-article-body--close">${t2.text}</p>`) : ""}
-  ${stat?.sourceLabel ? raw(h`<p class="zb-source">출처 · ${stat.sourceLabel}</p>`) : ""}
+  ${stat ? raw(h`<p class="zb-source">${citationLine(stat, story.anchorDate)}</p>`) : ""}
 </div>`;
 }
 
@@ -193,17 +242,17 @@ function articlePanel(story, n, total) {
  * `stories`는 지금 홈 카드 그리드에 뜨는 도메인별 최신 스토리 — 모자라면(한 번도
  * 발행된 적 없는 도메인) null로 채워 결번을 낸다.
  */
-function buildPages({ stories, qrSvg, siteUrl }) {
+function buildPages({ stories, qrSvg }) {
   const four = [0, 1, 2, 3].map((i) => stories[i] ?? null);
   return {
     "cover-front": coverFront(),
     "cover-back": coverBack(),
-    about: aboutPanel({ qrSvg, siteUrl }),
-    notes: notesPanel(),
-    "article-1": articlePanel(four[0], 1, 4),
-    "article-2": articlePanel(four[1], 2, 4),
-    "article-3": articlePanel(four[2], 3, 4),
-    "article-4": articlePanel(four[3], 4, 4),
+    about: aboutPanel(),
+    notes: scanPanel({ qrSvg }),
+    "article-1": articlePanel(four[0]),
+    "article-2": articlePanel(four[1]),
+    "article-3": articlePanel(four[2]),
+    "article-4": articlePanel(four[3]),
   };
 }
 
@@ -228,11 +277,16 @@ const SHEETS = [
  * 그대로 따른 것. 회전·3D 변환 같은 연출은 없앴다 — "불필요한 장식·애니메이션·새
  * UI 시스템을 더하지 말라"는 요구와도 맞는 방향(오히려 이전보다 단순해졌다).
  */
+/* `data-zb-page`(논리 페이지 키)를 타일·시트 반쪽 양쪽에 심는다 — 2026-08-12 일곱
+   번째 라운드, 스티커 기능이 이 속성으로 "같은 논리 페이지"를 찾아 그리드에 놓은
+   스티커를 인쇄 시트 쪽에도 그대로 미러링한다(assets/zinebook.js). 콘텐츠 자체는
+   여전히 한 번만 만들어 재사용한다(파일 맨 위 주석) — 이 속성은 그 두 사본을
+   런타임에 다시 짝짓는 용도일 뿐이다. */
 function gridPreviewHTML(pages) {
   const tiles = FLIP_ORDER.map(
     (key, i) => h`<figure class="zb-tile" data-zb-tile="${i}">
     <figcaption class="zb-tile-num">${i + 1} / ${FLIP_ORDER.length}</figcaption>
-    <div class="zb-tile-face">${raw(pages[key])}</div>
+    <div class="zb-tile-face" data-zb-page="${key}">${raw(pages[key])}</div>
   </figure>`
   );
   return h`<div class="zb-grid" data-zb-grid>
@@ -243,9 +297,9 @@ function gridPreviewHTML(pages) {
 function printSheetsHTML(pages) {
   const sheets = SHEETS.map(
     ({ id, halves }) => h`<section class="zb-sheet" data-zb-sheet="${id}">
-    <div class="zb-half">${raw(pages[halves[0]])}</div>
+    <div class="zb-half" data-zb-page="${halves[0]}">${raw(pages[halves[0]])}</div>
     <div class="zb-fold" aria-hidden="true"></div>
-    <div class="zb-half">${raw(pages[halves[1]])}</div>
+    <div class="zb-half" data-zb-page="${halves[1]}">${raw(pages[halves[1]])}</div>
   </section>`
   );
   return h`<div class="zb-print-sheets" aria-hidden="true">
@@ -257,15 +311,18 @@ function printSheetsHTML(pages) {
  * `build.mjs`가 한 번 호출해 모든 showChrome 페이지에 그대로 물려준다(categoryNav와 같은
  * 패턴). `issue`가 없으면(회차가 하나도 없는 초기 상태) 아무것도 렌더하지 않는다 —
  * CTA 바가 빈 진을 열어보여주는 것보다 아예 없는 게 낫다.
+ *
+ * 2026-08-12 여섯 번째 라운드 — 툴바 제목("이번 호 미니 진 — 8쪽 전체 미리보기")과
+ * 인쇄 안내 문단을 뺐다(사용자 요청, "delete texts"). 툴바는 이제 버튼(인쇄·닫기)만
+ * 남는다 — `.zb-toolbar`가 `justify-content:flex-end`로 오른쪽 정렬한다(css.mjs).
  */
-export function renderZinebook({ issue, stories, qrSvg, siteUrl }) {
+export function renderZinebook({ issue, stories, qrSvg }) {
   if (!issue) return "";
-  const pages = buildPages({ stories, qrSvg, siteUrl });
+  const pages = buildPages({ stories, qrSvg });
 
   return h`<button type="button" class="zb-cta" data-zb-open>Create The Answer Zine</button>
 <div class="zb-overlay" data-zb-overlay hidden>
   <div class="zb-toolbar">
-    <p class="zb-toolbar-title">이번 호 미니 진 — 8쪽 전체 미리보기</p>
     <div class="zb-toolbar-actions">
       <button type="button" class="zb-btn zb-btn--print" data-zb-print>${raw(ICON.print)}<span>Print Zine</span></button>
       <button type="button" class="zb-btn zb-btn--icon" data-zb-close aria-label="닫기">${raw(ICON.close)}</button>
@@ -276,9 +333,7 @@ export function renderZinebook({ issue, stories, qrSvg, siteUrl }) {
     ${raw(gridPreviewHTML(pages))}
   </div>
 
-  <p class="zb-print-hint">인쇄할 때: 양면 인쇄 + 짧은 변 기준 뒤집기, 배경 그래픽 켜기.
-  자동 양면이 안 되면 1·2쪽을 먼저 인쇄한 뒤 종이를 뒤집어 3·4쪽을 인쇄한다 — 1·2쪽이
-  겉장(Sheet 1), 3·4쪽이 속지(Sheet 2)다.</p>
+  ${raw(stickerPaletteHTML())}
 
   ${raw(printSheetsHTML(pages))}
 </div>`;

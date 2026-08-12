@@ -249,9 +249,47 @@ if (!chromium) {
           })
           .filter((r) => r.over > 2); // 서브픽셀 반올림 오차 허용
       });
-      await page.close();
       if (clip.length) for (const c of clip) fail("ZINE", `"${c.label}" 콘텐츠가 페이지보다 ${c.over}px 길어 잘린다.`);
       else ok("DIY 진 8쪽 전부 — 콘텐츠가 페이지 안에 들어간다 (overflow:hidden에 잘리지 않음)");
+
+      /* --- 스티커 드래그앤드롭 (2026-08-12 일곱 번째 라운드) ---
+         실측으로 찾은 회귀: 스티커를 놓는 순간 컨테이너 쿼리 컨테이너(.zb-tile-face)에
+         자식이 추가되면서, 그 직후 발생하는 합성 click 이벤트의 e.target이 타일이
+         아니라 배경 overlay로 잡혀 "바깥 클릭 시 닫기" 핸들러가 오버레이를 닫아버렸다
+         (assets/zinebook.js의 suppressOverlayCloseOnce 주석 참고). 실제 마우스
+         드래그(elementFromPoint 기반 hit-test까지 재현하려면 page.mouse가 필요하다 —
+         evaluate로 직접 이벤트를 dispatch하면 이 클래스의 버그를 재현 못 한다)로 매
+         빌드마다 재확인한다. */
+      const chip = await page.$('.zb-sticker-chip[data-zb-sticker="circle-red"]');
+      const tile = await page.$('.zb-tile-face[data-zb-page="cover-front"]');
+      if (!chip || !tile) {
+        fail("ZINE", "스티커 팔레트 또는 표지 타일을 못 찾았다.");
+      } else {
+        const chipBox = await chip.boundingBox();
+        const tileBox = await tile.boundingBox();
+        const startX = chipBox.x + chipBox.width / 2;
+        const startY = chipBox.y + chipBox.height / 2;
+        const endX = tileBox.x + tileBox.width * 0.3;
+        const endY = tileBox.y + tileBox.height * 0.3;
+        await page.mouse.move(startX, startY);
+        await page.mouse.down();
+        await page.mouse.move((startX + endX) / 2, (startY + endY) / 2, { steps: 5 });
+        await page.mouse.move(endX, endY, { steps: 5 });
+        await page.mouse.up();
+        await page.waitForTimeout(150);
+
+        const result = await page.evaluate(() => ({
+          overlayHidden: document.querySelector("[data-zb-overlay]").hidden,
+          inGrid: document.querySelectorAll('.zb-tile-face[data-zb-page="cover-front"] .zb-sticker').length,
+          inPrint: document.querySelectorAll('.zb-half[data-zb-page="cover-front"] .zb-sticker').length,
+        }));
+        if (result.overlayHidden) fail("ZINE", "스티커를 놓자 오버레이가 닫혔다 — 클릭 오탐지 회귀.");
+        else if (result.inGrid !== 1) fail("ZINE", `스티커가 그리드 타일에 안 놓였다(${result.inGrid}개).`);
+        else if (result.inPrint !== 1) fail("ZINE", `스티커가 인쇄 시트에 미러링 안 됐다(${result.inPrint}개).`);
+        else ok("DIY 진 스티커 — 드래그로 놓으면 그리드·인쇄 시트 양쪽에 반영되고 오버레이는 안 닫힌다");
+      }
+
+      await page.close();
     }
 
     /* --- 콘솔 에러 (§8 #14) ---

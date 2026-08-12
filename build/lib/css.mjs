@@ -728,11 +728,9 @@ body.has-zb { padding-bottom: 0; }
 }
 .zb-overlay[hidden] { display: none !important; }
 
-.zb-toolbar { display: flex; align-items: center; justify-content: space-between; gap: var(--s4); flex-wrap: wrap; }
-.zb-toolbar-title {
-  font-family: var(--sans); font-size: 12px; font-weight: 700; letter-spacing: .1em;
-  text-transform: uppercase; color: rgba(255,255,255,.6); margin: 0;
-}
+/* 2026-08-12 여섯 번째 라운드 — 툴바 제목 문구를 뺐다(render-zinebook.mjs 주석
+   참고). 남는 건 버튼뿐이라 오른쪽 정렬로 바꿨다. */
+.zb-toolbar { display: flex; align-items: center; justify-content: flex-end; gap: var(--s4); flex-wrap: wrap; }
 .zb-toolbar-actions { display: flex; align-items: center; gap: var(--s3); }
 
 .zb-btn {
@@ -776,11 +774,6 @@ body.has-zb { padding-bottom: 0; }
   position: absolute; top: 0; left: 0; width: 561px; height: 794px;
   transform: scale(calc(100cqw / 561px)); transform-origin: top left;
 }
-.zb-print-hint {
-  max-width: 640px; margin: var(--s3) auto 0; text-align: center;
-  font-family: var(--sans); font-size: 11.5px; line-height: 1.6; color: rgba(255,255,255,.5);
-}
-
 /* ── 콘텐츠 패널 — 표지·About·Notes·기사 넷, 미리보기·인쇄 공용 ── */
 .zb-panel {
   display: flex; flex-direction: column; box-sizing: border-box;
@@ -792,17 +785,9 @@ body.has-zb { padding-bottom: 0; }
 /* 표지 — 2026-08-12 세 번째 라운드, 랩어라운드로 재구성(render-zinebook.mjs
    wraparoundCanvas() 주석 참고 — 사용자가 보낸 실물 사진 기준). 뒤표지·앞표지가
    같은 배경/글자색을 쓴다 — 더는 별도의 어두운 뒤표지 블록이 없다. */
+/* 2026-08-12 여섯 번째 라운드 — eyebrow·caption 텍스트를 뺐다(render-zinebook.mjs
+   coverFront() 주석 참고). 남는 건 랩어라운드 캔버스뿐이다. */
 .zb-panel--cover { background: #fff; color: #111; position: relative; }
-
-.zb-cover-eyebrow {
-  position: absolute; top: 34px; left: 30px; right: 30px; z-index: 2;
-  font-family: var(--sans); font-size: 11px; font-weight: 700; letter-spacing: .14em;
-  text-transform: uppercase; color: #666; margin: 0;
-}
-.zb-cover-caption {
-  position: absolute; bottom: 34px; left: 30px; right: 30px; z-index: 2;
-  font-family: var(--sans); font-size: 11px; letter-spacing: .05em; color: rgba(0,0,0,.55); margin: 0;
-}
 
 /* 랩어라운드 캔버스 — 뒤표지·앞표지 공용, 폭 1122px(561×2, 시트 전체 폭)짜리
    하나의 문구를 두 패널이 각자 561px 창으로 절반씩 잘라 보여준다. 위아래는
@@ -822,64 +807,105 @@ body.has-zb { padding-bottom: 0; }
   display: block; font-family: var(--sans); font-weight: 900; font-stretch: condensed;
   font-size: 262px; line-height: .76; letter-spacing: -.03em; white-space: nowrap; text-align: center;
 }
-.zb-eyebrow {
-  font-family: var(--sans); font-size: 11px; font-weight: 700; letter-spacing: .14em;
-  text-transform: uppercase; color: #666; margin: 0 0 12px;
-}
-
 /* About — 표지 바로 뒷장, 페이지 전체(사용자 요청 — "not a small section of an A4
-   page"). 본문이 위쪽 대부분을 채우고, margin-top:auto로 QR 띠를 바닥에 고정한다.
-   2026-08-12 다섯 번째 라운드 — 사용자가 본문 전체를 새 카피로 교체하며 제목 크기(36px)·
-   본문 크기(18~24px)를 직접 지정했다(render-zinebook.mjs aboutPanel() 주석 참고).
-   본문은 시(詩)처럼 짧은 문단이 이어지는 구조라 18px(범위 하한)로 잡아 QR 띠까지
-   한 페이지 안에 들어오게 실측했다. */
+   page"). 2026-08-12 다섯 번째 라운드 — 사용자가 본문 전체를 새 카피로 교체하며 제목
+   크기(36px)·본문 크기(18~24px)를 직접 지정했다(render-zinebook.mjs aboutPanel() 주석
+   참고). 2026-08-12 여섯 번째 라운드 — 문장 하나와 하단 QR 띠를 뺐다(사용자 요청) —
+   본문만 남아 .zb-panel--about의 justify-content:flex-start가 위에서부터 자연스럽게
+   흐른다(QR 띠를 바닥에 고정하던 margin-top:auto 대상이 이제 없다). */
 .zb-about-title { font-family: var(--sans); font-weight: 900; font-size: 36px; line-height: 1.1; letter-spacing: -.02em; margin: 0 0 22px; }
 .zb-panel--about { justify-content: flex-start; }
-.zb-about-body p { font-size: 18px; line-height: 1.5; margin: 0 0 14px; color: #222; }
-.zb-about-scan {
-  margin-top: auto; padding-top: 20px; border-top: 1px solid #ddd;
-  display: flex; align-items: center; gap: 16px;
-}
+.zb-about-body p { font-size: 19px; line-height: 1.7; margin: 0 0 20px; color: #222; }
+
+/* 스캔 페이지(7쪽, 구 Notes) — 2026-08-12 여섯 번째 라운드 신규. QR 하나만 페이지
+   정중앙에 두고(사용자 요청 — "perfectly centered"), 그 밑에 "Scan for Mobile" 캡션.
+   About 페이지에 있던 QR(zb-qr)을 그대로 옮겨왔다 — 인쇄 크기에 맞춰 더 크게
+   키웠다(92px→160px, --large 모디파이어). */
+.zb-panel--scan { align-items: center; justify-content: center; }
+.zb-scan-center { display: flex; flex-direction: column; align-items: center; gap: 18px; }
 .zb-qr { flex-shrink: 0; width: 92px; height: 92px; }
 .zb-qr svg { display: block; width: 100%; height: 100%; }
-.zb-about-scan-label {
-  font-family: var(--sans); font-size: 10.5px; font-weight: 700; letter-spacing: .1em;
-  text-transform: uppercase; color: #666; margin: 0 0 4px;
+.zb-qr--large { width: 160px; height: 160px; }
+.zb-scan-caption {
+  font-family: var(--sans); font-weight: 700; font-size: 15px; letter-spacing: .04em;
+  color: #111; margin: 0;
 }
-.zb-about-scan-url { font-family: var(--sans); font-size: 13px; font-weight: 700; color: #111; margin: 0; word-break: break-all; }
-
-.zb-panel--notes { position: relative; }
-/* SVG 루트에 calc() 퍼센트 크기를 주면 0×0으로 계산되는 경우가 있다(실측으로 발견) —
-   inset:0 + width/height:100%로 단순화한다. 패널 자체 padding 안쪽까지만 차야 한다는
-   제약은 없다 — 줄이 여백까지 덮어도 노트 배경으로는 자연스럽다. */
-.zb-notes-bg { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 0; }
-.zb-notes-head { position: relative; z-index: 1; display: flex; align-items: center; justify-content: space-between; color: #111; }
-.zb-notes-hint { position: relative; z-index: 1; font-size: 12.5px; line-height: 1.7; color: #555; max-width: 30ch; margin: 8px 0 0; }
 
 /* 기사 페이지 — 2026-08-11 전면 확장(사용자 요청, "same editorial quality and
    substance as the website"). 5블록 전부(현상→스탯→맥락→쿼트+인사이트→마무리)가
-   한 페이지에 들어간다 — teaser는 뺐다(texts[0]와 중복). 여백을 자신 있게 쓰되
-   글자 크기·줄간격을 촘촘히 눌러 A5 한 장에 맞춘다. */
-.zb-article-headline { font-family: var(--sans); font-weight: 900; font-size: 26px; line-height: 1.14; letter-spacing: -.02em; margin: 0 0 12px; }
-.zb-article-body { font-family: var(--serif); font-size: 12.5px; line-height: 1.6; margin: 0 0 10px; color: #222; }
+   한 페이지에 들어간다 — teaser는 뺐다(texts[0]와 중복).
+   2026-08-12 여섯 번째 라운드 — 줄간격이 너무 좁다는 지적(사용자 요청, "더 넓은 간격,
+   페이지를 fully 사용")으로 전 요소의 line-height·margin을 다시 키웠다. 헤더가
+   "인사이트 NN/총 · 도메인"(흐름을 차지하는 문단)에서 우측 상단 절대 위치 라벨
+   (.zb-article-domain)로 바뀌면서 그만큼 흐름 공간이 남아 여유가 생겼다 — 실측
+   (build/verify.mjs의 콘텐츠 잘림 검사)으로 한 페이지 안에 들어오는 걸 확인했다. */
+.zb-panel--article { position: relative; }
+.zb-article-domain {
+  position: absolute; top: 34px; right: 30px; z-index: 2;
+  font-family: var(--sans); font-size: 11px; font-weight: 700; letter-spacing: .12em;
+  text-transform: uppercase; color: #666; margin: 0;
+}
+.zb-article-headline { font-family: var(--sans); font-weight: 900; font-size: 26px; line-height: 1.22; letter-spacing: -.02em; margin: 6px 0 18px; }
+.zb-article-body { font-family: var(--serif); font-size: 13px; line-height: 1.8; margin: 0 0 16px; color: #222; }
 .zb-article-body--close { margin-bottom: 0; }
-.zb-stat { display: flex; flex-direction: column; gap: 3px; padding: 10px 13px; border: 1px solid #ddd; margin: 0 0 12px; }
+.zb-stat { display: flex; flex-direction: column; gap: 5px; padding: 14px 16px; border: 1px solid #ddd; margin: 0 0 18px; }
 .zb-stat-label { font-family: var(--sans); font-size: 9.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: #666; }
 .zb-stat-value { font-family: var(--sans); font-weight: 900; font-size: 18px; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
 .zb-quote {
-  font-family: var(--serif); font-weight: 700; font-size: 14px; line-height: 1.5;
-  padding-left: 12px; border-left: 2px solid #111; margin: 0 0 8px;
+  font-family: var(--serif); font-weight: 700; font-size: 14.5px; line-height: 1.65;
+  padding-left: 14px; border-left: 2px solid #111; margin: 0 0 14px;
 }
 .zb-quote-label {
   display: block; font-family: var(--sans); font-weight: 700; font-size: 9.5px;
-  letter-spacing: .1em; color: #888; margin-bottom: 4px;
+  letter-spacing: .1em; color: #888; margin-bottom: 6px;
 }
 .zb-insight-note {
-  font-family: var(--sans); font-size: 10.5px; line-height: 1.55; color: #444;
-  background: #f7f7f5; border-left: 2px solid #111; padding: 8px 10px; margin: 0 0 12px;
+  font-family: var(--sans); font-size: 11px; line-height: 1.7; color: #444;
+  background: #f7f7f5; border-left: 2px solid #111; padding: 12px 14px; margin: 0 0 18px;
 }
-.zb-source { font-family: var(--sans); font-size: 9.5px; color: #777; margin-top: auto; padding-top: 8px; }
+.zb-source { font-family: var(--sans); font-size: 9.5px; line-height: 1.5; color: #777; margin-top: auto; padding-top: 12px; }
 .zb-empty-note { font-size: 13.5px; line-height: 1.7; color: #777; }
+
+/* ── 스티커 팔레트 — 미리보기 화면 하단(사용자 요청). 인쇄에는 안 나온다(도구지
+   콘텐츠가 아니다) — 아래 @media print 블록이 숨긴다. 드래그·터치 로직은
+   assets/zinebook.js, 여기는 정적 스타일만. */
+.zb-sticker-palette {
+  border-top: 1px solid rgba(255,255,255,.15); margin-top: var(--s4); padding-top: var(--s4);
+  flex-shrink: 0;
+}
+.zb-sticker-hint {
+  margin: 0 0 var(--s3); font-family: var(--sans); font-size: 11.5px; line-height: 1.5;
+  color: rgba(255,255,255,.5); text-align: center;
+}
+.zb-sticker-tray {
+  display: flex; align-items: center; justify-content: center; gap: var(--s3);
+  flex-wrap: wrap; max-width: 1100px; margin: 0 auto;
+}
+.zb-sticker-chip {
+  cursor: grab; width: 44px; height: 44px; padding: 6px; flex-shrink: 0;
+  background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.2); border-radius: 10px;
+  touch-action: none; -webkit-user-select: none; user-select: none;
+}
+.zb-sticker-chip svg { display: block; width: 100%; height: 100%; }
+.zb-sticker-chip:hover, .zb-sticker-chip:focus-visible { border-color: rgba(255,255,255,.6); }
+.zb-sticker-chip:active { cursor: grabbing; }
+
+/* 놓인 스티커 — 그리드 타일(.zb-tile-face)과 인쇄 시트 반쪽(.zb-half) 둘 다
+   position:relative + 같은 종횡비(148.5:210)라, 퍼센트 좌표가 두 컨텍스트에서
+   그대로 호환된다(픽셀 단위 변환이 필요 없다) — assets/zinebook.js가 이 성질을
+   이용해 그리드에 놓은 스티커를 인쇄 시트에도 같은 %로 미러링한다. */
+.zb-sticker {
+  position: absolute; width: 13%; aspect-ratio: 1; z-index: 5; touch-action: none;
+  cursor: grab; -webkit-user-select: none; user-select: none;
+}
+.zb-sticker svg { display: block; width: 100%; height: 100%; filter: drop-shadow(0 2px 4px rgba(0,0,0,.25)); }
+.zb-sticker:active { cursor: grabbing; }
+.zb-sticker.is-dragging { opacity: .55; }
+.zb-drag-ghost {
+  position: fixed; z-index: 999; width: 48px; height: 48px; pointer-events: none;
+  opacity: .85; transform: translate(-50%, -50%);
+}
+.zb-drag-ghost svg { display: block; width: 100%; height: 100%; }
 
 /* ── 인쇄 시트 — 화면엔 안 보인다. 실제 인쇄에서만 켜진다 ── */
 .zb-print-sheets { display: none; }
@@ -901,7 +927,7 @@ body.has-zb { padding-bottom: 0; }
     position: static !important; inset: auto; background: #fff !important; color: #111 !important;
     padding: 0 !important; display: block !important;
   }
-  .zb-toolbar, .zb-viewer, .zb-nav, .zb-print-hint { display: none !important; }
+  .zb-toolbar, .zb-viewer, .zb-sticker-palette { display: none !important; }
   .zb-print-sheets { display: block !important; }
 
   .zb-sheet {

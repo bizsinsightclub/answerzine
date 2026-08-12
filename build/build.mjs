@@ -93,10 +93,10 @@ export async function build({ root = ROOT, out = join(ROOT, "dist"), quiet = fal
     .map((d) => latestByDomain(stories, d.key))
     .filter(Boolean);
   const genQR = await loadQR();
-  if (!genQR) warnings.push("qrcode가 없어 DIY 진 About 페이지에 QR을 못 그렸다. `npm install`로 설치하면 실제 스캔되는 코드가 나온다.");
+  if (!genQR) warnings.push("qrcode가 없어 DIY 진 7쪽(Scan for Mobile)에 QR을 못 그렸다. `npm install`로 설치하면 실제 스캔되는 코드가 나온다.");
   const siteUrl = absolute("/");
   const qrSvg = genQR ? await genQR(siteUrl) : null;
-  const zinebook = renderZinebook({ issue: latestIssue, stories: zineStories, qrSvg, siteUrl });
+  const zinebook = renderZinebook({ issue: latestIssue, stories: zineStories, qrSvg });
 
   const write = (rel, content) => { writeFile(join(out, rel), content); files.push(rel); };
 
