@@ -65,39 +65,45 @@ function notesRuleSVG() {
 /* ── 8개 논리 페이지 콘텐츠 빌더 ── 각자 한 번만 호출되고, 플립북·인쇄 양쪽에 그대로 꽂힌다. */
 
 /**
- * 표지 앞면 — 2026-08-11 흰 배경·검정 글자로 반전(사용자 요청, "White background + black
- * typography... much more dominant and editorial"). "THE ANSWER ZINE" 세 줄이 페이지에
- * 거의 꽉 차게 눌러 담긴 인상을 노린다 — 홈 인트로(`layout.mjs`의 `intro()`, "ANSWER"가
- * 폭의 85~90%를 채우도록 의도적으로 가장자리에 닿는다)와 같은 원칙을 세로로도 적용한
- * 것이다. 위아래 캡션으로 페이지 전체의 숨 쉴 틈은 유지하되(사용자 요청 — "still have
- * some overall breathing room"), 타이포 자체는 좌우 여백 없이 폭 전체를 쓰고 세 줄
- * 사이 간격을 최대한 좁힌다.
+ * 표지 — 2026-08-12 세 번째 라운드, 실사 참고 사진 기준으로 "랩어라운드"로 다시 짰다.
+ * 사용자가 실제로 접어 만든 실물 사진을 보내며 "이 사진과 똑같이"라고 요청 — 사진은
+ * "THE ANSWER ZINE" 타이포가 접힌 선(스파인)을 가로질러 뒤표지·앞표지 두 면에
+ * 걸쳐 하나로 이어진다. 이게 바로 sheet1-front의 물리 구조다(cover-back|cover-front가
+ * 나란히 인쇄되고 그 사이가 접히는 선 — `SHEETS` 참고) — 지금까지는 그 경계를 존중해
+ * 타이포를 앞면 한 쪽에만 가뒀는데, 사진은 경계를 무시하고 통짜 캔버스로 다룬다.
+ *
+ * 구현: 폭 1122px(561×2 — 시트 전체 폭)짜리 캔버스 하나에 문구를 한 번만 그리고,
+ * 뒤·앞 두 패널이 각자 561px짜리 창(overflow:hidden)으로 그 캔버스의 왼쪽/오른쪽
+ * 절반만 잘라 보여준다(`zb-wrap-canvas--back`은 offset 0, `--front`는 -561px).
+ * 두 패널이 완전히 독립된 HTML 조각으로 렌더되지만(그리드 미리보기에서는 나란히
+ * 붙어 있지 않다), 같은 폭·같은 폰트 크기·같은 세로 중앙 정렬을 쓰므로 인쇄돼
+ * 실제로 나란히 놓일 때 이음매 없이 맞아떨어진다 — 실측(스크린샷)으로 확인했다.
+ * 그리드 미리보기에서는 앞·뒤 타일이 서로 안 붙어 있어 각자 "반쪽 글자"로 보인다 —
+ * 이건 랩어라운드 표지의 구조적 특성이다(실물도 펼치기 전엔 반쪽씩 보인다). 인쇄
+ * 시트가 진짜 결과물이고, 사용자가 보낸 사진도 인쇄물이었다.
  */
+function wraparoundCanvas(side) {
+  return h`<div class="zb-wrap-viewport">
+  <div class="zb-wrap-canvas zb-wrap-canvas--${side}" aria-hidden="true">
+    <span class="zb-wrap-word">THE</span>
+    <span class="zb-wrap-word">ANSWER</span>
+    <span class="zb-wrap-word">ZINE</span>
+  </div>
+</div>`;
+}
+
 function coverFront() {
   return h`<div class="zb-panel zb-panel--cover">
   <p class="zb-cover-eyebrow">ANSWER ZINE · 8P MINI ISSUE</p>
-  <div class="zb-cover-word-stack" aria-hidden="true">
-    <span class="zb-cover-word">THE</span>
-    <span class="zb-cover-word">ANSWER</span>
-    <span class="zb-cover-word">ZINE</span>
-  </div>
+  ${raw(wraparoundCanvas("front"))}
   <p class="zb-cover-caption">직접 접어 만드는 8쪽 진 · 이번 호 큐레이션</p>
 </div>`;
 }
 
-/**
- * 표지 뒷면 — 2026-08-11 두 번째 라운드, 콘텐츠를 전부 뺐다(사용자 요청).
- * 이 페이지는 sheet1-front에서 표지 앞면(cover-front)과 나란히 인쇄되는 같은 장의
- * 반대쪽 절반이다(`SHEETS` 참고) — 실물로 "THE ANSWER ZINE" 표지 한 장을 반으로
- * 접으면, 접힌 뒷면이 바로 이 페이지가 된다. 앞면이 이미 타이포로 폭 전체를 채운
- * 강한 인상이라, 뒷면까지 마크·사이트명·태그라인·회차 메타로 채우면 접었을 때
- * 두 면이 서로 경쟁한다 — 뒷면은 비워서 앞면의 타이포가 유일한 신호로 남게 한다.
- * 화면 판독기용 `aria-label`만 남긴다(빈 패널이라도 스크린 리더 사용자에게 "뒤표지"
- * 라는 걸 알려야 한다) — 텍스트 마커가 필요 없어졌으므로 그리드 순서 테스트는
- * 이 라벨을 대신 찾는다.
- */
 function coverBack() {
-  return h`<div class="zb-panel zb-panel--cover zb-panel--cover-back" aria-label="뒤표지"></div>`;
+  return h`<div class="zb-panel zb-panel--cover" aria-label="뒤표지 — 앞표지 타이포의 왼쪽 절반이 이어진다">
+  ${raw(wraparoundCanvas("back"))}
+</div>`;
 }
 
 /**

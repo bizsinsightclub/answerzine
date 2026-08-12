@@ -34,6 +34,13 @@ test("인쇄 @page는 A4 margin 0이다", () => {
   assert.match(css, /@page\s*\{[^}]*size:\s*A4[^}]*margin:\s*0/);
 });
 
+test("인쇄에서 배경색을 강제한다 — 브라우저 '배경 그래픽' 토글이 꺼져 있어도 인쇄된다(2026-08-12 사용자 보고 버그)", () => {
+  // print-color-adjust는 상속 속성이라 html에 한 번만 걸면 DIY 진 뒤표지 같은 배경색
+  // 전부에 전파된다. 이 속성이 빠지면 실제 브라우저 인쇄 대화상자에서(Playwright의
+  // printBackground:true와 달리) 배경이 전부 흰 페이지로 날아간다.
+  assert.match(css, /html\s*\{[^}]*print-color-adjust:\s*exact/);
+});
+
 test("브라우저 표면을 팔레트에서 지정한다 — craft-floor", () => {
   assert.match(css, /::selection/);
   assert.match(css, /:focus-visible/);

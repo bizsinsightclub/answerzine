@@ -665,6 +665,13 @@ const REVEAL = `
 const PRINT = `
 @media print {
   @page { size: A4; margin: 0; }
+  /* 브라우저 인쇄 대화상자의 "배경 그래픽"(Background graphics) 토글은 기본이 꺼짐이다.
+     꺼진 채로 인쇄하면 background-color·background-image가 전부 흰 배경으로 날아간다 —
+     DIY 진 뒤표지(검정 배경, 텍스트 없음)가 통째로 빈 흰 페이지로 나온 사고가 이래서
+     났다(2026-08-12 실사용자 보고). print-color-adjust는 상속 속성이라 html에 한 번만
+     걸면 이 스타일시트가 쓰는 모든 배경(뒤표지·인사이트 콜아웃 등)에 전파된다 — 토글
+     상태와 무관하게 항상 인쇄되도록 강제한다. */
+  html { -webkit-print-color-adjust: exact; print-color-adjust: exact; color-adjust: exact; }
   html, body { margin: 0; padding: 0; background: #fff; letter-spacing: 0; }
   .site-header, .shell, .intro,
   .print-btn, .zine-preview-cta {
@@ -778,33 +785,38 @@ body.has-zb { padding-bottom: 0; }
 }
 .zb-half .zb-panel { position: absolute; inset: 0; }
 
-/* 표지 — 2026-08-11 흰 배경·검정 글자로 반전(사용자 요청). "THE ANSWER ZINE"이 페이지
-   세로 공간을 눌러 담듯 채운다 — 위(eyebrow)·아래(caption)로 숨 쉴 틈은 남기되, 그
-   사이 타이포는 폭·행간을 최대한 좁혀 밀도를 높인다. */
-.zb-panel--cover { background: #fff; color: #111; justify-content: space-between; position: relative; }
-/* 뒤표지 — 2026-08-11 두 번째 라운드에서 콘텐츠를 뺐다(render-zinebook.mjs coverBack()
-   주석 참고). 색만 남겨 앞표지와 짝을 이루는 빈 판을 만든다. */
-.zb-panel--cover-back { background: #16150F; color: #fff; }
+/* 표지 — 2026-08-12 세 번째 라운드, 랩어라운드로 재구성(render-zinebook.mjs
+   wraparoundCanvas() 주석 참고 — 사용자가 보낸 실물 사진 기준). 뒤표지·앞표지가
+   같은 배경/글자색을 쓴다 — 더는 별도의 어두운 뒤표지 블록이 없다. */
+.zb-panel--cover { background: #fff; color: #111; position: relative; }
 
 .zb-cover-eyebrow {
+  position: absolute; top: 34px; left: 30px; right: 30px; z-index: 2;
   font-family: var(--sans); font-size: 11px; font-weight: 700; letter-spacing: .14em;
   text-transform: uppercase; color: #666; margin: 0;
 }
-/* 세 단어가 세로 공간 대부분을 차지한다 — flex:1 + center로 위아래 캡션 사이 남는
-   공간을 전부 흡수하고, 그 안에서 다시 justify-content:center로 뭉친다. line-height를
-   .86까지 좁혀 줄 사이 여백을 없앤다("very little unnecessary space"). 폭은 padding
-   끝까지 쓰고, "ANSWER"(가장 긴 단어) 기준으로 살짝 흘러도 overflow:hidden이 정리한다
-   — 홈 인트로(layout.mjs intro())가 이미 쓰는 "가장자리에 닿는" 원칙과 같다. */
-.zb-cover-word-stack {
-  flex: 1; display: flex; flex-direction: column; justify-content: center; min-height: 0;
-}
-.zb-cover-word {
-  display: block; font-family: var(--sans); font-weight: 900; font-size: 115px;
-  line-height: .86; letter-spacing: -.035em; white-space: nowrap;
-}
 .zb-cover-caption {
-  position: relative; z-index: 1; font-family: var(--sans); font-size: 11px;
-  letter-spacing: .05em; color: rgba(0,0,0,.55); margin: 0;
+  position: absolute; bottom: 34px; left: 30px; right: 30px; z-index: 2;
+  font-family: var(--sans); font-size: 11px; letter-spacing: .05em; color: rgba(0,0,0,.55); margin: 0;
+}
+
+/* 랩어라운드 캔버스 — 뒤표지·앞표지 공용, 폭 1122px(561×2, 시트 전체 폭)짜리
+   하나의 문구를 두 패널이 각자 561px 창으로 절반씩 잘라 보여준다. 위아래는
+   패널 한가운데에 고정 — 두 패널의 뷰포트 크기가 같으므로(561×794) 별도 계산 없이도
+   이음매의 세로 위치가 자동으로 맞는다.
+   세로 중앙 정렬은 position:absolute + top:50%/translateY(-50%)가 아니라
+   flex(align-items:center)로 한다 — 실측으로 발견한 함정: 인쇄 PDF는 4장이 실제로는
+   한 문서 흐름(break-after:page)이라, 퍼센트 기반 top:50%가 그 흐름 전체 높이를
+   기준으로 계산돼 화면 미리보기에서는 멀쩡했는데 실제 인쇄 PDF에서만 텍스트가
+   페이지 아래로 밀려 잘렸다(스크린샷 검사로는 못 잡고 실제 page.pdf() 출력을
+   래스터화해서 발견했다). flex 중앙 정렬은 이 흐름 높이에 기대지 않아 안전하다. */
+.zb-wrap-viewport { position: absolute; inset: 0; overflow: hidden; display: flex; align-items: center; }
+.zb-wrap-canvas { position: relative; width: 1122px; flex: none; }
+.zb-wrap-canvas--back { left: 0; }
+.zb-wrap-canvas--front { left: -561px; }
+.zb-wrap-word {
+  display: block; font-family: var(--sans); font-weight: 900; font-stretch: condensed;
+  font-size: 262px; line-height: .76; letter-spacing: -.03em; white-space: nowrap; text-align: center;
 }
 .zb-eyebrow {
   font-family: var(--sans); font-size: 11px; font-weight: 700; letter-spacing: .14em;

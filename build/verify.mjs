@@ -237,6 +237,11 @@ if (!chromium) {
             const available = p.clientHeight - parseFloat(cs.paddingBottom);
             let contentBottom = 0;
             for (const child of p.children) {
+              // 표지의 zb-wrap-viewport처럼 의도적으로 패딩 박스 전체에 bleed하는(position:
+              // absolute + inset:0) 자식은 제외한다 — 그 자신의 overflow:hidden으로 이미
+              // 패널 경계에 갇혀 있어 흐름 기반 넘침 계산에 넣으면 항상 헛경고(paddingBottom
+              // 만큼)가 뜬다. 일반 흐름(static/relative) 자식만 실제 텍스트 누적 높이를 잰다.
+              if (getComputedStyle(child).position === "absolute") continue;
               const b = child.offsetTop + child.offsetHeight;
               if (b > contentBottom) contentBottom = b;
             }
