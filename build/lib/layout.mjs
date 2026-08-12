@@ -89,6 +89,19 @@ ${noindex ? '<meta name="robots" content="noindex">' : ""}
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="${escapeHTML(ogImage)}">
 <link rel="stylesheet" href="${u("/assets/style.css")}">
+${
+  // DIY 진이 있는 문서에서만, 인쇄 시 "기본"(이름 없는) @page 자체를 랜드스케이프로
+  // 덮어쓴다(2026-08-12 네 번째 라운드, 사용자가 "실제로 인쇄해보니 세로로 나온다"고
+  // 재보고). css.mjs의 named page(`page: zb-landscape` + `@page zb-landscape`)만으로는
+  // 부족했다 — named page(CSS Paged Media의 `page` 프로퍼티)는 비교적 최근 스펙이라
+  // 브라우저별 지원이 고르지 않다. 이 문서에서 인쇄되는 건 항상 진 시트뿐이므로
+  // (`#main-content`·`.site-header`가 인쇄에서 강제로 숨겨진다, css.mjs 참고 — 오버레이를
+  // 연 적이 없어도 마찬가지다) 이 문서의 기본 페이지 자체를 통째로 랜드스케이프로 바꿔도
+  // 안전하다 — 거의 모든 브라우저가 지원하는 평범한 `@page{size}` 오버라이드라 named
+  // page보다 훨씬 안정적이다. `/print/`(한 장 요약, 세로)는 zinebook을 안 받아 이 블록이
+  // 안 붙는다 — 공유 스타일시트의 세로 기본값을 그대로 쓴다.
+  zb ? `<style>@media print { @page { size: A4 landscape; margin: 0; } }</style>` : ""
+}
 <script>${BOOT}</script>
 </head>
 <body class="${escapeHTML(bodyClasses)}">

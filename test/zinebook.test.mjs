@@ -159,6 +159,26 @@ test("인쇄 시트는 이름 있는 페이지로 A4 랜드스케이프를 쓴�
   assert.match(css, /@page\s*\{\s*size:\s*A4;\s*margin:\s*0;\s*\}/);
 });
 
+test("DIY 진이 있는 문서는 문서 자체의 기본 @page도 랜드스케이프로 덮어쓴다 — 2026-08-12 네 번째 라운드(실사용자가 실제 인쇄해보니 여전히 세로로 나왔다고 재보고)", () => {
+  // named page(page: zb-landscape)만으로는 부족했다 — CSS Paged Media의 `page` 프로퍼티는
+  // 브라우저 지원이 고르지 않다. 이 문서에서 인쇄되는 건 항상 진 시트뿐이므로(css.mjs가
+  // #main-content·.site-header를 인쇄에서 강제로 숨긴다) 문서의 기본 페이지 자체를
+  // 랜드스케이프로 바꿔도 안전하다 — 훨씬 폭넓게 지원되는 평범한 @page{size} 오버라이드다.
+  const withZine = page({
+    title: "테스트", description: "d", url: "/", content: "<p>c</p>",
+    zinebook: '<div class="zb-overlay"></div>',
+  });
+  assert.match(withZine, /<style>@media print \{ @page \{ size: A4 landscape; margin: 0; \} \}<\/style>/);
+
+  // /print/(한 장 요약, 세로)처럼 showChrome:false면 zinebook 자체를 안 받으므로
+  // 이 오버라이드가 붙지 않는다 — 공유 스타일시트의 세로 기본값을 그대로 쓴다.
+  const printRoute = page({
+    title: "테스트", description: "d", url: "/print/", content: "<p>c</p>",
+    showChrome: false, zinebook: '<div class="zb-overlay"></div>',
+  });
+  assert.ok(!printRoute.includes("A4 landscape"), "/print/류 라우트에는 랜드스케이프 오버라이드가 붙으면 안 된다");
+});
+
 test("표지는 흰 배경·검정 글자다 — 2026-08-11 반전(사용자 요청)", () => {
   const zbBlock = css.slice(css.indexOf(".zb-cta"), css.indexOf("@media (prefers-reduced-motion"));
   const coverRule = /\.zb-panel--cover\s*\{[^}]*\}/.exec(zbBlock)[0];

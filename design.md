@@ -760,6 +760,23 @@ zb-landscape { size: A4 landscape; margin: 0; }`로 이름을 따로 준다 — 
 > 명시해야 그 토글 자체가 맞춰진다(페이지 박스 치수는 둘이 동일하다). `build/verify.mjs`가
 > 이제 `preferCSSPageSize`로 매 빌드마다 실측해 회귀를 잡는다.
 
+> **2026-08-12 네 번째 라운드 — named page만으로는 부족해 문서 기본 @page도 덮어쓴다.**
+> 위 키워드 수정 후에도 사용자가 "실제로 인쇄해보니 여전히 세로로 나온다"고 재보고했다.
+> named page(`page: zb-landscape` 프로퍼티)는 비교적 최근에 표준화된 CSS Paged Media
+> 기능이라 브라우저별 지원이 고르지 않다 — 우리 헤드리스 Chromium(Playwright) 검사는
+> 통과했지만, 그게 모든 브라우저·프린터 드라이버 조합에서 통한다는 뜻은 아니었다. 더
+> 폭넓게 지원되는 평범한 `@page{size}` 오버라이드로 이중 방어선을 추가했다: DIY 진이
+> 있는 문서(`layout.mjs`의 `page()`, `zb`가 참일 때)는 `<head>`에 인라인
+> `<style>@media print { @page { size: A4 landscape; margin: 0; } }</style>`를 심어 그
+> **문서 자체의 기본(이름 없는) @page**를 랜드스케이프로 덮어쓴다. 이게 안전한 이유:
+> DIY 진이 있는 문서(showChrome 페이지 전부)는 인쇄 시 `#main-content`·`.site-header`가
+> 항상 강제로 숨겨지고 진 시트만 보인다(오버레이를 연 적이 없어도 마찬가지, §위 인쇄
+> 트리거 문단) — 그 문서에서 인쇄되는 건 항상 진뿐이므로 문서 전체의 기본 페이지를
+> 랜드스케이프로 바꿔도 다른 용도와 충돌하지 않는다. `/print/`(한 장 요약, 세로)는
+> `showChrome:false`라 `zinebook` 자체를 안 받으므로 이 오버라이드가 안 붙는다 — 공유
+> 스타일시트의 세로 기본값을 그대로 쓴다. `test/zinebook.test.mjs`가 두 경로를 모두
+> 확인한다.
+
 인쇄 트리거는 오버레이 안의 "Print Zine" 버튼(`window.print()`)뿐이다. 그 페이지의 평소
 콘텐츠(`#main-content`, `.site-header`)와 CTA 바는 인쇄에서 강제로 숨긴다 — 안 그러면 진
 시트 앞뒤로 그 페이지의 화면용 콘텐츠가 별도 페이지로 끼어든다(실측으로 발견 — 처음엔
