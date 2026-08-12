@@ -326,7 +326,19 @@ function printSheetsHTML(pages) {
  * 2026-08-12 여섯 번째 라운드 — 툴바 제목("이번 호 미니 진 — 8쪽 전체 미리보기")과
  * 인쇄 안내 문단을 뺐다(사용자 요청, "delete texts"). 툴바는 이제 버튼(인쇄·닫기)만
  * 남는다 — `.zb-toolbar`가 `justify-content:flex-end`로 오른쪽 정렬한다(css.mjs).
- */
+ *
+ * 2026-08-12 열세 번째 라운드 — 양면 인쇄 뒷면이 거꾸로 나온다는 사용자 신고로
+ * `.zb-duplex-hint`를 새로 추가했다. 코드를 실측한 결론(파일 맨 위 주석·design.md
+ * §11.4 참고)은: 페이지 배치·순서에는 버그가 없고(8/1·2/7·6/3·4/5 새들스티치
+ * 임포지션이 표준이고 실측 검증됐다), 어느 쪽으로도 회전 CSS가 없다 — 원인은
+ * OS/프린터 드라이버의 양면 인쇄 뒤집기 축(긴 변/짧은 변) 설정이다. 이건 웹페이지가
+ * 제어할 수 있는 값이 아니다(CSS `@page`에도, 어떤 브라우저 인쇄 API에도 이 축을
+ * 지정하는 방법이 없다). 그래서 "구현을 고쳐라"에 대한 실제로 가능한 답은 둘이다:
+ * (1) 배치·회전에 숨은 버그가 없는지 실측으로 재확인하는 것(했다), (2) 사용자가
+ * 인쇄 대화상자에서 반드시 골라야 하는 그 설정을 절대 놓치지 않게 만드는 것. 이
+ * 문구가 (2)다 — 툴바 안이라 인쇄 버튼을 보는 순간 항상 같이 보이고, `.zb-toolbar`
+ * 전체가 인쇄에서는 숨는 규칙(css.mjs)을 그대로 물려받아 실제 진 지면에는 안
+ * 찍힌다. */
 export function renderZinebook({ issue, stories, qrSvg }) {
   if (!issue) return "";
   const pages = buildPages({ stories, qrSvg });
@@ -334,6 +346,7 @@ export function renderZinebook({ issue, stories, qrSvg }) {
   return h`<button type="button" class="zb-cta" data-zb-open>Create The Answer Zine</button>
 <div class="zb-overlay" data-zb-overlay hidden>
   <div class="zb-toolbar">
+    <p class="zb-duplex-hint">인쇄 설정 — A4 · 가로(Landscape) · 양면 인쇄 · <strong>짧은 변 기준 뒤집기</strong>(Flip on Short Edge). 이 옵션을 안 고르면 뒷면이 거꾸로 인쇄됩니다.</p>
     <div class="zb-toolbar-actions">
       <button type="button" class="zb-btn zb-btn--print" data-zb-print>${raw(ICON.print)}<span>Print Zine</span></button>
       <button type="button" class="zb-btn zb-btn--icon" data-zb-close aria-label="닫기">${raw(ICON.close)}</button>

@@ -38,12 +38,24 @@ test("하단 CTA 버튼 문구가 정확히 나온다", () => {
   assert.match(html, /<button[^>]*data-zb-open[^>]*>Create The Answer Zine<\/button>/);
 });
 
-test("툴바 제목·인쇄 안내 문단이 없다 — 2026-08-12 여섯 번째 라운드(사용자 요청, delete texts)", () => {
+test("툴바 제목(장식용)이 없다 — 2026-08-12 여섯 번째 라운드(사용자 요청, delete texts)", () => {
   const html = renderZinebook({ issue: ISSUE, stories: FOUR });
   assert.ok(!html.includes("이번 호 미니 진"), "툴바 제목이 남아 있다");
-  assert.ok(!html.includes("양면 인쇄"), "인쇄 안내 문단이 남아 있다");
   assert.ok(!html.includes("zb-toolbar-title"));
-  assert.ok(!html.includes("zb-print-hint"));
+});
+
+test("양면 인쇄 뒤집기 안내(.zb-duplex-hint)가 툴바 안에 있다 — 2026-08-12 열세 번째 라운드(사용자 신고: 뒷면이 거꾸로 인쇄됨). 여섯 번째 라운드에서 지운 옛 인쇄 안내 문단과는 다르다 — 장식이 아니라 물리 출력 정합성에 필요한 기능 문구라 다시 넣었다(design.md §11.2 참고)", () => {
+  const html = renderZinebook({ issue: ISSUE, stories: FOUR });
+  assert.match(html, /<p class="zb-duplex-hint">/);
+  assert.ok(html.includes("Flip on Short Edge"), "짧은 변 기준 뒤집기 안내가 없다");
+  assert.ok(html.includes("짧은 변 기준 뒤집기"), "한국어 안내 문구가 없다");
+  // .zb-toolbar 안에 있어야 인쇄 시 그 규칙(전체 display:none)을 그대로 물려받아
+  // 숨는다 — zb-toolbar 여는 태그와 zb-viewer 여는 태그 사이에 있는지로 확인한다.
+  const toolbarStart = html.indexOf('<div class="zb-toolbar">');
+  const viewerStart = html.indexOf('<div class="zb-viewer">');
+  const hintPos = html.indexOf("zb-duplex-hint");
+  assert.ok(toolbarStart >= 0 && viewerStart > toolbarStart, "zb-toolbar/zb-viewer 위치를 못 찾았다");
+  assert.ok(hintPos > toolbarStart && hintPos < viewerStart, "안내 문구가 zb-toolbar 밖에 있다 — 인쇄에 찍힐 수 있다");
 });
 
 test("표지에 eyebrow·caption 텍스트가 없다 — 랩어라운드 타이포만 남는다(사용자 요청)", () => {

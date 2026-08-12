@@ -822,9 +822,19 @@ body.has-zb { padding-bottom: 0; }
 .zb-overlay[hidden] { display: none !important; }
 
 /* 2026-08-12 여섯 번째 라운드 — 툴바 제목 문구를 뺐다(render-zinebook.mjs 주석
-   참고). 남는 건 버튼뿐이라 오른쪽 정렬로 바꿨다. */
-.zb-toolbar { display: flex; align-items: center; justify-content: flex-end; gap: var(--s4); flex-wrap: wrap; }
-.zb-toolbar-actions { display: flex; align-items: center; gap: var(--s3); }
+   참고). 남는 건 버튼뿐이라 오른쪽 정렬로 바꿨다. 열세 번째 라운드에서 왼쪽에
+   양면 인쇄 안내(.zb-duplex-hint)가 다시 생겨 space-between으로 바꿨다 — 안내는
+   왼쪽, 버튼은 오른쪽. */
+.zb-toolbar { display: flex; align-items: center; justify-content: space-between; gap: var(--s4); flex-wrap: wrap; }
+.zb-toolbar-actions { display: flex; align-items: center; gap: var(--s3); flex-shrink: 0; }
+/* 2026-08-12 열세 번째 라운드 신규 — render-zinebook.mjs 주석 참고. .zb-toolbar가
+   인쇄에서 통째로 숨는 규칙(아래 @media print)을 그대로 물려받아 실제 지면에는
+   안 찍힌다 — 인쇄 버튼을 보는 화면에서만, 인쇄를 누르기 전에 보이면 된다. */
+.zb-duplex-hint {
+  font-family: var(--sans); font-size: 12.5px; line-height: 1.5; color: rgba(255,255,255,.75);
+  margin: 0; max-width: 46ch;
+}
+.zb-duplex-hint strong { color: #fff; font-weight: 700; }
 
 .zb-btn {
   display: inline-flex; align-items: center; gap: 7px; cursor: pointer;
