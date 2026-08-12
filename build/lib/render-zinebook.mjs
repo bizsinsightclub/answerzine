@@ -187,14 +187,25 @@ function scanPanel({ qrSvg }) {
  * **한계— 저자·정확한 기사 제목은 못 채웠다.** 이번 세션은 네트워크 egress 프록시가
  * 실제 출처 도메인(news1.kr·edaily.co.kr 등)을 차단해 원문을 열어 바이라인·정확한
  * 표제를 확인할 수 없었다(§7.3 "확인되지 않은 사실을 싣지 않는다" — 저자명·기사 제목을
- * 지어내지 않는다). 그중 한터차트·예스24 두 출처는 애초에 기사가 아니라 실시간 차트
- * 페이지라 저자 바이라인 자체가 없다. 매체명·날짜·URL(전부 이미 QA를 통과한 검증된
- * 값)만으로 조합했다 — 사람이 원문을 열어 저자·표제를 추가하거나, 네트워크가 열리면
- * 다시 채워야 한다.
+ * 지어내지 않는다).
+ *
+ * **한터차트·예스24는 매체명만 낸다(2026-08-12 여덟 번째 라운드, 사용자 요청 — "저자
+ * 없이 매체명만 남겨줘").** 이 둘은 애초에 기사가 아니라 실시간 차트·베스트셀러 페이지라
+ * 저자 바이라인 자체가 없다 — 그런데도 날짜·URL을 붙여 기사 인용처럼 보이게 하면 없는
+ * 정확성을 있는 척하는 것이다. 그래서 이 두 출처만 매체명 하나로 줄인다. 그 외
+ * 출처(뉴스1·이데일리 등 실제 기사)는 그대로 매체명·날짜·URL을 낸다 — 사람이 원문을
+ * 열어 저자·표제를 추가하거나, 네트워크가 열리면 다시 채워야 한다.
  */
+const NAME_ONLY_OUTLETS = [
+  { match: /^한터차트/, name: "한터차트" },
+  { match: /^예스24/, name: "예스24" },
+];
+
 function citationLine(stat, anchorDate) {
   if (!stat?.sourceLabel) return "";
   const outlet = stat.sourceLabel.replace(/\s*확인하기\s*$/, "");
+  const nameOnly = NAME_ONLY_OUTLETS.find((o) => o.match.test(outlet));
+  if (nameOnly) return nameOnly.name;
   const date = anchorDate ? anchorDate.replace(/-/g, ".") : "";
   return [outlet, date, stat.sourceUrl].filter(Boolean).join(" · ");
 }

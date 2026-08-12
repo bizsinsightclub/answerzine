@@ -154,6 +154,20 @@ test("인쇄용 출처 한 줄이 클릭 유도 문구 없이 매체명 · 날�
   assert.ok(!html.includes("확인하기"), "클릭 유도 동사('확인하기')가 인쇄용 출처 줄에 남아 있다");
 });
 
+test("한터차트·예스24는 날짜·URL 없이 매체명만 낸다 — 2026-08-12 여덟 번째 라운드(사용자 요청, 저자 없는 차트 페이지라 기사처럼 인용하면 안 된다)", () => {
+  const chartStory = { ...mockStory(1, "음악"), blocks: mockStory(1, "음악").blocks.map((b) =>
+    b.type === "stat" ? { ...b, sourceLabel: "한터차트 확인하기", sourceUrl: "http://www.hanteochart.com/" } : b
+  ) };
+  const bestsellerStory = { ...mockStory(2, "도서"), blocks: mockStory(2, "도서").blocks.map((b) =>
+    b.type === "stat" ? { ...b, sourceLabel: "예스24 베스트셀러 확인하기", sourceUrl: "https://www.yes24.com/24/category/bestseller" } : b
+  ) };
+  const html = renderZinebook({ issue: ISSUE, stories: [chartStory, bestsellerStory, ...FOUR.slice(2)] });
+  assert.match(html, /<p class="zb-source">한터차트<\/p>/);
+  assert.match(html, /<p class="zb-source">예스24<\/p>/);
+  assert.ok(!html.includes("hanteochart.com"), "한터차트 URL이 인쇄용 출처 줄에 남아 있다");
+  assert.ok(!html.includes("yes24.com"), "예스24 URL이 인쇄용 출처 줄에 남아 있다");
+});
+
 test("About 페이지는 순수 텍스트다 — QR·URL이 없다(2026-08-12 여섯 번째 라운드, 사용자 요청)", () => {
   const html = renderZinebook({ issue: ISSUE, stories: FOUR, qrSvg: "<svg data-test-qr></svg>" });
   const about = html.slice(html.indexOf('data-zb-grid'), html.indexOf("테스트 헤드라인 1"));
