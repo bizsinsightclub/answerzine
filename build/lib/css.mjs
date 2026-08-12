@@ -165,6 +165,21 @@ const CHROME = `
 /* 2026-08-11 네 번째 라운드: 로고 옆 공백을 줄여 달라는 요청 — 로고·내비 사이 gap을
    좁혔다(var(--s5) 24px → var(--s3) 12px). */
 .masthead-top { display: flex; align-items: center; justify-content: space-between; gap: var(--s3); flex-wrap: nowrap; }
+/* 2026-08-12 스물세 번째 라운드 — 사용자가 스크린샷으로 지정: PC 화면에서 로고를
+   뷰포트 정중앙에 놓고(내비는 그대로 우측), 좌측 상단 자리는 비운다. 로고(auto
+   너비)와 내비(가변 너비)는 폭이 서로 달라 justify-content: space-between으로는
+   로고가 진짜 화면 중앙에 오지 않는다(두 요소 사이 여백만 균등해질 뿐, 로고
+   자체의 위치는 두 요소 폭 차이만큼 한쪽으로 쏠린다) — 그래서 PC 폭에서만 3칸
+   그리드(1fr auto 1fr)로 바꾼다. 왼쪽 칸은 빈 채로 둔다(스페이서 엘리먼트 없이
+   grid-column 배치만으로 충분하다) — 그 칸의 폭이 오른쪽 내비 칸과 항상 같은
+   크기로 자라서, 가운데 칸(로고)이 뷰포트 정중앙에 고정된다. 좁은 화면(768px
+   미만)은 기존 space-between(로고 좌측·내비 우측 붙이기)을 그대로 쓴다 — 내비
+   항목이 6개라 화면이 좁아지면 가운데 배치보다 좌우 붙이기가 공간 활용에 낫다. */
+@media (min-width: 768px) {
+  .masthead-top { display: grid; grid-template-columns: 1fr auto 1fr; }
+  .wordmark { grid-column: 2; justify-self: center; }
+  .category-nav { grid-column: 3; justify-self: end; }
+}
 /* 워드마크는 2026-08-10부터 브래킷 마크 + "the answer company"만 남긴 축소판이다
    (기존의 큰 ANSWER/Zine 로고타입은 뺐다 — CLAUDE.md 참고).
    2026-08-11 여섯 번째 라운드 — "로고 옆 공백"의 진짜 원인을 찾았다. PNG 원본

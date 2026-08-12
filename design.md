@@ -420,8 +420,19 @@ const pages = (buf.toString("latin1").match(/\/Type\s*\/Page[^s]/g) || []).lengt
 ```
 site-header: position: sticky; top: 0 · 항상 화면 상단에 붙는다 · 뷰포트 전체 폭(--edge만 패딩)
 워드마크:    로고 이미지(§3 워드마크 참조) · width clamp(234px, 31vw, 359px) · height auto
-카테고리 내비: About + 영문 라벨(nameEn) 링크 · 로고와 같은 줄, 우측 정렬 · 좁은 화면에서 가로 스크롤
+카테고리 내비: About + 영문 라벨(nameEn) 링크 · PC에서는 로고 우측(§아래 참고), 좁은 화면에서 가로 스크롤
 ```
+
+> **2026-08-12 스물세 번째 라운드 — PC에서 로고를 뷰포트 정중앙으로.** 사용자가
+> 스크린샷으로 지정. 로고(auto 너비)와 내비(가변 너비)는 폭이 서로 달라
+> `justify-content: space-between`으로는 로고가 진짜 화면 중앙에 오지 않는다(두
+> 요소 사이 여백만 균등해질 뿐이다) — `.masthead-top`을 768px 이상에서 3칸 그리드
+> (`1fr auto 1fr`)로 바꾸고 로고를 가운데 칸(`grid-column: 2; justify-self: center`),
+> 내비를 오른쪽 칸(`grid-column: 3; justify-self: end`)에 놓았다. 왼쪽 칸은 빈 채로
+> 둔다 — 스페이서 엘리먼트 없이 grid 배치만으로 그 칸이 오른쪽 내비 칸과 항상 같은
+> 폭으로 자라 로고가 정중앙에 고정된다. 768px 미만(모바일)은 기존 `space-between`
+> (로고 좌측·내비 우측)을 그대로 쓴다 — 내비 항목이 6개라 좁은 화면에서는 가운데
+> 배치보다 좌우 붙이기가 공간 활용에 낫다.
 
 > **2026-08-10 두 번째 라운드.** 예전엔 여기서 워드마크를 "Paperlogy 900 · uppercase" 텍스트로
 > 적어 뒀지만, 실제 마스트헤드(`.wordmark`/`.logo`)는 처음부터 텍스트가 아니라 이미지 로고였다
