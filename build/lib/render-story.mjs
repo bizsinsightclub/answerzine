@@ -16,10 +16,16 @@
  * (본문 1/span 7 + 근거 레일 9/span 4)를 실제로 붙였다 — `.story-grid`/`.story-col`/
  * `.story-rail`(스탯·출처·인사이트를 담는다). 1200px 미만에서는 그냥 위아래로
  * 쌓인다(레일이 본문보다 먼저 나온다 — "무슨 일이 왜 중요한지 먼저" 순서 유지).
+ *
+ * 2026-08-12 스물두 번째 라운드 — 바이라인을 "BY ANSWER ZINE · {도메인} 데이터
+ * 기반"에서 "- BY ANZINE"으로 줄이고 우측 정렬했다(사용자가 첨부한 스크린샷).
+ * 도메인 정보는 이미 바로 위 `.meta`(도메인 태그+범위)에 있어 중복이었다 —
+ * "ANZINE"은 인트로 애니메이션·DIY 진 표지가 이미 쓰는 브랜드 축약형(SITE.name
+ * "ANSWER ZINE" 자체는 안 바뀐다, layout.mjs intro() 참고)과 같은 문법을 여기서도
+ * 쓴다. SITE.name을 더는 안 써서 import도 뺐다.
  */
 import { h, raw, escapeHTML } from "./html.mjs";
 import { u } from "./site.mjs";
-import { SITE } from "./layout.mjs";
 import { blocksOf } from "./data.mjs";
 
 const dcVar = (story) => (story.slug ? `--dc: var(--dc-${story.slug});` : "");
@@ -108,7 +114,7 @@ export function renderStory(story, { prev, next } = {}) {
       ${story.kicker ? raw(h`<p class="kicker">${story.kicker}</p>`) : ""}
       <h1 class="story-headline">${story.headline}</h1>
       <p class="teaser">${story.teaser}</p>
-      <p class="byline">BY ${SITE.name} · ${story.domain} 데이터 기반</p>
+      <p class="byline">- BY ANZINE</p>
     </header>
 
     <div class="story-grid">

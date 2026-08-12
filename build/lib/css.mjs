@@ -112,12 +112,15 @@ h3 { font-weight: 900; font-size: 22px; line-height: 1.15; letter-spacing: -.025
   max-width: var(--measure);
 }
 
-/* "BY ANSWER ZINE · {도메인} 데이터 기반" — 인쇄 진의 킥커류와 같은 문법이다.
-   2026-08-10 개편: 헤드라인/티저와 스탯 패널 사이의 경계선 역할도 겸한다. */
+/* "- BY ANZINE" — 인쇄 진의 킥커류와 같은 문법이다. 2026-08-10 개편: 헤드라인/티저와
+   스탯 패널 사이의 경계선 역할도 겸한다(border-bottom).
+   2026-08-12 스물두 번째 라운드 — 사용자가 첨부한 스크린샷대로 우측 정렬했다.
+   문구도 "BY ANSWER ZINE · {도메인} 데이터 기반"에서 "- BY ANZINE"으로 줄었다
+   (render-story.mjs 주석 참고) — 도메인은 바로 위 .meta에 이미 있어 중복이었다. */
 .byline {
   font-family: var(--sans); font-size: 12px; font-weight: 700; letter-spacing: .1em;
   text-transform: uppercase; color: var(--secondary); margin: 0 0 var(--s6);
-  padding-bottom: var(--s4); border-bottom: 1px solid var(--divider);
+  padding-bottom: var(--s4); border-bottom: 1px solid var(--divider); text-align: right;
 }
 
 .story-body p { margin: 0 0 var(--s5); max-width: var(--measure); }
@@ -967,10 +970,21 @@ body.has-zb { padding-bottom: 0; }
    "Maximize Content Width... Reduce Lateral Padding"). 위아래도 34px→28px로 살짝
    줄여 그만큼 콘텐츠가 쓸 수 있는 영역을 넓혔다. 표지(.zb-panel--cover)의 랩어라운드
    캔버스(zb-wrap-viewport)는 이 패딩과 무관하다 — absolute 자식의 컨테이닝 블록은
-   조상의 패딩 박스 기준이라 패딩 값이 바뀌어도 561px 폭 계산이 그대로 유지된다. */
+   조상의 패딩 박스 기준이라 패딩 값이 바뀌어도 561px 폭 계산이 그대로 유지된다(이
+   전제는 아래 스물두 번째 라운드에도 그대로 적용된다).
+   2026-08-12 스물두 번째 라운드 — 사용자 요청("Zine의 레이아웃 여백 2.5cm씩")으로
+   패딩을 균일한 물리 단위(2.5cm)로 다시 늘렸다 — 스무 번째 라운드와 방향이
+   반대지만, 더 최근의 명시적 지시라 그대로 따른다. cm는 CSS 절대 단위라 뷰포트에
+   안 흔들리고, 이 캔버스(561×794px)가 애초에 실물 A5(148.5×210mm)를 96dpi로
+   그대로 옮긴 크기라(561px≈148.5mm) 화면 미리보기(cqw로 축소 표시)와 실제 인쇄
+   (.zb-half가 mm 단위로 A5 절반을 정확히 차지) 양쪽에서 물리적으로 같은 2.5cm가
+   나온다 — 실측(스크린샷)으로 확인했다. padding: 34px 30px이던 원래 값(28px
+   18px 이전)보다도 큰 여백이라, 문단 폰트 크기를 그대로 두면 기사 페이지 콘텐츠가
+   줄어든 가용 영역에 안 맞을 위험이 있다 — build/verify.mjs의 "콘텐츠가 페이지
+   안에 들어간다" 검사가 매 빌드마다 실측으로 잡는다. */
 .zb-panel {
   display: flex; flex-direction: column; box-sizing: border-box;
-  padding: 28px 18px; background: #fff; color: #111; font-family: var(--serif);
+  padding: 2.5cm; background: #fff; color: #111; font-family: var(--serif);
   overflow: hidden;
 }
 .zb-half .zb-panel { position: absolute; inset: 0; }
@@ -1065,34 +1079,49 @@ body.has-zb { padding-bottom: 0; }
    계산에 영향을 안 준다. .zb-panel--article의 z-index:0이 이 음수 z-index를 그
    패널 안에 가둔다(안 그러면 옆 페이지로 새어나갈 수 있다, render-index.mjs의 같은
    트릭과 동일한 이유). */
+/* 2026-08-12 스물두 번째 라운드 — 사용자 요청("MOVIE~BOOKS 글자 간격 좁히기, 사이즈
+   50% 이상 키울것")으로 두 값을 같이 바꿨다. justify-content를 space-between(글자를
+   페이지 세로 전체에 걸쳐 끝까지 펼친다)에서 center로 바꾸면 그 자체로 "간격이
+   좁아진다" — 낱글자 사이 간격이 남는 공간을 억지로 나눠 갖는 대신 줄 높이
+   (line-height)만큼만 붙어서 뭉친다. font-size는 58px→92px로 키웠다(+58.6%,
+   "50% 이상" 조건을 만족한다). 컬럼 폭(width)도 커진 글자 폭에 맞춰 74px→118px로
+   같이 늘렸다 — 안 늘리면 이미 opacity .06으로 거의 안 보이는 글자가 그마저도
+   패널의 overflow:hidden에 잘려 나간다. */
 .zb-article-watermark {
-  position: absolute; top: 0; right: 0; bottom: 0; width: 74px; z-index: -1;
-  display: flex; flex-direction: column; align-items: center; justify-content: space-between;
-  font-family: var(--sans); font-weight: 900; font-size: 58px; line-height: .8;
+  position: absolute; top: 0; right: 0; bottom: 0; width: 118px; z-index: -1;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  font-family: var(--sans); font-weight: 900; font-size: 92px; line-height: .82;
   letter-spacing: -.02em; text-transform: uppercase; color: #000; opacity: .06; pointer-events: none;
 }
-.zb-article-headline { font-family: var(--sans); font-weight: 900; font-size: 26px; line-height: 1.22; letter-spacing: -.02em; margin: 6px 0 18px; position: relative; z-index: 1; }
-.zb-article-body { font-family: var(--serif); font-size: 13px; line-height: 1.8; margin: 0 0 16px; color: #222; position: relative; z-index: 1; }
+/* 2026-08-12 스물두 번째 라운드 — 위 .zb-panel 패딩이 2.5cm(≈94.5px)로 커지면서
+   가용 콘텐츠 영역이 561×794px 캔버스 기준 372×605px로 줄었다(원래 525×738px
+   대비 가로 29%·세로 18% 감소). 그대로 두면 3개 기사가 페이지 밖으로 넘쳤다
+   (build/verify.mjs 실측 — 최대 84px 초과). 사용자가 요청한 건 "여백을 넓힌다"이지
+   "글의 양을 줄인다"가 아니므로, 문장을 자르는 대신 타이포 크기·행간·블록 여백을
+   전반적으로 낮춰(대략 10~15%) 좁아진 상자 안에 다시 맞췄다 — 5블록 전부를 그대로
+   싣는다는 원칙(파일 위쪽 articlePanel() 주석)은 안 건드렸다. */
+.zb-article-headline { font-family: var(--sans); font-weight: 900; font-size: 22px; line-height: 1.18; letter-spacing: -.02em; margin: 4px 0 14px; position: relative; z-index: 1; }
+.zb-article-body { font-family: var(--serif); font-size: 11.5px; line-height: 1.65; margin: 0 0 12px; color: #222; position: relative; z-index: 1; }
 .zb-article-body--close { margin-bottom: 0; }
-.zb-stat { display: flex; flex-direction: column; gap: 5px; padding: 14px 16px; border: 1px solid #ddd; margin: 0 0 18px; position: relative; z-index: 1; break-inside: avoid; }
-.zb-stat-label { font-family: var(--sans); font-size: 9.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: #666; }
-.zb-stat-value { font-family: var(--sans); font-weight: 900; font-size: 18px; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+.zb-stat { display: flex; flex-direction: column; gap: 4px; padding: 10px 12px; border: 1px solid #ddd; margin: 0 0 14px; position: relative; z-index: 1; break-inside: avoid; }
+.zb-stat-label { font-family: var(--sans); font-size: 8.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: #666; }
+.zb-stat-value { font-family: var(--sans); font-weight: 900; font-size: 16px; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
 .zb-quote {
-  font-family: var(--serif); font-weight: 700; font-size: 14.5px; line-height: 1.65;
-  padding-left: 14px; border-left: 2px solid #111; margin: 0 0 14px;
+  font-family: var(--serif); font-weight: 700; font-size: 13px; line-height: 1.5;
+  padding-left: 12px; border-left: 2px solid #111; margin: 0 0 10px;
   position: relative; z-index: 1; break-inside: avoid;
 }
 .zb-quote-label {
-  display: block; font-family: var(--sans); font-weight: 700; font-size: 9.5px;
-  letter-spacing: .1em; color: #888; margin-bottom: 6px;
+  display: block; font-family: var(--sans); font-weight: 700; font-size: 8.5px;
+  letter-spacing: .1em; color: #888; margin-bottom: 4px;
 }
 .zb-insight-note {
-  font-family: var(--sans); font-size: 11px; line-height: 1.7; color: #444;
-  background: #f7f7f5; border-left: 2px solid #111; padding: 12px 14px; margin: 0 0 18px;
+  font-family: var(--sans); font-size: 10px; line-height: 1.55; color: #444;
+  background: #f7f7f5; border-left: 2px solid #111; padding: 9px 12px; margin: 0 0 12px;
   position: relative; z-index: 1; break-inside: avoid;
 }
-.zb-source { font-family: var(--sans); font-size: 9.5px; line-height: 1.5; color: #777; margin: 0; padding-top: 12px; position: relative; z-index: 1; }
-.zb-empty-note { font-size: 13.5px; line-height: 1.7; color: #777; position: relative; z-index: 1; }
+.zb-source { font-family: var(--sans); font-size: 8.5px; line-height: 1.4; color: #777; margin: 0; padding-top: 8px; position: relative; z-index: 1; }
+.zb-empty-note { font-size: 12px; line-height: 1.55; color: #777; position: relative; z-index: 1; }
 
 /* ── 스티커 팔레트 — 미리보기 화면 하단(사용자 요청). 인쇄에는 안 나온다(도구지
    콘텐츠가 아니다) — 아래 @media print 블록이 숨긴다. 드래그·터치 로직은
