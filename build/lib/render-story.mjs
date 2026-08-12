@@ -27,6 +27,7 @@
 import { h, raw, escapeHTML } from "./html.mjs";
 import { u } from "./site.mjs";
 import { blocksOf } from "./data.mjs";
+import { sparklineSVG } from "./sparkline.mjs";
 
 const dcVar = (story) => (story.slug ? `--dc: var(--dc-${story.slug});` : "");
 
@@ -35,15 +36,38 @@ const dcVar = (story) => (story.slug ? `--dc: var(--dc-${story.slug});` : "");
  *
  * 2026-08-08~2026-08-10 사이에는 여기 출처 링크까지 같이 있었다. 이번 개편으로
  * 라벨+수치만 남기고 출처는 `sourceBox()`로 뺐다(목업의 `.stat-panel`/`.source-box`
- * 분리 구조). 차트(스파크라인)·축설명·비교기준 문장은 여전히 화면에 내지 않는다 —
- * `trend`/`axisCaption`/`basis`는 데이터에는 계속 남아 있다(§3.4의 약속, qa.mjs 검증도
- * 그대로다) — 순수 렌더링만 뺀 상태가 이어진다.
+ * 분리 구조).
+ *
+ * 2026-08-12 스물여섯 번째 라운드 — 차트(스파크라인) 렌더를 되살렸다. "차트를 자동으로
+ * 그릴지 판단하라"는 사용자 요청(ANZINE Official Data Sources 문서 §4)에 대한 답은 이미
+ * §3.4가 정해 놓았다: `stat.trend`가 있다는 것 자체가 "이 값은 재현 가능한 시계열"이라는
+ * qa.mjs 검증(series가 archived거나 trendSnapshots가 갖춰짐)을 통과했다는 뜻이다 —
+ * 별도의 "쓸모 판단" 로직을 새로 짓지 않고 이 기존 게이트를 그대로 재사용한다.
+ * `trend`가 없는 회차(2026-08-12 현재 발행된 4개 회차 전부 — 아직 아무 스토리도 4주
+ * 이상 시계열을 못 채웠다)는 이전처럼 라벨+수치만 낸다. 막대·산점도·파이는 넣지
+ * 않았다 — 어느 도메인 데이터에도 비교 대상 수치(경쟁작·전작 대비)가 아직 없어서,
+ * 없는 데이터를 지어내지 않고서는(§5 "Do not invent missing values") 그릴 수 없다.
+ * 그런 지표가 도메인 문서에 실제로 생기면 그때 막대 차트를 추가한다.
+ *
+ * `trend`가 없고 `basis`만 있으면 "비교 기준" 문장을 낸다 — CLAUDE.md §3.4가 이미
+ * "화면에는 `비교 기준`으로 렌더된다"고 적어 두고 있었는데 실제 렌더러는 그 문장을
+ * 낸 적이 없었다(문서-코드 불일치, 이번에 맞췄다). design.md "스파크라인" 절 참고.
  */
 function statPanel(stat, story) {
   if (!stat) return "";
+  const hasChart = Array.isArray(stat.trend) && stat.trend.length >= 2;
+  const chart = hasChart
+    ? h`<div class="stat-chart">
+    ${raw(sparklineSVG(stat.trend, "var(--dc)", { label: stat.label, invert: !!stat.trendInvert }))}
+    ${stat.axisCaption ? raw(h`<p class="stat-axis-caption">${stat.axisCaption}</p>`) : ""}
+  </div>`
+    : stat.basis
+      ? h`<p class="stat-basis">비교 기준 · ${stat.basis}</p>`
+      : "";
   return h`<div class="stat-card is-single" data-reveal style="${raw(dcVar(story))}">
     <div class="label">${stat.label}</div>
     <div class="stat-value">${stat.value}</div>
+${raw(chart)}
 </div>`;
 }
 

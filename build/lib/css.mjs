@@ -538,6 +538,21 @@ const COMPONENTS = `
   display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: var(--s3);
 }
 .stat-card .label { max-width: 60%; }
+/* 2026-08-12 스물여섯 번째 라운드 — 스파크라인 되살림. 부모가 flex-wrap 행이라
+   flex-basis:100%로 강제 줄바꿈시켜 라벨+수치 아래 전체 폭 새 줄을 만든다.
+   stat.trend가 있는 회차에서만 나타난다(위 render-story.mjs 주석 참고). */
+.stat-chart { flex-basis: 100%; color: var(--dc, var(--ink)); }
+.stat-chart .sparkline { display: block; width: 100%; max-width: 220px; height: auto; }
+.stat-axis-caption {
+  font-family: var(--sans); font-size: 11px; line-height: 1.5; color: var(--tertiary);
+  margin: var(--s2) 0 0;
+}
+/* trend가 없을 때(basis만 있을 때)의 비교 기준 한 줄. 차트 자리를 대신한다 — 두 상태가
+   동시에 나오지 않으므로 stat-chart와 같은 flex-basis:100% 자리를 그대로 물려받는다. */
+.stat-basis {
+  flex-basis: 100%; font-family: var(--sans); font-size: 12px; line-height: 1.5;
+  color: var(--tertiary); margin: var(--s2) 0 0;
+}
 
 /* 인사이트 콜아웃. 2026-08-08에 화면에서 뺐던 quote.insight.note가 2026-08-10에
    되돌아왔다 — 참고 목업의 .insight 콜아웃 구조를 그대로 가져왔다. 왼쪽 보더에

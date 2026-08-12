@@ -59,11 +59,14 @@ test("onclick 문자열 보간을 쓰지 않는다 — §9.7", () => {
   assert.ok(!content.includes("onclick"), "이벤트 위임을 써야 한다");
 });
 
-test("차트(스파크라인)는 더 이상 렌더되지 않는다 — 2026-08-08, 라벨+수치+출처만 남긴다", () => {
+test("trend가 있으면 차트(스파크라인)가 렌더된다 — 2026-08-12 스물여섯 번째 라운드, 되살림", () => {
+  // 2026-08-08엔 사용자 요청으로 렌더링만 뺐었다("라벨+수치+출처만"). "ANZINE — Official
+  // Data Sources & Comparative Chart Integration" 문서 §4를 반영해 다시 붙였다 —
+  // design.md "스파크라인" 절·test/stat.test.mjs 참고.
   const { content } = renderStory(STORY, {});
-  assert.ok(!content.includes("stat-spark"), "차트가 여전히 나온다");
-  assert.ok(!content.includes("<svg"), "차트 SVG가 여전히 나온다");
-  assert.ok(!content.includes("X축: 최근 4주"), "축 설명이 여전히 나온다");
+  assert.match(content, /class="sparkline"/, "차트가 안 나온다");
+  assert.match(content, /<svg/, "차트 SVG가 안 나온다");
+  assert.match(content, /X축: 최근 4주/, "축 설명이 안 나온다");
   assert.match(content, /주간 판매량 지수/, "라벨은 남아 있어야 한다");
   assert.match(content, /\+326\.5%/, "수치는 남아 있어야 한다");
 });

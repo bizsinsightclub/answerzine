@@ -381,6 +381,20 @@ npm run collect 2026-w32 -- --only=netflix,yes24
 >   따로 밟아야 한다. Circle Chart는 이미 가이섬 아카이브 경유로 간접 반영되고 있다(§5
 >   도메인 레지스트리 music 행) — 직접 등재는 별개 후속 작업이다.
 
+> ⚠️ **2026-08-12 스물여섯 번째 라운드 — 같은 문서가 다시 왔다. 재검증했고, 여전히 막혀
+> 있다.** 같은 "ANZINE — Official Data Sources & Comparative Chart Integration" 문서가
+> 새 메시지로 다시 도착해 위 결정을 재확인했다 — `kobic.net`·`circlechart.kr`·
+> `charts.youtube.com`·`charts.spotify.com`·`developers.google.com`을 다시 열어봤다.
+> 전부 그대로 `EGRESS_BLOCKED`다. 이번엔 대조군으로 **이미 화이트리스트에 있고 지난
+> 세션들에서 실제로 열렸던 `kobis.or.kr`도 같은 방식으로 다시 열어봤는데 똑같이
+> `EGRESS_BLOCKED`가 떴다** — 이 세션의 네트워크 egress 정책이 특정 후보 도메인만
+> 막는 게 아니라 이 세션 전체에서 더 넓게(어쩌면 전면적으로) 제한돼 있다는 뜻이다.
+> 그래서 신규 출처를 화이트리스트에 추가하지 않는다는 결론은 그대로지만, 근거는
+> 더 확실해졌다 — "이 두 도메인이 막혔다"가 아니라 "이 세션은 지금 아무 웹 검증도
+> 못 한다"이다. 문서의 §4~§7(차트 자동 렌더링)은 네트워크와 무관한 부분이라 이번
+> 라운드에서 실제로 구현했다 — `design.md` "스파크라인" 절, `build/lib/render-story.mjs`
+> 참고. §1(신규 공식 출처 등재)만 네트워크가 열리는 세션으로 넘어간다.
+
 ### S3. 검증 — 통과 못하면 버린다
 
 이 단계가 이 웹진의 신뢰를 지탱한다. 타협하지 않는다.
@@ -878,11 +892,13 @@ const pages = (buf.toString('latin1').match(/\/Type\s*\/Page[^s]/g) || []).lengt
 - **사진 콜라주 시스템은 인쇄 진에서 없어졌다(2026-08-10).** `story.photo.src`는 이제
   어디서도 렌더되지 않는다 — 데이터 필드 자체는 남아 있지만 읽는 코드가 없다. 사진을
   다시 쓰기로 하면 인쇄 진이 아니라 새 자리(예: 웹 스토리 헤더)를 설계해야 한다.
-- **`zineBodyFor()`/`story.zineBody`(인쇄 진 본문 축약)와 `sparklineSVG()`(스탯 카드
-  차트)는 렌더러 호출부가 없다.** 둘 다 2026-08-11 정리 라운드에서 검토했지만 지우지
-  않았다 — 둘 다 "되살릴 일이 생기면 그대로 쓴다"는 의도로 데이터·테스트 자산으로
-  남겨 둔 것이지 방치된 죽은 코드가 아니다(각각 `build/lib/render-zine.mjs`,
-  `build/lib/sparkline.mjs`의 주석 참고). 같은 라운드에서 정말 죽어 있던
+- **`zineBodyFor()`/`story.zineBody`(인쇄 진 본문 축약)는 여전히 렌더러 호출부가 없다.**
+  2026-08-11 정리 라운드에서 검토했지만 지우지 않았다 — "되살릴 일이 생기면 그대로
+  쓴다"는 의도로 데이터·테스트 자산으로 남겨 둔 것이지 방치된 죽은 코드가 아니다
+  (`build/lib/render-zine.mjs`의 주석 참고). 같은 라운드에서 정말 죽어 있던
   것들(QR 생성 코드, `assets/img/qr-<회차>.svg`, `assets/img/logo-light.png`와 그
   전환 스위치, `qrcode`/`subset-font` devDependency, `runs/2026-w32.json` 형식
   예시 시드)은 지웠다.
+  **`sparklineSVG()`(스탯 카드 차트)는 2026-08-12 스물여섯 번째 라운드에 호출부가
+  다시 생겼다** — `build/lib/render-story.mjs`의 `statPanel()`이 `stat.trend`가 있는
+  회차에서 호출한다. 더는 여기 목록에 속하지 않는다 — `design.md` "스파크라인" 절 참고.
