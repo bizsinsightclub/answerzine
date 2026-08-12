@@ -1101,11 +1101,18 @@ body.has-zb { padding-bottom: 0; }
    (line-height)만큼만 붙어서 뭉친다. font-size는 58px→92px로 키웠다(+58.6%,
    "50% 이상" 조건을 만족한다). 컬럼 폭(width)도 커진 글자 폭에 맞춰 74px→118px로
    같이 늘렸다 — 안 늘리면 이미 opacity .06으로 거의 안 보이는 글자가 그마저도
-   패널의 overflow:hidden에 잘려 나간다. */
+   패널의 overflow:hidden에 잘려 나간다.
+   2026-08-12 스물네 번째 라운드 — 위치·정렬·크기를 다시 바꿨다(사용자 요청,
+   "좌상단으로 배치, 왼쪽 위에서 시작해 아래로 떨어지게, 크기는 30% 정도 더
+   크게"). right:0→left:0으로 좌측 가장자리로 옮기고, justify-content를
+   center→flex-start로 바꿔 글자가 페이지 세로 중앙이 아니라 맨 위에서 시작해
+   아래로 흘러내리게 했다(top:0/bottom:0은 그대로 두되 flex-start라 실제 글자는
+   위쪽에만 뭉친다). font-size는 92px→120px(+30.4%), 그에 맞춰 컬럼 폭도
+   118px→154px로 같이 키웠다. */
 .zb-article-watermark {
-  position: absolute; top: 0; right: 0; bottom: 0; width: 118px; z-index: -1;
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  font-family: var(--sans); font-weight: 900; font-size: 92px; line-height: .82;
+  position: absolute; top: 0; left: 0; bottom: 0; width: 154px; z-index: -1;
+  display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
+  font-family: var(--sans); font-weight: 900; font-size: 120px; line-height: .82;
   letter-spacing: -.02em; text-transform: uppercase; color: #000; opacity: .06; pointer-events: none;
 }
 /* 2026-08-12 스물두 번째 라운드 — 위 .zb-panel 패딩이 2.5cm(≈94.5px)로 커지면서
