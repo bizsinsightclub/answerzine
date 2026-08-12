@@ -36,35 +36,22 @@ test("진입 화면은 홈에서만 마크업으로 심긴다 — 첫 페인트�
   assert.ok(!home.includes('class="intro-word intro-word-zine"'), "옛 ZINE 클래스가 남아 있다");
 });
 
-test("ANSWER·MAGAZINE은 낱글자로 쪼개져 있고, ANZINE을 이루는 글자만 intro-letter--keep이다", () => {
+test("ANSWER·MAGAZINE은 intro-keep(AN·ZINE)/intro-fade(나머지)로 쪼개져 있다 — 2026-08-12 열다섯 번째 라운드", () => {
   // ANSWER(A-N-S-W-E-R)의 A·N + MAGAZINE(M-A-G-A-Z-I-N-E)의 Z·I·N·E = "ANZINE".
-  // THE는 ANZINE에 들어가는 글자가 하나도 없어 낱글자로 안 쪼갠다(layout.mjs 주석).
+  // THE는 ANZINE에 들어가는 글자가 하나도 없어 안 쪼갠다(layout.mjs splitWord() 주석).
   const answerMatch = home.match(/class="intro-word intro-word-answer">([\s\S]*?)<\/span>\s*<span class="intro-word intro-word-magazine"/);
   assert.ok(answerMatch, "ANSWER 단어 블록을 못 찾았다");
-  const answerHTML = answerMatch[1];
-  assert.match(answerHTML, /<span class="intro-letter intro-letter--keep">A<\/span>/);
-  assert.match(answerHTML, /<span class="intro-letter intro-letter--keep">N<\/span>/);
-  for (const ch of ["S", "W", "E", "R"]) {
-    assert.match(answerHTML, new RegExp(`<span class="intro-letter">${ch}</span>`));
-  }
+  assert.equal(answerMatch[1], '<span class="intro-keep" data-intro-role="an">AN</span><span class="intro-fade">SWER</span>');
 
   const magazineMatch = home.match(/class="intro-word intro-word-magazine">([\s\S]*?)<\/span>\s*<\/p>/);
   assert.ok(magazineMatch, "MAGAZINE 단어 블록을 못 찾았다");
-  const magazineHTML = magazineMatch[1];
-  for (const ch of ["Z", "I", "N", "E"]) {
-    assert.match(magazineHTML, new RegExp(`<span class="intro-letter intro-letter--keep">${ch}</span>`));
-  }
-  for (const ch of ["M", "G"]) {
-    assert.match(magazineHTML, new RegExp(`<span class="intro-letter">${ch}</span>`));
-  }
-  // "MAGAZINE"의 두 A는 둘 다 intro-letter--keep이 아니어야 한다(ANSWER 쪽 A만 살린다).
-  assert.equal((magazineHTML.match(/intro-letter--keep/g) || []).length, 4, "MAGAZINE 쪽 keep 글자 수가 4(Z·I·N·E)가 아니다");
+  assert.equal(magazineMatch[1], '<span class="intro-fade">MAGA</span><span class="intro-keep" data-intro-role="zine">ZINE</span>');
 });
 
-test("스크립트 없이도 워드마크 텍스트는 읽힌다 — 낱글자 span은 공백 없이 이어붙는다", () => {
-  // letterSpans()가 공백 없이 join하므로, 스크립트 없이(색 전환 없이) 봐도
-  // "ANSWER"·"MAGAZINE"이 글자 사이가 벌어지지 않고 정상적으로 읽힌다.
-  const answerText = [...home.matchAll(/<span class="intro-letter(?: intro-letter--keep)?">([A-Z])<\/span>/g)]
+test("스크립트 없이도 워드마크 텍스트는 읽힌다 — fade/keep 조각은 공백 없이 이어붙는다", () => {
+  // splitWord()가 공백 없이 join하므로, 스크립트 없이(전환 없이) 봐도
+  // "ANSWER"·"MAGAZINE"이 조각 사이가 벌어지지 않고 정상적으로 읽힌다.
+  const answerText = [...home.matchAll(/<span class="intro-(?:keep|fade)"(?:[^>]*)>([A-Z]+)<\/span>/g)]
     .map((m) => m[1]).join("");
   assert.equal(answerText, "ANSWERMAGAZINE");
 });

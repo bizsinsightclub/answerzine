@@ -698,21 +698,33 @@ const INTRO = `
 /* 인트로는 이제 사이트의 기본 흰 테마를 그대로 쓴다 — 예전엔 항상 어두운 로컬
    팔레트(theme.mjs의 INTRO_THEME)를 덮어썼지만, 화이트+헬베티카로 통일되면서
    별도 팔레트가 필요 없어져 그 오버라이드 자체를 없앴다. */
-.intro { text-align: center; position: relative; overflow: hidden; }
+.intro { text-align: center; position: relative; }
 /* 인트로는 뷰포트보다 60vh 더 큰 상자다 — 그 여유분만큼 안쪽 콘텐츠가 상단에
-   고정(sticky)된 채로 머물러서, 스크롤해도 그냥 지나가 버리지 않고 줄이 갈라지는
-   과정 자체가 눈에 보인다. app.js의 진행률 계산이 이 160svh를 전제한다.
-   2026-08-11 여덟 번째 라운드: overflow: hidden을 붙였다 — 아래에서 글자 크기를
-   더 키워 가장자리에 닿을 만큼 커지므로, 자간·서브픽셀 반올림으로 1px 안팎이
-   삐져나와도 가로 스크롤바가 안 생기게 막아 둔다(verify.mjs의 가로 넘침 검사와도
-   맞물린다). */
+   고정(sticky)된 채로 머물러서, 스크롤해도 그냥 지나가 버리지 않고 전환 과정
+   자체가 눈에 보인다. app.js의 진행률 계산이 이 160svh를 전제한다.
+   2026-08-11 여덟 번째 라운드: 가로 스크롤바 방지용 overflow: hidden을 이 요소에
+   붙였었다 — 아래에서 글자 크기를 더 키워 가장자리에 닿을 만큼 커지므로, 자간·
+   서브픽셀 반올림으로 생기는 1px 안팎도 가로 스크롤바를 안 만들게 막으려던
+   것이었다(verify.mjs의 가로 넘침 검사와도 맞물린다).
+   2026-08-12 열다섯 번째 라운드 — 그 overflow: hidden을 .intro-inner(바로 아래)로
+   옮겼다. 원인: position: sticky인 자식의 "고정 축"은 overflow가 visible이 아닌
+   가장 가까운 조상을 기준으로 잡힌다 — .intro에 overflow: hidden이 있으면
+   .intro-inner가 실제 문서 스크롤이 아니라 .intro 자신의(항상 0인) 내부 스크롤을
+   기준으로 "고정"을 계산해, 사실상 고정이 전혀 안 걸리고 그냥 페이지와 함께
+   흘러가 버린다(꽤 알려진 CSS 함정) — 실측(Playwright로 스크롤 중 AN 조각의
+   좌표를 프레임마다 재봄)으로 발견했다. .intro-inner는 sticky 요소 자기 자신이라
+   overflow: hidden을 걸어도 자기 고정 축 계산에는 영향이 없다 — 가로 클리핑
+   목적은 그대로 살아 있고, 위쪽 조상에서 고정이 깨지는 문제만 없앤다. */
 .intro { height: 160svh; }
 .intro-inner {
   position: sticky; top: 0; height: 100svh; display: flex; flex-direction: column;
   align-items: center; justify-content: center; padding: var(--s6) var(--s3);
+  overflow: hidden;
 }
-/* app.js가 매 스크롤 프레임마다 세 줄을 직접 조절한다. will-change로 미리 레이어를 띄워둔다. */
-.js .intro-word { will-change: transform, opacity; }
+/* app.js가 매 스크롤 프레임마다 조절한다. will-change로 미리 레이어를 띄워둔다.
+   2026-08-12 열다섯 번째 라운드: 이동 대상이 단어 전체(.intro-word)에서 낱말
+   그룹(.intro-keep — ZINE만 실제로 움직인다)으로 바뀌었다 — 아래 참고. */
+.js .intro-word, .js .intro-keep, .js .intro-fade { will-change: transform, opacity; }
 
 /* 2026-08-10 두 번째 라운드: 화면을 꽉 채우는 크기로 키웠다(사용자 요청) — "ANSWER ZINE"
    이 인트로에서 화면의 절대적인 비중을 차지하도록. gap도 같이 키워 줄 사이 자간(여백)이
@@ -729,25 +741,37 @@ const INTRO = `
    비례해서 커진다(작은 화면에서 획이 과하게 두꺼워지지 않는다). 미지원 브라우저
    (Firefox 등)는 이 속성만 조용히 무시하고 900 굵기로 보인다 — 깨지지 않는다.
    그 다음 라운드에 "아직 안 두껍다"는 피드백으로 .075em까지 올라갔다가, 이후
-   사용자 요청으로 한 단계 전인 .045em으로 되돌렸다. */
+   사용자 요청으로 한 단계 전인 .045em으로 되돌렸다.
+   2026-08-12 열다섯 번째 라운드 — vw 배율을 21→15.5로 낮췄다(사용자 요청: "PC 기준
+   100% VIEW에 맞춰서"). 여덟 번째 라운드 당시 가장 긴 줄은 ANSWER(6자)였는데, 열네
+   번째 라운드에서 셋째 줄이 MAGAZINE(8자)으로 바뀌면서 같은 배율로는 화면 밖으로
+   심하게 삐져나갔다 — 데스크톱 뷰포트 실측(Playwright)으로 MAGAZINE 한 줄이 어느
+   폭에서도 100vw 안에 들어오는 값을 다시 찾았다. */
 .intro-word {
   display: block; font-family: var(--sans); font-weight: 900; letter-spacing: -.03em;
-  font-size: clamp(72px, 21vw, 380px); line-height: .98; white-space: nowrap;
+  font-size: clamp(64px, 15.5vw, 300px); line-height: .98; white-space: nowrap;
   -webkit-text-stroke: .045em currentColor;
 }
 
-/* 2026-08-12 열네 번째 라운드 — "THE ANSWER MAGAZINE" 안에 숨은 "ANZINE"을 스크롤하면
-   드러내는 효과(사용자 요청, layout.mjs intro()/letterSpans() 주석 참고). 낱글자는
-   기본적으로 word와 같은 색(currentColor 상속, 검정)이다 — 스크롤을 시작하면(app.js가
-   .intro-wordmark에 is-revealing을 붙인다) intro-letter--keep이 없는 글자(THE
-   전체 + ANSWER의 S·W·E·R + MAGAZINE의 M·A·G·A)만 회색(--tertiary)으로 옅어진다.
-   intro-letter--keep 글자(ANSWER의 A·N + MAGAZINE의 Z·I·N·E = "ANZINE")는 계속
-   검정이다. color만 바꾸므로 글자 크기·위치·줄바꿈 어느 것도 안 바뀐다 — 레이아웃
-   자체가 그대로라 CLS가 없다(사용자 요청 사항). -webkit-text-stroke가 currentColor를
-   쓰므로(위 .intro-word) 획 색도 글자색을 그대로 따라간다 — 별도로 안 챙겨도 된다. */
-.intro-letter, .intro-word-the { transition: color .5s ease; }
+/* 2026-08-12 열네~열다섯 번째 라운드 — "THE ANSWER MAGAZINE" 안에 숨은 "ANZINE"을
+   스크롤로 드러내는 두 단계 효과(사용자 요청, layout.mjs intro()/splitWord() 주석
+   참고). intro-fade(그 외 전부)·intro-keep(ANSWER의 A·N + MAGAZINE의 Z·I·N·E =
+   "ANZINE")로 미리 쪼개 둔다.
+   1단계(색) — 스크롤을 시작하면(app.js가 .intro-wordmark에 is-revealing을 붙인다)
+   intro-fade와 intro-word-the(THE 전체)만 회색(--tertiary)으로 옅어진다. intro-keep은
+   계속 검정이다. color만 바꾸므로 이 단계는 레이아웃이 전혀 안 바뀐다.
+   2단계(이동·소멸) — app.js가 스크롤 진행률에 맞춰 매 프레임 intro-fade·
+   intro-word-the의 opacity를 낮추고, data-intro-role="zine" 조각을 data-intro-role=
+   "an" 바로 오른쪽으로 옮긴다(transform, 인라인 스타일 — CSS는 트랜지션을 안 건다,
+   스크롤 자체가 이미 프레임마다 값을 보간해 주므로 별도 트랜지션을 걸면 오히려
+   어긋난다). display:inline-block인 이유는 인라인(span) 요소엔 transform이
+   명세상 안 먹기 때문이다(CSS Transforms 명세 — transformable element 조건).
+   -webkit-text-stroke가 currentColor를 쓰므로(위 .intro-word) 획 색도 글자색을
+   그대로 따라간다 — 별도로 안 챙겨도 된다. */
+.intro-fade, .intro-keep { display: inline-block; }
+.intro-fade, .intro-word-the { transition: color .5s ease; }
 .intro-wordmark.is-revealing .intro-word-the,
-.intro-wordmark.is-revealing .intro-letter:not(.intro-letter--keep) { color: var(--tertiary); }
+.intro-wordmark.is-revealing .intro-fade { color: var(--tertiary); }
 
 .intro-scroll {
   position: absolute; bottom: var(--s7); left: 50%; transform: translateX(-50%);

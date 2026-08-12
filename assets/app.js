@@ -24,12 +24,16 @@
      2026-08-10 리디자인: 큰 워드마크가 중앙에 겹쳐 있다가, 스크롤하면 갈라지며 그 뒤의
      아카이브가 드러난다. 스테이트먼트 단계는 없앴다 — 인트로 섹션 하나만 있다. 홈에서만
      나오고, 세션에 한 번 봤다고 건너뛰지 않는다 — 뒤로 가기로 돌아와도 매번 다시 보인다.
-     2026-08-11 여덟 번째 라운드: "THE ANSWER"를 THE·ANSWER 두 단어로 뗐다(layout.mjs
-     intro() 주석) — 세 줄이 됐으니 방향도 셋으로 나눈다: THE·ZINE은 오른쪽,
-     ANSWER는 왼쪽(사용자 요청 — 위아래 두 줄이 같은 방향, 가운데 줄만 반대로 갈라진다).
      2026-08-12 열네 번째 라운드: 셋째 줄 문구가 ZINE→MAGAZINE으로 바뀌면서 클래스도
      intro-word-zine→intro-word-magazine으로 바뀌었다(layout.mjs intro() 주석 — "ANZINE"
-     글자 강조 효과). */
+     글자 강조 효과).
+     2026-08-12 열다섯 번째 라운드 — 안무를 다시 짰다(사용자 요청). 예전엔(여덟 번째
+     라운드) 세 줄 전체가 좌우로 갈라지며 사라졌는데, 이제는: (1) 스크롤을 시작하면
+     "ANZINE"이 아닌 글자가 회색으로 옅어지고(레이아웃 안 바뀜, 기존 유지), (2) 더
+     스크롤하면 그 옅어진 글자들이 완전히 투명해지면서 "ZINE" 조각이 물리적으로 이동해
+     "AN" 조각의 바로 오른쪽에 붙어 "ANZINE"이 화면 가운데 줄(ANSWER가 있던 가운데
+     행)에서 한 단어로 합쳐진다. "AN"은 전혀 움직이지 않는다 — 이미 가운데 줄에
+     있으므로 그 자리가 곧 합쳐질 자리의 기준점이다. layout.mjs의 splitWord() 주석 참고. */
   function prefersReduce() {
     return !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
   }
@@ -38,18 +42,44 @@
 
   /* 인트로는 뷰포트보다 큰 상자(css.mjs .intro { height: 160svh })라 안쪽 콘텐츠가
      sticky로 고정된 채 남는다. 그 "여유분"(상자 높이 − 뷰포트 높이)만큼 스크롤하는 동안
-     진행률을 0→1로 잡아야, 고정돼 있는 동안 실제로 갈라지는 게 보인다 — 그냥 뷰포트
+     진행률을 0→1로 잡아야, 고정돼 있는 동안 실제로 전환이 보인다 — 그냥 뷰포트
      높이로 나누면 상자가 이미 다 지나간 뒤에야 p가 1이 되어 버려서, 고정 구간 내내
      화면은 그대로인 채 스크롤만 되는 것처럼 보인다(모션이 없어 보이는 원인).
-     스크립트가 없거나 동작 최소화 환경이면 세 줄은 그냥 중앙에 겹친 채로 스크롤되어
-     지나간다 — 내용(텍스트)은 어느 쪽이든 항상 읽힌다. */
+     스크립트가 없거나 동작 최소화 환경이면 텍스트는 그냥 검정으로 중앙에 남은 채
+     스크롤되어 지나간다 — 내용(텍스트)은 어느 쪽이든 항상 읽힌다. */
   function bootIntroMotion() {
     var introEl = document.getElementById("intro");
     var wordmarkEl = introEl && introEl.querySelector(".intro-wordmark");
     var wordThe = introEl && introEl.querySelector(".intro-word-the");
-    var wordAnswer = introEl && introEl.querySelector(".intro-word-answer");
-    var wordMagazine = introEl && introEl.querySelector(".intro-word-magazine");
-    if (!introEl || !wordmarkEl || !wordThe || !wordAnswer || !wordMagazine || prefersReduce()) return;
+    var an = introEl && introEl.querySelector('[data-intro-role="an"]');
+    var zine = introEl && introEl.querySelector('[data-intro-role="zine"]');
+    var fades = introEl ? Array.prototype.slice.call(introEl.querySelectorAll(".intro-fade")) : [];
+    if (!introEl || !wordmarkEl || !wordThe || !an || !zine || !fades.length || prefersReduce()) return;
+
+    // ZINE이 AN 옆에 붙기 위해 이동해야 할 거리 — AN의 오른쪽 끝을 ZINE의 왼쪽 끝에
+    // 맞추고(가로), 두 조각의 세로 중심을 맞춘다(세로, ANSWER 줄과 MAGAZINE 줄 사이
+    // 거리만큼). 뷰포트 폭이 바뀌면(반응형 clamp() 폰트 크기) 값도 달라지므로
+    // resize마다 다시 잰다 — 재는 순간엔 이전 프레임의 transform이 섞여 들어가지
+    // 않도록 먼저 원상태로 되돌린 뒤 잰다.
+    var dx = 0, dy = 0;
+    function measure() {
+      zine.style.transform = "none";
+      var anRect = an.getBoundingClientRect();
+      var zineRect = zine.getBoundingClientRect();
+      dx = anRect.right - zineRect.left;
+      dy = (anRect.top + anRect.height / 2) - (zineRect.top + zineRect.height / 2);
+    }
+
+    // 0~CONVERGE_START: 색만 옅어진다(기존 1단계, 레이아웃 안 바뀜).
+    // CONVERGE_START~CONVERGE_END: 옅어진 조각이 완전히 투명해지고 ZINE이 AN 옆으로
+    // 이동해 "ANZINE"을 완성한다.
+    // CONVERGE_END~1: 완성된 "ANZINE"이 그대로 화면에 붙박여 있다가(.intro-inner가
+    // sticky로 고정된 마지막 구간), p가 1을 넘는 순간 고정이 풀리며 화면 밖으로
+    // 스크롤되어 나간다. 이 마지막 구간이 없으면(예전엔 CONVERGE_END를 1로 잡았다)
+    // "ANZINE"이 완성되자마자 곧바로 화면 밖으로 밀려나 완성된 모습을 볼 틈이 없다 —
+    // 실측(Playwright로 p=1 스크린샷)에서 발견했다.
+    var CONVERGE_START = 0.2;
+    var CONVERGE_END = 0.75;
 
     var raf = null;
     function update() {
@@ -59,25 +89,27 @@
       var pinRange = Math.max(1, introBox.height - vh);
       var p = clamp(-introBox.top / pinRange, 0, 1);
 
-      wordThe.style.transform = "translateX(" + (p * 70) + "vw)";
-      wordMagazine.style.transform = "translateX(" + (p * 70) + "vw)";
-      wordAnswer.style.transform = "translateX(" + (p * -70) + "vw)";
-      // 진행률 60% 지점부터 옅어져, 다 갈라지기 전에 사라지고 본문이 자연스럽게 이어진다.
-      var fade = clamp(1 - (p - 0.6) / 0.4, 0, 1);
-      wordThe.style.opacity = String(fade);
-      wordAnswer.style.opacity = String(fade);
-      wordMagazine.style.opacity = String(fade);
       // 스크롤을 시작하는 순간(아주 조금만 움직여도) "ANZINE" 강조 클래스를 켠다 — 연속
       // 값이 아니라 켬/끔 하나면 충분해서(css.mjs .intro-wordmark.is-revealing 참고),
       // 매 프레임 낱글자 색을 다시 계산하지 않는다. classList.toggle은 상태가 실제로
       // 바뀔 때만 DOM에 반영되므로 매 프레임 호출해도 비용이 없다.
       wordmarkEl.classList.toggle("is-revealing", p > 0.02);
+
+      var p2 = clamp((p - CONVERGE_START) / (CONVERGE_END - CONVERGE_START), 0, 1);
+      var fadeOpacity = String(1 - p2);
+      wordThe.style.opacity = fadeOpacity;
+      for (var i = 0; i < fades.length; i++) fades[i].style.opacity = fadeOpacity;
+      // transform은 CSS 트랜지션을 안 건다(css.mjs) — 스크롤 자체가 이미 매 프레임
+      // 값을 보간해 주므로, 트랜지션까지 걸면 스크롤 위치와 실제 화면이 어긋난다.
+      zine.style.transform = "translate(" + (dx * p2) + "px, " + (dy * p2) + "px)";
     }
     function onScroll() { if (raf === null) raf = requestAnimationFrame(update); }
+    function onResize() { measure(); onScroll(); }
 
+    measure();
     update();
     window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onScroll);
+    window.addEventListener("resize", onResize);
   }
 
   /* ── 스크롤 등장 ──

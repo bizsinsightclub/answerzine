@@ -18,18 +18,22 @@ export { SITE };
  */
 const BOOT = `(function(d){d.documentElement.className+=" js";})(document);`;
 
-/** 한 단어를 낱글자 <span> 나열로 쪼갠다. `keepIndices`에 있는 인덱스는
-    `intro-letter--keep`을 얹어 스크롤 시작 뒤에도 계속 검정으로 남는다 — 나머지는
-    회색으로 옅어진다(§아래 intro() 주석 — "ANZINE" 글자 강조 효과). render-index.mjs의
-    verticalLabel()과 같은 이유로 공백 없이 join한다 — 인라인 span 사이에 공백 텍스트
-    노드가 끼면 글자 사이가 벌어져 보인다. */
-function letterSpans(word, keepIndices) {
-  return raw(
-    word
-      .split("")
-      .map((ch, i) => `<span class="intro-letter${keepIndices.has(i) ? " intro-letter--keep" : ""}">${ch}</span>`)
-      .join("")
-  );
+/** 한 단어를 "그대로 남는 부분"(keep)과 "옅어져 사라지는 부분"(fade)으로 쪼갠다.
+    `keepStart`~`keepEnd`(둘 다 포함, 0-based)만 `intro-keep`(+ `data-intro-role`로
+    app.js가 찾을 이름표)을 얹고, 앞뒤 나머지는 `intro-fade`로 감싼다 — 원래 글자
+    순서 그대로 이어붙이므로(§아래 intro() 주석) 스크립트 없이 봐도 "ANSWER"·
+    "MAGAZINE"이 정상적으로 읽힌다. 빈 조각(접두사·접미사가 없는 경우)은 건너뛴다.
+    render-index.mjs의 verticalLabel()과 같은 이유로 공백 없이 join한다 — 인라인
+    span 사이에 공백 텍스트 노드가 끼면 글자 사이가 벌어져 보인다. */
+function splitWord(word, keepStart, keepEnd, keepRole) {
+  const prefix = word.slice(0, keepStart);
+  const keep = word.slice(keepStart, keepEnd + 1);
+  const suffix = word.slice(keepEnd + 1);
+  const parts = [];
+  if (prefix) parts.push(`<span class="intro-fade">${prefix}</span>`);
+  if (keep) parts.push(`<span class="intro-keep" data-intro-role="${keepRole}">${keep}</span>`);
+  if (suffix) parts.push(`<span class="intro-fade">${suffix}</span>`);
+  return raw(parts.join(""));
 }
 
 /**
@@ -37,37 +41,49 @@ function letterSpans(word, keepIndices) {
  * 화면을 꽉 채우는 크기로 띄우고, 스크롤에 맞춰 갈라지며 그 뒤의 아카이브를 드러낸다
  * ("이거 왜 잘나가?" 스테이트먼트 단계는 없앴다 — 인트로 다음이 바로 본문이다).
  * 문서 흐름 안의 섹션 하나라 스크립트가 없어도 그냥 스크롤하거나 아래 링크를 누르면
- * 바로 본문(`#main-content`)으로 넘어간다. app.js의 bootIntroMotion()이 스크롤 진행률에
- * 맞춰 세 줄을 좌우로 밀어낸다 — 실패해도 텍스트는 중앙에 그냥 보인다.
+ * 바로 본문(`#main-content`)으로 넘어간다. 실패해도 텍스트는 중앙에 그냥 보인다.
  *
  * 2026-08-11 여덟 번째 라운드: "THE ANSWER" 한 줄이 넓은 화면에서 두 줄로 끊겨(THE /
  * ANSWER) 어색하게 읽힌다는 지적 — 한 단어짜리 span 안에서 줄바꿈이 일어난 게 아니라,
  * "THE"와 "ANSWER"가 한 덩어리(intro-word-1)라 폭에 따라 그 사이에서 줄이 갈라졌다.
  * 사용자가 첨부한 참고 이미지처럼 THE / ANSWER / ZINE 세 단어를 처음부터 각자 한 줄로
  * 떼어내 — 의도치 않은 중간 줄바꿈 자체가 구조적으로 안 생긴다(단어 하나 = 줄 하나).
- * 그 김에 글자 크기도 더 키웠다(사용자 요청 — 화면 가장자리에 살짝 닿을 만큼).
- * 스크롤 갈라짐 방향도 셋으로 나눴다 — THE·ZINE은 오른쪽, ANSWER는 왼쪽(사용자 요청).
  *
  * 2026-08-12 열네 번째 라운드 — 문구를 "THE ANSWER ZINE"에서 "THE ANSWER MAGAZINE"으로
- * 바꾸고, 스크롤하면 그 안에 숨은 "ANZINE"(ANSWER의 A·N + MAGAZINE의 Z·I·N·E)만 검정으로
- * 남고 나머지 글자는 회색으로 옅어지는 효과를 얹었다(사용자 요청). **이건 사이트 이름을
- * 바꾸는 게 아니다** — `SITE.name`(="ANSWER ZINE")은 그대로다. 사용자가 명시적으로
- * "인트로 애니메이션만" 바꾸라고 확인했다(전체 리브랜딩은 거절) — 인트로 화면에만 쓰는
- * 표시용 문구이지, 사이트 정체성 자체는 안 바뀐다. 셋째 단어의 클래스를 intro-word-zine
- * →intro-word-magazine으로 바꿨다(app.js가 이 클래스로 요소를 찾는다). "THE"는 어차피
- * ANZINE에 들어가는 글자가 하나도 없어(T·H·E 전부 다른 위치) 낱글자로 안 쪼개고 통짜로
- * 회색 처리한다 — ANSWER·MAGAZINE만 letterSpans()로 쪼갠다. 실제 회색 전환은
- * `.intro-wordmark.is-revealing`(app.js가 스크롤 시작과 동시에 붙이는 클래스) +
- * CSS `transition: color`로 처리한다 — 매 프레임 낱글자 색을 다시 계산하지 않고 클래스
- * 하나만 토글해, 색이 바뀌어도 레이아웃(글자 크기·위치)은 전혀 안 바뀌어 CLS가 없다.
+ * 바꿨다(사용자 요청). **이건 사이트 이름을 바꾸는 게 아니다** — `SITE.name`(="ANSWER
+ * ZINE")은 그대로다. 사용자가 명시적으로 "인트로 애니메이션만" 바꾸라고 확인했다(전체
+ * 리브랜딩은 거절) — 인트로 화면에만 쓰는 표시용 문구이지, 사이트 정체성 자체는 안
+ * 바뀐다. 셋째 단어의 클래스를 intro-word-zine→intro-word-magazine으로 바꿨다.
+ *
+ * 2026-08-12 열다섯 번째 라운드 — 스크롤 안무를 다시 짰다(사용자 요청, 3가지):
+ * 1. "PC 기준 100% VIEW에 맞춰서" — 예전엔(여덟 번째 라운드) 글자가 화면 가장자리에
+ *    살짝 넘치는 걸 의도했는데(가장 긴 단어가 ANSWER, 6자였다), 셋째 단어가 8자
+ *    MAGAZINE으로 바뀌면서 그 비율 그대로는 화면 밖으로 심하게 삐져나갔다. 글자
+ *    크기를 낮춰(css.mjs .intro-word) 가장 긴 줄(MAGAZINE)이 데스크톱 뷰포트
+ *    안에 완전히 들어오게 했다 — `build/verify.mjs`가 375~1920px에서 실측한다.
+ * 2. 글자 색이 옅어지는 것(기존 유지) — ANSWER의 A·N + MAGAZINE의 Z·I·N·E =
+ *    "ANZINE"만 검정으로 남고 나머지는 회색.
+ * 3. "3번째 줄의 ZINE이 2번째 줄의 AN과 만나 정가운데 배치" — 더 스크롤하면 ZINE이
+ *    물리적으로 이동해 AN 바로 뒤에 붙어 한 줄로 "ANZINE"을 이룬다. 구현은
+ *    app.js의 bootIntroMotion() 참고 — 핵심 트릭은 AN은 전혀 안 움직이고(이미
+ *    가운데 줄에 있다) ZINE만 AN의 오른쪽 끝으로 이동한다는 것이다. THE 전체와
+ *    ANSWER의 나머지(SWER)·MAGAZINE의 나머지(MAGA)는 자리를 지킨 채 투명해질
+ *    뿐이다(레이아웃 폭이 안 바뀌어야 AN의 위치가 스크롤 내내 고정된 기준점으로
+ *    쓸 수 있다) — 그래서 이동시키지 않고 opacity만 쓴다.
+ * `splitWord()`가 각 단어를 intro-fade(회색으로 옅어지고 사라짐)/intro-keep(항상
+ * 검정, ZINE만 이동)으로 쪼갠다. `data-intro-role`로 app.js가 AN·ZINE 각각을
+ * 정확히 찾는다. 색 전환은 `.intro-wordmark.is-revealing`(스크롤 시작과 동시에
+ * 붙는 클래스) + CSS `transition: color`로, 이동·투명화는 app.js가 스크롤 진행률에
+ * 맞춰 매 프레임 `transform`·`opacity` 인라인 스타일을 쓴다 — 어느 쪽도 글자
+ * 크기·문서 레이아웃을 바꾸지 않아 CLS가 없다.
  */
 function intro() {
   return h`<section class="intro" id="intro" data-intro role="presentation">
   <div class="intro-inner">
     <p class="intro-wordmark">
       <span class="intro-word intro-word-the">THE</span>
-      <span class="intro-word intro-word-answer">${letterSpans("ANSWER", new Set([0, 1]))}</span>
-      <span class="intro-word intro-word-magazine">${letterSpans("MAGAZINE", new Set([4, 5, 6, 7]))}</span>
+      <span class="intro-word intro-word-answer">${splitWord("ANSWER", 0, 1, "an")}</span>
+      <span class="intro-word intro-word-magazine">${splitWord("MAGAZINE", 4, 7, "zine")}</span>
     </p>
     <a class="intro-scroll" href="#main-content" aria-label="아카이브로 이동"><span class="chev" aria-hidden="true">⌄</span></a>
   </div>
