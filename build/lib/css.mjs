@@ -307,12 +307,14 @@ const COMPONENTS = `
    요청이 가로 정렬 한정이었다. */
 /* 2026-08-12 여덟 번째 라운드 — 사용자가 참고 스크린샷으로 좌측 여백·우측 세로
    도메인 라벨·라벨 색까지 지정했다. 왼쪽은 24px로 넓혔다(예전 10px보다 숨 쉴 틈을
-   더 준다). 오른쪽은 세로 라벨 밴드(.category-card-tag, 아래) 폭만큼 96px를
-   비워 헤드라인·티저 텍스트가 라벨과 안 겹치게 한다. */
+   더 준다). 오른쪽은 그때 세로 라벨 밴드(.category-card-tag) 폭만큼 96px를 비워
+   헤드라인·티저 텍스트가 라벨과 안 겹치게 했었다 — 열 번째 라운드에서 라벨이
+   배경으로 물러나면서(아래 주석) 더는 자리를 비워둘 필요가 없어져, 좌우 대칭
+   24px로 되돌렸다. */
 .category-card {
-  position: relative; display: flex; flex-direction: column; align-items: flex-start;
-  justify-content: center; text-align: left;
-  min-height: 420px; padding: var(--s7) 96px var(--s5) 24px; text-decoration: none;
+  position: relative; z-index: 0; display: flex; flex-direction: column;
+  align-items: flex-start; justify-content: center; text-align: left;
+  min-height: 420px; padding: var(--s7) 24px var(--s5) 24px; text-decoration: none;
   color: var(--ink);
 }
 /* cardColor가 없는 도메인의 폴백 — 어두운 colorPaper 배경이라 흰 글자가 필요하다. */
@@ -354,12 +356,33 @@ const COMPONENTS = `
    글자 사이 여백 자체를 줄였다 — 단어 길이가 다르면 뭉치는 높이도 달라지지만(짧은
    "BOOKS"는 작게, 긴 "YOUTUBE"는 크게 뭉친다), 그게 곧 사용자가 요청한 "약간
    초과되는 느낌"과 맞아떨어진다(긴 단어일수록 위아래로 더 넘칠 수 있다). */
+/* 2026-08-12 열 번째 라운드 — 사용자 요청: "제목은 안가리게 백그라운드 느낌으로
+   넣어줘." 그때까지는 라벨이 카드 우측에서 헤드라인과 같은 앞면 레이어에 있었고,
+   그래서 겹치지 않으려면 위 .category-card 오른쪽에 96px를 늘 비워둬야 했다(공간
+   분리로 안 가리게 하는 방식). 이번엔 반대로 접근한다 — **레이어를 분리해서** 라벨을
+   헤드라인 뒤로 보내고(음수 z-index) 불투명도를 낮춰 워터마크처럼 배경에 녹아들게
+   한다. 그러면 헤드라인이 라벨 위 어디를 지나가도 안 가려진다 — 공간을 비켜줄
+   필요 자체가 없어진다(그래서 위 .category-card 우측 패딩도 96px→24px로
+   되돌렸다). 겹쳐도 안전한 이유: flex 아이템(헤드라인·티저 등 카드의 일반 자식)은
+   CSS Flexbox 명세상 Appendix E의 "z-index:0 포지션 요소"와 같은 페인트 순서를 쓰고,
+   이 라벨은 absolute+z-index:-1이라 그보다 낮은 단계에서 그려진다 — 그래서 명시적
+   z-index 없이도 헤드라인이 항상 위에 그려진다. .category-card에 z-index:0을
+   명시해 이 스태킹 컨텍스트를 그 카드 안에 가둔다(안 그러면 음수 z-index가 카드
+   밖 — 옆 카드나 그리드 배경 — 으로 새어나갈 수 있다). aria-hidden·포인터 이벤트
+   모두 원래도 장식용이라 pointer-events:none을 더해 안전하게 한다. */
 .category-card-tag {
-  position: absolute; top: 0; right: 0; bottom: 0; width: 76px;
+  position: absolute; top: 0; right: 0; bottom: 0; width: 140px; z-index: -1;
   display: flex; flex-direction: column; align-items: center; justify-content: center;
-  font-family: var(--sans); font-weight: 900; font-size: 74px; line-height: .74;
-  letter-spacing: -.02em; -webkit-text-stroke: 1.5px currentColor;
-  text-transform: uppercase;
+  font-family: var(--sans); font-weight: 900; font-size: 120px; line-height: .78;
+  letter-spacing: -.02em; -webkit-text-stroke: 1px currentColor;
+  text-transform: uppercase; opacity: .16; pointer-events: none;
+}
+/* 모바일은 카드 폭 자체가 좁아 세로 낱글자가 촘촘하면 더 빽빽해 보인다 — 사용자
+   요청("모바일은 자간 넓혀도 될듯")으로 줄 높이를 풀어 글자 사이를 데스크톱보다
+   느슨하게 하고, 글자 크기·라벨 폭도 함께 줄였다(그래야 느슨해진 줄 높이만큼
+   전체 라벨이 카드 높이를 넘기지 않는다). */
+@media (max-width: 640px) {
+  .category-card-tag { width: 92px; font-size: 64px; line-height: 1.05; }
 }
 /* 2026-08-11 네 번째 라운드: PC 기준 40~48px 범위로 조정. 다섯 번째 라운드에서
    범위를 없애고 40px 고정값으로 좁혔다(사용자 요청 — "정확히 40pt"). 모바일에서도

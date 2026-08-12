@@ -459,13 +459,16 @@ site-header: position: sticky; top: 0 · 항상 화면 상단에 붙는다 · �
 
 ```
 그리드: repeat(2, 1fr) · gap 1px · 배경 --ink(칸 사이 괘선) · 640px 이하 1열 · 뷰포트 가장자리까지
-카드:   padding var(--s7) 96px var(--s5) 24px · min-height 420px (바닥일 뿐 상한 아님)
+카드:   position:relative·z-index:0(스태킹 컨텍스트) · padding var(--s7) 24px var(--s5) 24px
+        · min-height 420px (바닥일 뿐 상한 아님)
         가로 정렬 왼쪽(align-items:flex-start · text-align:left) · 세로 중앙(justify-content:center)
         기본: 배경 cardColor(밝은 파스텔) · 글자 --ink(검정)
         폴백(cardColor 없음): 배경 --dc-<key>(colorPaper, 어두운 톤) · 글자 흰색(.is-dark)
-세로 라벨(.category-card-tag): 우측 전체 높이, 폭 76px, 낱글자 <span> 세로 적재
-        (flex column + center, 2026-08-12 아홉 번째 라운드부터 촘촘히 모음) · 900 74px
-        · line-height .74 · -webkit-text-stroke 1.5px · 색 = darken(cardColor)(§아래 참고)
+세로 라벨(.category-card-tag): 우측 전체 높이, 데스크톱 폭 140px·900·120px·line-height .78,
+        모바일(≤640px) 92px·64px·line-height 1.05(자간 더 느슨하게) · 낱글자 <span> 세로 적재
+        (flex column + center) · -webkit-text-stroke 1px · 색 = darken(cardColor)(§아래 참고)
+        · 2026-08-12 열 번째 라운드부터 z-index:-1 + opacity:.16 + pointer-events:none —
+        헤드라인 뒤 배경 워터마크. 그래서 카드 우측 패딩도 96px→24px로 돌아갔다(§아래 참고).
 헤드라인: 카드에서 가장 큰 글자, 80px 900 (2026-08-11 열 번째 라운드 — 40px에서 두 배)
         headlineLines가 있으면 <br>로 여러 줄(§데이터 계약 참고), 없으면 한 줄
 티저:   헤드라인 아래 한 줄, 28px (같은 라운드에서 14px→두 배)
@@ -580,6 +583,35 @@ site-header: position: sticky; top: 0 · 항상 화면 상단에 붙는다 · �
 > 다만 420px 부근에서 카드 자체가 약 12px 이미 넘치는 기존 버그가 있다(이번 변경
 > 전부터 있었다, 이번 라운드 범위 밖이라 손대지 않았다). 홈페이지(`/`)는 이 검사가
 > 아직 커버하지 않는다 — 검사는 스토리 페이지(`/2026-w31/book/`) 한 장만 돌린다.
+
+> **2026-08-12 열 번째 라운드 — 라벨을 헤드라인 뒤 배경 워터마크로.** 사용자 요청
+> 두 가지: "모바일은 자간 넓혀도 될듯" / "제목은 안가리게 백그라운드 느낌으로
+> 넣어줘."
+> - **배경 워터마크 전환.** 아홉 번째 라운드까지는 라벨이 헤드라인과 같은 앞면
+>   레이어에 있었다 — 그래서 겹치지 않으려면 카드 우측에 96px를 늘 비워둬야 했다
+>   (공간을 나눠서 안 가리는 방식). 이번엔 레이어 자체를 분리했다: 라벨에
+>   `z-index: -1` + `opacity: .16` + `pointer-events: none`을 줘서 헤드라인 뒤로
+>   보내고 배경에 녹아들게 했다. `.category-card`는 flex 컨테이너라 헤드라인·티저
+>   같은 일반 자식은 CSS Flexbox 명세(Appendix E 기준 "z-index:0 포지션 요소"와
+>   같은 페인트 층)상 이미 음수 z-index보다 위 레이어에서 그려진다 — 그래서
+>   헤드라인에 별도 z-index를 안 줘도 항상 라벨 위에 그려진다. `.category-card`
+>   자체에 `z-index: 0`을 명시해 스태킹 컨텍스트를 그 카드 안에 가뒀다(안 그러면
+>   음수 z-index 라벨이 카드 밖 — 옆 카드나 그리드 배경 — 으로 새어나갈 수 있다).
+>   레이어가 분리되니 공간을 비워둘 이유가 없어져 카드 우측 패딩을 96px→24px
+>   (좌측과 대칭)로 되돌렸다 — 헤드라인이 이제 카드 폭 전체를 쓴다.
+> - **크기.** 배경 요소는 전면 요소보다 커도 괜찮다(오히려 더 자연스럽다) —
+>   `font-size`를 74px→120px, 라벨 폭을 76px→140px로 키웠다. 불투명도 16%라 아무리
+>   커도 헤드라인 가독성을 해치지 않는다(실측 스크린샷으로 확인, 아래).
+> - **모바일 자간.** "자간 넓혀도 될듯"은 가로 `letter-spacing`이 아니라 아홉 번째
+>   라운드에서 좁혀둔 세로 낱글자 간격(line-height) 얘기다 — 좁은 카드 폭에서
+>   촘촘한 간격이 더 빽빽해 보인다는 지적. `@media (max-width: 640px)`에서
+>   `line-height`를 .78→1.05로 풀고, 커진 라벨이 좁은 카드에서 과하지 않도록
+>   `font-size`(120→64px)·폭(140→92px)도 함께 낮췄다.
+> - Playwright로 데스크톱·모바일 카드를 스크롤-유발 후 실측 스크린샷 — 라벨이
+>   카드 배경에 자연스럽게 녹아들고 헤드라인이 어떤 텍스트 위를 지나가도 완전히
+>   읽힌다. `.category-card-tag`는 이제 장식이 명확해져 `pointer-events: none`도
+>   같이 추가했다(원래도 aria-hidden 처리라 클릭 대상이 아니었지만, 이제 시각적
+>   레이어링과도 일치한다).
 
 ### 스탯 카드 (근거 레일)
 
