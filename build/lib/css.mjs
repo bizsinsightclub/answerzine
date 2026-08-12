@@ -312,11 +312,23 @@ const COMPONENTS = `
    배경으로 물러나면서(아래 주석) 더는 자리를 비워둘 필요가 없어져, 좌우 대칭
    24px로 되돌렸다. */
 .category-card {
-  position: relative; z-index: 0; display: flex; flex-direction: column;
+  position: relative; z-index: 0; overflow: hidden; display: flex; flex-direction: column;
   align-items: flex-start; justify-content: center; text-align: left;
   min-height: 420px; padding: var(--s7) 24px var(--s5) 24px; text-decoration: none;
   color: var(--ink);
 }
+/* 2026-08-12 열일곱 번째 라운드 — 사용자 신고: "youtube 도 4개 박스에서 여전히
+   잘려서 보임." 배경 라벨(.category-card-tag)이 justify-content:space-between으로
+   카드 위아래 가장자리까지 꽉 차게 펼치는데(§아래 참고), 글자 수가 많은 단어
+   (YOUTUBE 7자·MOVIES 6자)는 큰 글자 크기 탓에 낱글자 전체 높이가 카드 자기
+   높이보다 커진다 — space-between은 넘치는 내용을 압축하지 못해 그만큼 카드
+   경계 밖(대개 바로 아래 카드) 으로 삐져나온다. 실측(Playwright)으로 YOUTUBE가
+   카드 아래로 약 102px, MOVIES가 약 50px 넘치는 것을 확인했다 — 옆 카드 배경색
+   위로 라벨이 계속 이어지면서 색 경계에서 글자가 끊겨 "잘린" 것처럼 보였다.
+   overflow: hidden을 카드 자신에게 걸어 넘치는 부분을 카드 경계에서 정확히
+   잘라낸다 — 헤드라인·티저는 카드 높이 자체가 그 내용에 맞춰 자라므로 잘릴
+   내용이 없고, 라벨만 카드 안에 갇힌다("살짝 넘치는 느낌"은 카드 자기 폭 안에서는
+   그대로 유지된다 — 카드 밖으로 새는 것만 막는다). */
 /* cardColor가 없는 도메인의 폴백 — 어두운 colorPaper 배경이라 흰 글자가 필요하다. */
 .category-card.is-dark { color: #fff; }
 .category-card.is-dark .draft-flag { border-color: rgba(255,255,255,.6); color: #fff; }
