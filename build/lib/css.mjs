@@ -736,6 +736,19 @@ const INTRO = `
   -webkit-text-stroke: .045em currentColor;
 }
 
+/* 2026-08-12 열네 번째 라운드 — "THE ANSWER MAGAZINE" 안에 숨은 "ANZINE"을 스크롤하면
+   드러내는 효과(사용자 요청, layout.mjs intro()/letterSpans() 주석 참고). 낱글자는
+   기본적으로 word와 같은 색(currentColor 상속, 검정)이다 — 스크롤을 시작하면(app.js가
+   .intro-wordmark에 is-revealing을 붙인다) intro-letter--keep이 없는 글자(THE
+   전체 + ANSWER의 S·W·E·R + MAGAZINE의 M·A·G·A)만 회색(--tertiary)으로 옅어진다.
+   intro-letter--keep 글자(ANSWER의 A·N + MAGAZINE의 Z·I·N·E = "ANZINE")는 계속
+   검정이다. color만 바꾸므로 글자 크기·위치·줄바꿈 어느 것도 안 바뀐다 — 레이아웃
+   자체가 그대로라 CLS가 없다(사용자 요청 사항). -webkit-text-stroke가 currentColor를
+   쓰므로(위 .intro-word) 획 색도 글자색을 그대로 따라간다 — 별도로 안 챙겨도 된다. */
+.intro-letter, .intro-word-the { transition: color .5s ease; }
+.intro-wordmark.is-revealing .intro-word-the,
+.intro-wordmark.is-revealing .intro-letter:not(.intro-letter--keep) { color: var(--tertiary); }
+
 .intro-scroll {
   position: absolute; bottom: var(--s7); left: 50%; transform: translateX(-50%);
   color: var(--tertiary); text-decoration: none; padding: var(--s2);

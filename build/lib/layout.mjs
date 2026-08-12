@@ -18,6 +18,20 @@ export { SITE };
  */
 const BOOT = `(function(d){d.documentElement.className+=" js";})(document);`;
 
+/** 한 단어를 낱글자 <span> 나열로 쪼갠다. `keepIndices`에 있는 인덱스는
+    `intro-letter--keep`을 얹어 스크롤 시작 뒤에도 계속 검정으로 남는다 — 나머지는
+    회색으로 옅어진다(§아래 intro() 주석 — "ANZINE" 글자 강조 효과). render-index.mjs의
+    verticalLabel()과 같은 이유로 공백 없이 join한다 — 인라인 span 사이에 공백 텍스트
+    노드가 끼면 글자 사이가 벌어져 보인다. */
+function letterSpans(word, keepIndices) {
+  return raw(
+    word
+      .split("")
+      .map((ch, i) => `<span class="intro-letter${keepIndices.has(i) ? " intro-letter--keep" : ""}">${ch}</span>`)
+      .join("")
+  );
+}
+
 /**
  * 진입 화면 — 홈에서만 나온다. 2026-08-10 리디자인: 로고 이미지 대신 실제 텍스트를
  * 화면을 꽉 채우는 크기로 띄우고, 스크롤에 맞춰 갈라지며 그 뒤의 아카이브를 드러낸다
@@ -33,14 +47,27 @@ const BOOT = `(function(d){d.documentElement.className+=" js";})(document);`;
  * 떼어내 — 의도치 않은 중간 줄바꿈 자체가 구조적으로 안 생긴다(단어 하나 = 줄 하나).
  * 그 김에 글자 크기도 더 키웠다(사용자 요청 — 화면 가장자리에 살짝 닿을 만큼).
  * 스크롤 갈라짐 방향도 셋으로 나눴다 — THE·ZINE은 오른쪽, ANSWER는 왼쪽(사용자 요청).
+ *
+ * 2026-08-12 열네 번째 라운드 — 문구를 "THE ANSWER ZINE"에서 "THE ANSWER MAGAZINE"으로
+ * 바꾸고, 스크롤하면 그 안에 숨은 "ANZINE"(ANSWER의 A·N + MAGAZINE의 Z·I·N·E)만 검정으로
+ * 남고 나머지 글자는 회색으로 옅어지는 효과를 얹었다(사용자 요청). **이건 사이트 이름을
+ * 바꾸는 게 아니다** — `SITE.name`(="ANSWER ZINE")은 그대로다. 사용자가 명시적으로
+ * "인트로 애니메이션만" 바꾸라고 확인했다(전체 리브랜딩은 거절) — 인트로 화면에만 쓰는
+ * 표시용 문구이지, 사이트 정체성 자체는 안 바뀐다. 셋째 단어의 클래스를 intro-word-zine
+ * →intro-word-magazine으로 바꿨다(app.js가 이 클래스로 요소를 찾는다). "THE"는 어차피
+ * ANZINE에 들어가는 글자가 하나도 없어(T·H·E 전부 다른 위치) 낱글자로 안 쪼개고 통짜로
+ * 회색 처리한다 — ANSWER·MAGAZINE만 letterSpans()로 쪼갠다. 실제 회색 전환은
+ * `.intro-wordmark.is-revealing`(app.js가 스크롤 시작과 동시에 붙이는 클래스) +
+ * CSS `transition: color`로 처리한다 — 매 프레임 낱글자 색을 다시 계산하지 않고 클래스
+ * 하나만 토글해, 색이 바뀌어도 레이아웃(글자 크기·위치)은 전혀 안 바뀌어 CLS가 없다.
  */
 function intro() {
   return h`<section class="intro" id="intro" data-intro role="presentation">
   <div class="intro-inner">
     <p class="intro-wordmark">
       <span class="intro-word intro-word-the">THE</span>
-      <span class="intro-word intro-word-answer">ANSWER</span>
-      <span class="intro-word intro-word-zine">ZINE</span>
+      <span class="intro-word intro-word-answer">${letterSpans("ANSWER", new Set([0, 1]))}</span>
+      <span class="intro-word intro-word-magazine">${letterSpans("MAGAZINE", new Set([4, 5, 6, 7]))}</span>
     </p>
     <a class="intro-scroll" href="#main-content" aria-label="아카이브로 이동"><span class="chev" aria-hidden="true">⌄</span></a>
   </div>

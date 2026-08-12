@@ -780,6 +780,25 @@ THE·ZINE은 오른쪽으로, ANSWER는 왼쪽으로 갈라지며 그 뒤의 아
 > 의도적으로 노린다. `.intro`에 `overflow: hidden`을 붙여 자간 반올림으로 생기는 1px 안팎도
 > 가로 스크롤바를 만들지 않게 막는다.
 
+> **2026-08-12 열네 번째 라운드 — "ANZINE" 글자 강조.** 사용자가 처음엔 사이트 전체를
+> "ANZINE"으로 리브랜딩해 달라고 요청했다 — 확인 질문(`AskUserQuestion`)으로 범위를
+> 좁혔다: **인트로 애니메이션만** 바꾸고 `SITE.name`("ANSWER ZINE")·인쇄 진 표지 등
+> 사이트 정체성 자체는 그대로 둔다(이전 라운드에 사용자가 이미 "홈 화면은 그대로
+> 둔다"고 확정한 결정을 뒤집지 않는다). 셋째 줄 문구를 "ZINE"에서 "MAGAZINE"으로
+> 바꾸고, 스크롤을 시작하면 그 안에 숨은 "ANZINE"(ANSWER의 A·N + MAGAZINE의
+> Z·I·N·E)만 검정으로 남고 나머지 글자는 회색(`--tertiary`)으로 옅어지는 효과를
+> 얹었다. 처음 요청은 "나머지 글자가 사라진다"(opacity)였는데, 후속 확인에서
+> "A,N,Z,I,N,E는 검정, 나머지는 회색"으로 구체화됐다 — 그래서 완전히 숨기지 않고
+> 색만 옅어진다. 기존의 좌우로 갈라지는 스크롤 트랜스폼(위 문단)은 그대로 유지된다 —
+> 색 전환은 그 위에 얹힌 별도 레이어다. `ANSWER`·`MAGAZINE`은 낱글자 `<span>`으로
+> 쪼개(`build/lib/layout.mjs`의 `letterSpans()`) `ANZINE`을 이루는 글자에만
+> `intro-letter--keep`을 건다. 색 전환 자체는 매 프레임 낱글자 색을 다시 계산하지
+> 않는다 — `app.js`가 스크롤 진행률이 0을 살짝 넘는 순간 `.intro-wordmark`에
+> `is-revealing` 클래스 하나만 토글하고, CSS `transition: color`가 나머지를
+> 처리한다(`color`만 바뀌므로 레이아웃이 전혀 안 흔들려 CLS가 없다). 스크립트가
+> 없거나 `prefers-reduced-motion: reduce`면 `is-revealing`이 아예 안 붙어 "THE
+> ANSWER MAGAZINE"이 처음부터 끝까지 검정 그대로 읽힌다 — 콘텐츠 손실이 없다.
+
 예외 둘 — 홈 카드 그리드의 가로 구분 밴드(`.category-divider`)는 2026-08-11부터 검정
 바탕에 흰 "THE ANSWER ZINE"이 무한 반복되는 마퀴다. 원래는 정적 텍스트("전체 아카이브 ·
 카테고리별 최신 스토리")였는데, 사용자가 순수 장식용 애니메이션을 명시적으로 요청해

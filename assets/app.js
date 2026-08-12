@@ -26,7 +26,10 @@
      나오고, 세션에 한 번 봤다고 건너뛰지 않는다 — 뒤로 가기로 돌아와도 매번 다시 보인다.
      2026-08-11 여덟 번째 라운드: "THE ANSWER"를 THE·ANSWER 두 단어로 뗐다(layout.mjs
      intro() 주석) — 세 줄이 됐으니 방향도 셋으로 나눈다: THE·ZINE은 오른쪽,
-     ANSWER는 왼쪽(사용자 요청 — 위아래 두 줄이 같은 방향, 가운데 줄만 반대로 갈라진다). */
+     ANSWER는 왼쪽(사용자 요청 — 위아래 두 줄이 같은 방향, 가운데 줄만 반대로 갈라진다).
+     2026-08-12 열네 번째 라운드: 셋째 줄 문구가 ZINE→MAGAZINE으로 바뀌면서 클래스도
+     intro-word-zine→intro-word-magazine으로 바뀌었다(layout.mjs intro() 주석 — "ANZINE"
+     글자 강조 효과). */
   function prefersReduce() {
     return !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
   }
@@ -42,10 +45,11 @@
      지나간다 — 내용(텍스트)은 어느 쪽이든 항상 읽힌다. */
   function bootIntroMotion() {
     var introEl = document.getElementById("intro");
+    var wordmarkEl = introEl && introEl.querySelector(".intro-wordmark");
     var wordThe = introEl && introEl.querySelector(".intro-word-the");
     var wordAnswer = introEl && introEl.querySelector(".intro-word-answer");
-    var wordZine = introEl && introEl.querySelector(".intro-word-zine");
-    if (!introEl || !wordThe || !wordAnswer || !wordZine || prefersReduce()) return;
+    var wordMagazine = introEl && introEl.querySelector(".intro-word-magazine");
+    if (!introEl || !wordmarkEl || !wordThe || !wordAnswer || !wordMagazine || prefersReduce()) return;
 
     var raf = null;
     function update() {
@@ -56,13 +60,18 @@
       var p = clamp(-introBox.top / pinRange, 0, 1);
 
       wordThe.style.transform = "translateX(" + (p * 70) + "vw)";
-      wordZine.style.transform = "translateX(" + (p * 70) + "vw)";
+      wordMagazine.style.transform = "translateX(" + (p * 70) + "vw)";
       wordAnswer.style.transform = "translateX(" + (p * -70) + "vw)";
       // 진행률 60% 지점부터 옅어져, 다 갈라지기 전에 사라지고 본문이 자연스럽게 이어진다.
       var fade = clamp(1 - (p - 0.6) / 0.4, 0, 1);
       wordThe.style.opacity = String(fade);
       wordAnswer.style.opacity = String(fade);
-      wordZine.style.opacity = String(fade);
+      wordMagazine.style.opacity = String(fade);
+      // 스크롤을 시작하는 순간(아주 조금만 움직여도) "ANZINE" 강조 클래스를 켠다 — 연속
+      // 값이 아니라 켬/끔 하나면 충분해서(css.mjs .intro-wordmark.is-revealing 참고),
+      // 매 프레임 낱글자 색을 다시 계산하지 않는다. classList.toggle은 상태가 실제로
+      // 바뀔 때만 DOM에 반영되므로 매 프레임 호출해도 비용이 없다.
+      wordmarkEl.classList.toggle("is-revealing", p > 0.02);
     }
     function onScroll() { if (raf === null) raf = requestAnimationFrame(update); }
 
