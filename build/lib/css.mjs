@@ -707,10 +707,14 @@ const ZINE = `
    나온다. app.js가 스크롤 위치에 맞춰 두 줄을 좌우로 밀어내고 옅게 한다 — 스크립트가
    없으면 그냥 중앙에 겹친 채로 스크롤되어 지나간다. */
 const INTRO = `
-/* 인트로는 이제 사이트의 기본 흰 테마를 그대로 쓴다 — 예전엔 항상 어두운 로컬
-   팔레트(theme.mjs의 INTRO_THEME)를 덮어썼지만, 화이트+헬베티카로 통일되면서
-   별도 팔레트가 필요 없어져 그 오버라이드 자체를 없앴다. */
-.intro { text-align: center; position: relative; }
+/* 2026-08-10부터 한동안 사이트 기본 흰 테마를 그대로 썼다(어두운 로컬 팔레트
+   INTRO_THEME를 없앴었다) — 2026-08-12 열여덟 번째 라운드에서 사용자 요청으로
+   되돌렸다: "배경 검정에 텍스트 흰색 한번 해보려고." 이번엔 예전 INTRO_THEME
+   (theme.mjs의 별도 다크 팔레트, CSS 변수 세트)를 복원하지 않고 .intro 안에서만
+   background·color를 직접 뒤집는다 — 워드마크 텍스트 색은 대부분 currentColor로
+   상속받게 짜여 있어(아래 .intro-word의 -webkit-text-stroke도 포함) 이 두 줄만
+   바꾸면 나머지가 자동으로 따라온다. */
+.intro { text-align: center; position: relative; background: #000; color: #fff; }
 /* 인트로는 뷰포트보다 60vh 더 큰 상자다 — 그 여유분만큼 안쪽 콘텐츠가 상단에
    고정(sticky)된 채로 머물러서, 스크롤해도 그냥 지나가 버리지 않고 전환 과정
    자체가 눈에 보인다. app.js의 진행률 계산이 이 160svh를 전제한다.
@@ -782,12 +786,16 @@ const INTRO = `
    그대로 따라간다 — 별도로 안 챙겨도 된다. */
 .intro-fade, .intro-keep { display: inline-block; }
 .intro-fade, .intro-word-the { transition: color .5s ease; }
+/* 2026-08-12 열여덟 번째 라운드 — .intro가 검정 배경으로 뒤집히면서(위 참고)
+   var(--tertiary, 흰 배경용 웜그레이)는 검정 위에서 대비가 너무 낮아 거의 안
+   보인다. 흰 글자를 기준으로 한 반투명값으로 바꿔 검정 배경에서도 옅어진
+   상태가 또렷이 보이게 한다. */
 .intro-wordmark.is-revealing .intro-word-the,
-.intro-wordmark.is-revealing .intro-fade { color: var(--tertiary); }
+.intro-wordmark.is-revealing .intro-fade { color: rgba(255,255,255,.4); }
 
 .intro-scroll {
   position: absolute; bottom: var(--s7); left: 50%; transform: translateX(-50%);
-  color: var(--tertiary); text-decoration: none; padding: var(--s2);
+  color: rgba(255,255,255,.55); text-decoration: none; padding: var(--s2);
 }
 .intro-scroll .chev { display: inline-block; animation: chev-bounce 1.8s ease-in-out infinite; }
 @keyframes chev-bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(6px); } }
