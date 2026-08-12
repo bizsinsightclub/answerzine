@@ -39,7 +39,6 @@ const ICON = {
   close: `<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M5 5L19 19M19 5L5 19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`,
   print: `<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M6 9V3h12v6M6 18h12v3H6v-3zM3 9h18v7H3V9z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>`,
   check: `<svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><rect x="1" y="1" width="14" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M4 8.5L6.5 11L12 5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
-  mark: `<svg viewBox="0 0 40 40" width="30" height="30" aria-hidden="true"><rect x="1" y="1" width="38" height="38" fill="none" stroke="currentColor" stroke-width="2"/><path d="M11 27L20 10L29 27M14.5 20H25.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>`,
 };
 
 /**
@@ -86,13 +85,19 @@ function coverFront() {
 </div>`;
 }
 
-function coverBack(issue) {
-  return h`<div class="zb-panel zb-panel--cover zb-panel--cover-back">
-  <div class="zb-cover-mark">${raw(ICON.mark)}</div>
-  <p class="zb-cover-site">ANSWERZINE.KR</p>
-  <p class="zb-cover-tagline">${SITE.tagline}</p>
-  ${issue ? raw(h`<p class="zb-cover-issue">${issue.issue} · ${issue.range}</p>`) : ""}
-</div>`;
+/**
+ * 표지 뒷면 — 2026-08-11 두 번째 라운드, 콘텐츠를 전부 뺐다(사용자 요청).
+ * 이 페이지는 sheet1-front에서 표지 앞면(cover-front)과 나란히 인쇄되는 같은 장의
+ * 반대쪽 절반이다(`SHEETS` 참고) — 실물로 "THE ANSWER ZINE" 표지 한 장을 반으로
+ * 접으면, 접힌 뒷면이 바로 이 페이지가 된다. 앞면이 이미 타이포로 폭 전체를 채운
+ * 강한 인상이라, 뒷면까지 마크·사이트명·태그라인·회차 메타로 채우면 접었을 때
+ * 두 면이 서로 경쟁한다 — 뒷면은 비워서 앞면의 타이포가 유일한 신호로 남게 한다.
+ * 화면 판독기용 `aria-label`만 남긴다(빈 패널이라도 스크린 리더 사용자에게 "뒤표지"
+ * 라는 걸 알려야 한다) — 텍스트 마커가 필요 없어졌으므로 그리드 순서 테스트는
+ * 이 라벨을 대신 찾는다.
+ */
+function coverBack() {
+  return h`<div class="zb-panel zb-panel--cover zb-panel--cover-back" aria-label="뒤표지"></div>`;
 }
 
 /**
@@ -178,11 +183,11 @@ function articlePanel(story, n, total) {
  * `stories`는 지금 홈 카드 그리드에 뜨는 도메인별 최신 스토리 — 모자라면(한 번도
  * 발행된 적 없는 도메인) null로 채워 결번을 낸다.
  */
-function buildPages({ issue, stories, qrSvg, siteUrl }) {
+function buildPages({ stories, qrSvg, siteUrl }) {
   const four = [0, 1, 2, 3].map((i) => stories[i] ?? null);
   return {
     "cover-front": coverFront(),
-    "cover-back": coverBack(issue),
+    "cover-back": coverBack(),
     about: aboutPanel({ qrSvg, siteUrl }),
     notes: notesPanel(),
     "article-1": articlePanel(four[0], 1, 4),
@@ -245,7 +250,7 @@ function printSheetsHTML(pages) {
  */
 export function renderZinebook({ issue, stories, qrSvg, siteUrl }) {
   if (!issue) return "";
-  const pages = buildPages({ issue, stories, qrSvg, siteUrl });
+  const pages = buildPages({ stories, qrSvg, siteUrl });
 
   return h`<button type="button" class="zb-cta" data-zb-open>Create The Answer Zine</button>
 <div class="zb-overlay" data-zb-overlay hidden>

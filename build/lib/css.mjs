@@ -782,7 +782,9 @@ body.has-zb { padding-bottom: 0; }
    세로 공간을 눌러 담듯 채운다 — 위(eyebrow)·아래(caption)로 숨 쉴 틈은 남기되, 그
    사이 타이포는 폭·행간을 최대한 좁혀 밀도를 높인다. */
 .zb-panel--cover { background: #fff; color: #111; justify-content: space-between; position: relative; }
-.zb-panel--cover-back { justify-content: center; align-items: center; text-align: center; gap: 12px; background: #16150F; color: #fff; }
+/* 뒤표지 — 2026-08-11 두 번째 라운드에서 콘텐츠를 뺐다(render-zinebook.mjs coverBack()
+   주석 참고). 색만 남겨 앞표지와 짝을 이루는 빈 판을 만든다. */
+.zb-panel--cover-back { background: #16150F; color: #fff; }
 
 .zb-cover-eyebrow {
   font-family: var(--sans); font-size: 11px; font-weight: 700; letter-spacing: .14em;
@@ -804,11 +806,6 @@ body.has-zb { padding-bottom: 0; }
   position: relative; z-index: 1; font-family: var(--sans); font-size: 11px;
   letter-spacing: .05em; color: rgba(0,0,0,.55); margin: 0;
 }
-.zb-cover-mark { color: #fff; }
-.zb-cover-site { font-family: var(--sans); font-weight: 900; font-size: 15px; letter-spacing: .1em; margin: 0; }
-.zb-cover-tagline { font-family: var(--serif); font-size: 12.5px; color: rgba(255,255,255,.7); margin: 0; }
-.zb-cover-issue { font-family: var(--sans); font-size: 10px; letter-spacing: .06em; color: rgba(255,255,255,.45); margin: 0; }
-
 .zb-eyebrow {
   font-family: var(--sans); font-size: 11px; font-weight: 700; letter-spacing: .14em;
   text-transform: uppercase; color: #666; margin: 0 0 12px;

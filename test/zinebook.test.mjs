@@ -47,7 +47,7 @@ test("그리드 미리보기가 논리적 읽는 순서(표지→About→기사1
   const html = renderZinebook({ issue: ISSUE, stories: FOUR });
   const grid = html.slice(html.indexOf("data-zb-grid"), html.indexOf("zb-print-hint"));
   // 각 논리 페이지를 식별하는 문자열이 이 순서대로 나오는지 인덱스로 확인한다.
-  const markers = ["ANSWER", "ABOUT", "테스트 헤드라인 1", "테스트 헤드라인 2", "테스트 헤드라인 3", "테스트 헤드라인 4", "NOTES", "ANSWERZINE.KR"];
+  const markers = ["ANSWER", "ABOUT", "테스트 헤드라인 1", "테스트 헤드라인 2", "테스트 헤드라인 3", "테스트 헤드라인 4", "NOTES", 'aria-label="뒤표지"'];
   const idx = markers.map((m) => grid.indexOf(m));
   assert.ok(idx.every((i) => i > -1), `마커 중 못 찾은 게 있다: ${JSON.stringify(idx)}`);
   for (let i = 1; i < idx.length; i++) assert.ok(idx[i] > idx[i - 1], `${markers[i]}가 순서를 벗어났다`);
@@ -66,9 +66,8 @@ test("인쇄 시트 4장이 그 순서·좌우 배치대로 마크업에 나온�
   const html = renderZinebook({ issue: ISSUE, stories: FOUR });
   const sheetsHTML = html.slice(html.indexOf("zb-print-sheets"));
   const s1f = sheetsHTML.slice(sheetsHTML.indexOf('sheet1-front'), sheetsHTML.indexOf('sheet1-back'));
-  // "ANSWER"는 "ANSWERZINE.KR"(뒤표지) 안에도 부분 문자열로 들어있어 그 자체로는 못 쓴다 —
-  // 앞표지 전용 캡션으로 구분한다.
-  assert.ok(s1f.indexOf("ANSWERZINE.KR") < s1f.indexOf("8쪽 진"), "Sheet1 앞면은 [뒤표지 | 앞표지] 순이어야 한다");
+  // 뒤표지는 콘텐츠가 없어(2026-08-11 두 번째 라운드) aria-label로만 식별한다.
+  assert.ok(s1f.indexOf('aria-label="뒤표지"') < s1f.indexOf("8쪽 진"), "Sheet1 앞면은 [뒤표지 | 앞표지] 순이어야 한다");
 
   const s1b = sheetsHTML.slice(sheetsHTML.indexOf('sheet1-back'), sheetsHTML.indexOf('sheet2-front'));
   assert.ok(s1b.indexOf("ABOUT") < s1b.indexOf("NOTES"), "Sheet1 뒷면은 [About | Notes] 순이어야 한다");
