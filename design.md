@@ -237,7 +237,7 @@ node tools/crop-png.mjs --matte <입력.png> <출력.png> [여백px]   # 여백 
 | `stat.axisCaption` | 52자 | 60자 |
 | `kicker` | 22자 | 26자 |
 | `trend` 배열 | 4~5점 | 2~8점 |
-| `issue.insightNote` (2026-08-10 도입) | 110자 | 140자 |
+| `issue.insightNote` (2026-08-10 도입, 2026-08-12 예산 확대 — `CLAUDE.md` §5.5 참고) | 150자 | 220자 |
 
 ### 4.2 A4 1페이지 보장
 

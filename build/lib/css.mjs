@@ -236,10 +236,15 @@ const CHROME = `
 }
 /* 부연설명 — 헤드라인이 압축한 것을 한 문단으로 풀어준다(2026-08-10 두 번째 라운드 도입,
    issue.insightNote). 2026-08-11부터 헤드라인 옆(아래가 아니라)에 온다 — flex: 1로
-   나머지 폭을 채워 오른쪽 빈 공간을 없앤다. */
+   나머지 폭을 채워 오른쪽 빈 공간을 없앤다.
+   2026-08-12 — issue.insight가 짧은 영어 한 단어("UNEXPECTED" 등)로 바뀌면서
+   insightNote가 그 옆을 채우는 본격 분석 문단(3~4문장)이 됐다(CLAUDE.md §5.5).
+   text-align: left를 명시했다 — 기존에도 상속으로 왼쪽 정렬이었지만(다른 어떤
+   조상도 가운데 정렬을 안 건다), 사용자가 "문단은 left aligned로"라고 명시적으로
+   요청해 암묵적 상속에 기대지 않고 못박는다. */
 .issue-insight-note {
   font-family: var(--serif); font-weight: 400; font-size: 18px; line-height: 1.6;
-  color: var(--secondary); margin: 0; flex: 1 1 320px; max-width: 44ch;
+  color: var(--secondary); margin: 0; flex: 1 1 320px; max-width: 44ch; text-align: left;
 }
 
 .draft-flag {
