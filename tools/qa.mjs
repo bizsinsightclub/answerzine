@@ -39,6 +39,12 @@ const reg = read("domains/registry.json");
 const DOM = reg.domains.filter(d => d.status === "active");
 const BUDGET = reg.budget;
 
+// headlineLines/insightLines(2026-08-12) 검증용 — 줄바꿈이 쉼표를 "대체"하므로(요청 원문:
+// "쉼표가 오는 자리를 줄바꿈으로 바꾼다") 줄을 공백으로 이어붙인 값과 원문을 비교할 때
+// 원문 쪽의 쉼표(+뒤따르는 공백)를 지우고 비교해야 공정하다 — 쉼표가 없던 헤드라인(예:
+// "덜 팔고도 1위를 가져갔다")은 이 정규화가 아무 영향도 없다.
+const stripCommaBreaks = (s) => (s ?? "").replace(/,\s*/g, " ").replace(/\s+/g, " ").trim();
+
 const hueDist = (a, b) => Math.min(Math.abs(a - b), 360 - Math.abs(a - b));
 for (const d of DOM) {
   if (!existsSync(join(ROOT, d.doc))) fail(d.key, `문서 ${d.doc}가 없다.`);
@@ -263,6 +269,13 @@ for (const f of files) {
       if (Li(issue.insightNote) > max) fail(at3, `${Li(issue.insightNote)}자 > 절대상한 ${max}자.`);
       else if (Li(issue.insightNote) > rec) warn(at3, `${Li(issue.insightNote)}자 > 권장 ${rec}자.`);
     }
+    // insightLines — 2026-08-12 홈 화면 "쉼표 → 줄바꿈" 요청으로 도입. 카드·홈 큰
+    // 헤드라인에서만 쓰는 표시용 줄바꿈이다 — 정본(issue.insight)과 어긋나면 안 된다.
+    if (issue.insightLines) {
+      const at4 = `${basename(f)} · issue.insightLines`;
+      if (stripCommaBreaks(issue.insightLines.join(" ")) !== stripCommaBreaks(issue.insight))
+        fail(at4, `줄을 이어붙인 값이 issue.insight와 다르다(쉼표 자리 줄바꿈은 허용) — "${issue.insightLines.join(" ")}" ≠ "${issue.insight}"`);
+    }
   }
 
   for (const st of stories) {
@@ -321,6 +334,13 @@ for (const f of files) {
       if (st.headline.endsWith(".")) warn(at, "헤드라인에 마침표를 쓰지 않는다 — 2026-08-11 규칙 변경.");
       if (/[?!]|\.\.\.|…/.test(st.headline)) fail(at, "헤드라인에 물음표·느낌표·말줄임표를 쓰지 않는다.");
       if (/\p{Extended_Pictographic}/u.test(st.headline)) fail(at, "헤드라인에 이모지를 쓰지 않는다.");
+    }
+    // headlineLines — 2026-08-12 홈 카테고리 카드 "쉼표 → 줄바꿈" 요청으로 도입. 카드
+    // 헤드라인만 여러 줄로 접어 보여주는 표시용 값이다 — 정본(headline)과 어긋나면 안
+    // 된다(이어붙이면 원문과 문자열이 완전히 같아야 한다).
+    if (st.headlineLines) {
+      if (stripCommaBreaks(st.headlineLines.join(" ")) !== stripCommaBreaks(st.headline))
+        fail(at, `headlineLines를 이어붙인 값이 headline과 다르다(쉼표 자리 줄바꿈은 허용) — "${st.headlineLines.join(" ")}" ≠ "${st.headline}"`);
     }
     const prose = [b0?.text, b2?.text, b4?.text, st.teaser].join(" ");
     if (/<[A-Za-z]/.test(prose))

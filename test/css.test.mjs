@@ -133,3 +133,9 @@ test("카테고리 카드는 배경을 풀블리드한다 — §2 불변식 3번
   assert.ok(dark, ".category-card.is-dark 규칙이 있어야 한다");
   assert.match(dark[1], /color:\s*#fff/);
 });
+
+test("카테고리 카드는 좌측 정렬이다 — 2026-08-12 사용자 요청(가운데·양쪽 정렬 금지)", () => {
+  const base = css.match(/\.category-card\s*\{([^}]*)\}/);
+  assert.match(base[1], /align-items:\s*flex-start/);
+  assert.match(base[1], /text-align:\s*left/);
+});

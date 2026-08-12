@@ -14,10 +14,15 @@
  * 대비 방향이 반대라 같이 못 쓴다. `cardColor`가 없는 도메인은 `colorPaper`+흰 글자로
  * 되돌아간다(전 도메인 AA는 test/theme.test.mjs가 두 조합 다 검증한다).
  */
-import { h, raw } from "./html.mjs";
+import { h, raw, escapeHTML } from "./html.mjs";
 import { u } from "./site.mjs";
 import { dateline, SITE } from "./layout.mjs";
 import { latestByDomain, visibleDomains } from "./data.mjs";
+
+/** 여러 줄 제목 — 2026-08-12 사용자 요청("쉼표가 자연스럽게 오는 자리에 줄바꿈").
+    `headlineLines`/`insightLines`처럼 정본 문자열을 줄 배열로 미리 쪼갠 표시용 필드가
+    있으면 <br>로 이어 보여주고, 없으면 원래 한 줄 문자열을 그대로 쓴다(호출부에서 분기). */
+const multiline = (lines) => raw(lines.map(escapeHTML).join("<br>"));
 
 /** 카드 배경·글자색. cardColor가 있으면 밝은 파스텔 + 검은 글자(기본), 없으면 예전처럼
     colorPaper(어두운 톤) + 흰 글자로 되돌아간다(.is-dark 모디파이어 — CSS가 인라인
@@ -41,7 +46,7 @@ const emptyCard = (d) => h`<div class="category-card is-empty">
 
 const card = (d, s) => h`<a class="category-card${d.cardColor ? "" : " is-dark"}" data-reveal href="${u(s.url)}" style="${raw(cardPalette(d))}">
   <span class="category-card-tag">${cardLabel(d)}${s.draft ? raw(' <span class="draft-flag">작업 중</span>') : ""}</span>
-  <h2 class="category-card-headline">${s.headline}</h2>
+  <h2 class="category-card-headline">${s.headlineLines ? multiline(s.headlineLines) : s.headline}</h2>
   <p class="category-card-teaser">${s.teaser}</p>
   <span class="category-card-date">최신 · ${s.range}</span>
 </a>`;
@@ -117,7 +122,7 @@ export function renderIndex(issues, stories, registry) {
   const content = h`<main class="shell-edge">
   <p class="dateline">${latest ? dateline(latest.range) : "준비 중"}</p>
   <div class="insight-lead">
-    ${latest?.insight ? raw(h`<h1 class="issue-insight" data-reveal>${latest.insight}</h1>`) : ""}
+    ${latest?.insight ? raw(h`<h1 class="issue-insight" data-reveal>${latest.insightLines ? multiline(latest.insightLines) : latest.insight}</h1>`) : ""}
     ${latest?.insightNote ? raw(h`<p class="issue-insight-note" data-reveal>${latest.insightNote}</p>`) : ""}
   </div>
 

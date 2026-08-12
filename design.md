@@ -460,12 +460,34 @@ site-header: position: sticky; top: 0 · 항상 화면 상단에 붙는다 · �
 ```
 그리드: repeat(2, 1fr) · gap 1px · 배경 --ink(칸 사이 괘선) · 640px 이하 1열 · 뷰포트 가장자리까지
 카드:   padding var(--s7) 10px var(--s5) · min-height 420px (바닥일 뿐 상한 아님)
+        가로 정렬 왼쪽(align-items:flex-start · text-align:left) · 세로 중앙(justify-content:center)
         기본: 배경 cardColor(밝은 파스텔) · 글자 --ink(검정)
         폴백(cardColor 없음): 배경 --dc-<key>(colorPaper, 어두운 톤) · 글자 흰색(.is-dark)
 태그:   우측 상단 절대 위치, 12px, uppercase · nameCard(영문, registry.json 전용 필드)
 헤드라인: 카드에서 가장 큰 글자, 80px 900 (2026-08-11 열 번째 라운드 — 40px에서 두 배)
+        headlineLines가 있으면 <br>로 여러 줄(§데이터 계약 참고), 없으면 한 줄
 티저:   헤드라인 아래 한 줄, 28px (같은 라운드에서 14px→두 배)
 ```
+
+> **2026-08-12 — 좌측 정렬로 되돌림 + 헤드라인 줄바꿈 도입.** 두 가지 사용자 요청:
+> 1. **가로 정렬을 다시 왼쪽으로.** 2026-08-11 여섯 번째 라운드에서 세로·가로 모두
+>    카드 한가운데로 바꿨던 걸(`align-items:center; text-align:center`), 이번에
+>    "전체를 좌측 정렬로, 가운데·양쪽 정렬은 쓰지 말라"는 요청으로 가로만 다시
+>    왼쪽으로 뒤집었다(`align-items:flex-start; text-align:left`). 세로 중앙
+>    정렬(`justify-content:center`)은 요청 범위 밖이라 그대로 뒀다. 우측 상단 태그
+>    (`.category-card-tag`)는 absolute 포지션이라 이 변경과 무관하게 그 자리 그대로다.
+> 2. **헤드라인 쉼표 → 줄바꿈.** "쉼표가 자연스럽게 오는 자리에 줄바꿈을 넣어라"는
+>    요청 — 예시로 준 두 문장(`정가 2만 원 표가 / 10만 원에 팔렸다`,
+>    `덜 팔고도 / 1위를 가져갔다`)이 실제로 지금 카드에 뜨는 영화·음악 편 헤드라인과
+>    정확히 일치했다. 어디서 끊을지는 한국어 문법(주어/부사절 경계) 판단이 필요해
+>    범용 알고리즘으로는 못 미덥다 — 정본 문자열(`headline`)은 그대로 두고, 홈 카드
+>    전용 표시값 `headlineLines`(문자열 배열)를 `issues/*.json`에 새로 추가해 사람이
+>    직접 끊었다. `render-index.mjs`가 있으면 `<br>`로 이어 보여주고 없으면 원래
+>    한 줄로 돌아간다. `tools/qa.mjs`가 `headlineLines.join(" ") === headline`을
+>    강제한다 — 표시용 줄바꿈이 정본과 몰래 갈라지는 사고를 막는다. 홈의 큰
+>    헤드라인(`.issue-insight`)에도 같은 원리로 `issue.insightLines`를 추가했다 —
+>    지금 문구("숫자는 다 보여줬다, 이유만 빼고")에 이미 쉼표가 있어 그 자리에서
+>    끊었다.
 
 사용자가 첨부한 참고 이미지(도메인별 색 타일 그리드)를 따른다 — 폰트·정확한 배치는
 그대로 옮기지 않고 이 사이트의 헬베티카 톤 위에서 재해석했다. **도메인 색(또는

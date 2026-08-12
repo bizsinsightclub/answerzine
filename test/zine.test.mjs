@@ -131,6 +131,23 @@ test("카드 제목 밑에 teaser 한 줄이 나온다 — 2026-08-11 여섯 번
   }
 });
 
+test("headlineLines가 있으면 카드 헤드라인이 <br>로 여러 줄로 나온다 — 2026-08-12 사용자 요청", () => {
+  const withLines = { ...stories[0], headlineLines: ["부고 다음날,", "서점이 붐볐다."] };
+  const { content } = renderIndex([ISSUE], [withLines, ...stories.slice(1)], REG);
+  assert.match(content, /<h2 class="category-card-headline">부고 다음날,<br>서점이 붐볐다\.<\/h2>/);
+});
+
+test("headlineLines가 없으면 카드 헤드라인이 그대로 한 줄이다", () => {
+  const { content } = renderIndex([ISSUE], stories, REG);
+  assert.match(content, /<h2 class="category-card-headline">부고 다음날, 서점이 붐볐다\.<\/h2>/);
+});
+
+test("insightLines가 있으면 홈 큰 헤드라인도 <br>로 여러 줄로 나온다", () => {
+  const withInsight = { ...ISSUE, insight: "헤드라인, 이다.", insightLines: ["헤드라인,", "이다."] };
+  const { content } = renderIndex([withInsight], stories, REG);
+  assert.match(content, /<h1 class="issue-insight" data-reveal>헤드라인,<br>이다\.<\/h1>/);
+});
+
 test("헤드라인·부연설명이 같은 가로 컨테이너(insight-lead) 안에 있다", () => {
   const withInsight = { ...ISSUE, insight: "헤드라인.", insightNote: "부연설명." };
   const { content } = renderIndex([withInsight], stories, REG);

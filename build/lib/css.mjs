@@ -289,11 +289,15 @@ const COMPONENTS = `
    끝나는 지점에 딱 10px만, 완전한 여백이 아니라 아주 살짝 숨 쉴 틈만"). 위아래는
    그대로 뒀다 — 요청이 좌우 한정이었다.
    2026-08-11 여섯 번째 라운드: 제목이 아래로 처져 보인다는 지적 — justify-content를
-   flex-end에서 center로 바꾸고 text-align도 center를 줘서 세로·가로 모두 카드
-   한가운데 온다. min-height도 280→420px로 키웠다(사용자 요청, "여유를 더 준다"). */
+   flex-end에서 center로 바꿔 세로로는 카드 한가운데 온다. min-height도 280→420px로
+   키웠다(사용자 요청, "여유를 더 준다").
+   2026-08-12 되돌림 — 사용자가 "전체를 좌측 정렬로, 가운데·양쪽 정렬 쓰지 말라"고
+   요청해 가로 정렬만 다시 왼쪽으로 뒤집었다(align-items:center→flex-start,
+   text-align:center→left). 세로 중앙 정렬(justify-content:center)은 그대로 둔다 —
+   요청이 가로 정렬 한정이었다. */
 .category-card {
-  position: relative; display: flex; flex-direction: column; align-items: center;
-  justify-content: center; text-align: center;
+  position: relative; display: flex; flex-direction: column; align-items: flex-start;
+  justify-content: center; text-align: left;
   min-height: 420px; padding: var(--s7) 10px var(--s5); text-decoration: none;
   color: var(--ink);
 }
