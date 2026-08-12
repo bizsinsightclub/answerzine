@@ -30,10 +30,15 @@
      2026-08-12 열다섯 번째 라운드 — 안무를 다시 짰다(사용자 요청). 예전엔(여덟 번째
      라운드) 세 줄 전체가 좌우로 갈라지며 사라졌는데, 이제는: (1) 스크롤을 시작하면
      "ANZINE"이 아닌 글자가 회색으로 옅어지고(레이아웃 안 바뀜, 기존 유지), (2) 더
-     스크롤하면 그 옅어진 글자들이 완전히 투명해지면서 "ZINE" 조각이 물리적으로 이동해
-     "AN" 조각의 바로 오른쪽에 붙어 "ANZINE"이 화면 가운데 줄(ANSWER가 있던 가운데
-     행)에서 한 단어로 합쳐진다. "AN"은 전혀 움직이지 않는다 — 이미 가운데 줄에
-     있으므로 그 자리가 곧 합쳐질 자리의 기준점이다. layout.mjs의 splitWord() 주석 참고. */
+     스크롤하면 그 옅어진 글자들이 완전히 투명해지면서 "AN"·"ZINE" 두 조각이 화면
+     정중앙으로 함께 이동해 "ANZINE"이 완성된다.
+     2026-08-12 열여섯 번째 라운드 — "AN도 움직여서 정중앙에서 만나도록" 요청으로
+     한 번 더 고쳤다. 바로 앞 라운드는 AN을 고정점으로 두고 ZINE만 그 오른쪽으로
+     옮겼는데, 그러면 AN이 원래 있던 자리(ANSWER 단어의 왼쪽 절반이라 화면 중앙보다
+     왼쪽)가 그대로 합쳐진 자리가 돼 "ANZINE"이 화면 정중앙이 아니라 살짝 왼쪽에
+     자리 잡았다. 이제 둘 다 움직인다 — 목표 지점을 "합쳐진 폭(AN 너비+ZINE 너비)이
+     화면 정중앙에 오도록" 계산해서, AN은 오른쪽으로, ZINE은 왼쪽으로 서로를 향해
+     이동한다. */
   function prefersReduce() {
     return !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
   }
@@ -56,18 +61,32 @@
     var fades = introEl ? Array.prototype.slice.call(introEl.querySelectorAll(".intro-fade")) : [];
     if (!introEl || !wordmarkEl || !wordThe || !an || !zine || !fades.length || prefersReduce()) return;
 
-    // ZINE이 AN 옆에 붙기 위해 이동해야 할 거리 — AN의 오른쪽 끝을 ZINE의 왼쪽 끝에
-    // 맞추고(가로), 두 조각의 세로 중심을 맞춘다(세로, ANSWER 줄과 MAGAZINE 줄 사이
-    // 거리만큼). 뷰포트 폭이 바뀌면(반응형 clamp() 폰트 크기) 값도 달라지므로
-    // resize마다 다시 잰다 — 재는 순간엔 이전 프레임의 transform이 섞여 들어가지
-    // 않도록 먼저 원상태로 되돌린 뒤 잰다.
-    var dx = 0, dy = 0;
+    // AN·ZINE 둘 다 움직여 화면 정중앙에서 만난다(사용자 요청 — 처음엔 AN을 고정점
+    // 삼아 ZINE만 옮겼는데, "AN도 움직여서 정중앙에서 만나도록" 다시 잡았다). 목표
+    // 지점은 "합쳐진 ANZINE 한 단어가 뷰포트 한가운데 놓였을 때" AN이 있어야 할 자리와
+    // ZINE이 있어야 할 자리다 — 두 조각의 실측 너비(wA·wZ)를 더한 폭을 화면 중앙에
+    // 맞추고, AN은 그 블록의 왼쪽 절반, ZINE은 오른쪽 절반을 차지한다. 세로는 둘 다
+    // `.intro-inner`(뷰포트를 꽉 채우는 sticky 상자)의 세로 중심으로 모인다. 뷰포트
+    // 크기가 바뀌면(반응형 clamp() 폰트 크기) 값도 달라지므로 resize마다 다시 잰다 —
+    // 재는 순간엔 이전 프레임의 transform이 섞여 들어가지 않도록 먼저 원상태로
+    // 되돌린 뒤 잰다.
+    var dxAN = 0, dyAN = 0, dxZine = 0, dyZine = 0;
     function measure() {
+      an.style.transform = "none";
       zine.style.transform = "none";
+      var innerRect = introEl.querySelector(".intro-inner").getBoundingClientRect();
       var anRect = an.getBoundingClientRect();
       var zineRect = zine.getBoundingClientRect();
-      dx = anRect.right - zineRect.left;
-      dy = (anRect.top + anRect.height / 2) - (zineRect.top + zineRect.height / 2);
+      var centerX = innerRect.left + innerRect.width / 2;
+      var centerY = innerRect.top + innerRect.height / 2;
+      var mergedLeft = centerX - (anRect.width + zineRect.width) / 2;
+      var targetANCenterX = mergedLeft + anRect.width / 2;
+      var targetZineCenterX = mergedLeft + anRect.width + zineRect.width / 2;
+
+      dxAN = targetANCenterX - (anRect.left + anRect.width / 2);
+      dyAN = centerY - (anRect.top + anRect.height / 2);
+      dxZine = targetZineCenterX - (zineRect.left + zineRect.width / 2);
+      dyZine = centerY - (zineRect.top + zineRect.height / 2);
     }
 
     // 0~CONVERGE_START: 색만 옅어진다(기존 1단계, 레이아웃 안 바뀜).
@@ -101,7 +120,8 @@
       for (var i = 0; i < fades.length; i++) fades[i].style.opacity = fadeOpacity;
       // transform은 CSS 트랜지션을 안 건다(css.mjs) — 스크롤 자체가 이미 매 프레임
       // 값을 보간해 주므로, 트랜지션까지 걸면 스크롤 위치와 실제 화면이 어긋난다.
-      zine.style.transform = "translate(" + (dx * p2) + "px, " + (dy * p2) + "px)";
+      an.style.transform = "translate(" + (dxAN * p2) + "px, " + (dyAN * p2) + "px)";
+      zine.style.transform = "translate(" + (dxZine * p2) + "px, " + (dyZine * p2) + "px)";
     }
     function onScroll() { if (raf === null) raf = requestAnimationFrame(update); }
     function onResize() { measure(); onScroll(); }
