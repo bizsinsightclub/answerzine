@@ -107,7 +107,12 @@ export function page({ title, description, url, content, noindex = false, bodyCl
   // 애초에 이 인자를 안 받는다(build.mjs). has-zb는 css.mjs가 하단 CTA 바 높이만큼
   // body에 여백을 주는 데 쓴다.
   const zb = showChrome ? zinebook : "";
-  const bodyClasses = [bodyClass, zb ? "has-zb" : ""].filter(Boolean).join(" ");
+  // is-home — 2026-08-12 열아홉 번째 라운드 도입. `showIntro`는 홈 페이지에서만
+  // true다(renderIndex()만 이 값을 낸다, story·about·archive·print는 전부
+  // 기본값 false) — 그래서 이 클래스는 항상 홈 문서 하나에만 붙는다. css.mjs의
+  // 홈 전용 다크모드(검정 배경·흰 글자, 사용자 요청 — "인트로~스크롤 끝까지 도달하는
+  // 전체 페이지")가 이 클래스를 스코프로 쓴다. 다른 페이지는 기존 흰 테마 그대로다.
+  const bodyClasses = [bodyClass, zb ? "has-zb" : "", showIntro ? "is-home" : ""].filter(Boolean).join(" ");
 
   return `<!doctype html>
 <html lang="ko">

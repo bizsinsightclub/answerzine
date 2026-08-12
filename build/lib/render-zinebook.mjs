@@ -33,6 +33,23 @@
 import { h, raw } from "./html.mjs";
 import { blocksOf } from "./data.mjs";
 
+/** 표지 타이포를 "그대로 진하게 남는 부분"과 "옅어지는 부분"으로 쪼갠다 — layout.mjs
+    intro()의 splitWord()와 같은 기법이다(홈 인트로의 "ANZINE" 강조와 같은 문법을 진
+    표지에도 적용해 사이트 전체에서 일관된 브랜드 마크로 읽히게 한다). 여기는 스크롤
+    애니메이션이 없는 정적 인쇄물이라 두 색을 처음부터 고정해서 낸다 — app.js 같은
+    스크립트가 필요 없다. 낱말 안 글자 순서 그대로 이어붙이므로(intro()의 splitWord()와
+    같은 이유) 공백 없이 join한다. */
+function splitCoverWord(word, keepStart, keepEnd) {
+  const prefix = word.slice(0, keepStart);
+  const keep = word.slice(keepStart, keepEnd + 1);
+  const suffix = word.slice(keepEnd + 1);
+  const parts = [];
+  if (prefix) parts.push(`<span class="zb-wrap-fade">${prefix}</span>`);
+  if (keep) parts.push(`<span class="zb-wrap-keep">${keep}</span>`);
+  if (suffix) parts.push(`<span class="zb-wrap-fade">${suffix}</span>`);
+  return parts.join("");
+}
+
 /* ── 아이콘 ── 전부 인라인 SVG. 래스터 이미지를 새로 안 만든다(요구사항 #5). */
 const ICON = {
   close: `<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M5 5L19 19M19 5L5 19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`,
@@ -48,6 +65,12 @@ const ICON = {
  *
  * `assets/zinebook.js`는 이 SVG를 직접 그리지 않는다 — 팔레트 칩의 `innerHTML`을
  * 그대로 복제해 캔버스에 놓는다. 그래서 스티커 모양은 여기 한 곳에만 정의된다.
+ *
+ * 2026-08-12 열아홉 번째 라운드 — 놓은 스티커 크기를 조절할 수 있게 했다(사용자
+ * 요청, "ZINE 안에 스티커는 사이즈도 Adjustable하게"). 스티커 우측 하단에 작은
+ * 손잡이(`.zb-sticker-resize`)가 붙고, 그걸 끌면 커지거나 작아진다 — 이동(스티커
+ * 몸통을 끄는 것)과 같은 포인터 이벤트 방식이라 마우스·터치 둘 다 동작한다
+ * (`assets/zinebook.js`의 `startResizeDrag()` 참고). 아래 안내 문구에도 반영했다.
  */
 const STICKERS = [
   { id: "circle-red", svg: `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="45" fill="#E8453C"/></svg>` },
@@ -73,7 +96,7 @@ function stickerPaletteHTML() {
     (s) => h`<button type="button" class="zb-sticker-chip" data-zb-sticker="${s.id}" aria-label="스티커 놓기: ${s.id}">${raw(s.svg)}</button>`
   );
   return h`<div class="zb-sticker-palette" data-zb-sticker-palette>
-  <p class="zb-sticker-hint">스티커를 진 위로 끌어놓아 꾸며보세요. 놓은 스티커는 다시 끌어 옮길 수 있고, 두 번 탭하면 지워집니다.</p>
+  <p class="zb-sticker-hint">스티커를 진 위로 끌어놓아 꾸며보세요. 놓은 스티커는 다시 끌어 옮기거나, 모서리 손잡이를 끌어 크기를 조절할 수 있고, 두 번 탭하면 지워집니다.</p>
   <div class="zb-sticker-tray">${raw(chips.join(""))}</div>
 </div>`;
 }
@@ -97,13 +120,21 @@ function stickerPaletteHTML() {
  * 그리드 미리보기에서는 앞·뒤 타일이 서로 안 붙어 있어 각자 "반쪽 글자"로 보인다 —
  * 이건 랩어라운드 표지의 구조적 특성이다(실물도 펼치기 전엔 반쪽씩 보인다). 인쇄
  * 시트가 진짜 결과물이고, 사용자가 보낸 사진도 인쇄물이었다.
- */
+ *
+ * 2026-08-12 열아홉 번째 라운드 — 문구를 "THE ANSWER ZINE"에서 "THE ANSWER
+ * MAGAZINE"으로 바꾸고(layout.mjs 인트로가 이미 2026-08-12 열네 번째 라운드에서
+ * 같은 전환을 했다 — 사이트 이름 자체는 안 바뀐다, 표시용 문구만), 그 안에 숨은
+ * "ANZINE"(ANSWER의 A·N + MAGAZINE의 Z·I·N·E)만 진하게, 나머지는 회색으로
+ * 강조했다(사용자 요청). 인트로는 스크롤에 맞춰 이 강조를 애니메이션으로
+ * 드러내지만, 표지는 정적 인쇄물이라 처음부터 두 색으로 고정해서 낸다(위
+ * splitCoverWord() 참고) — 같은 브랜드 마크가 인트로(동적)와 표지(정적) 두 곳에서
+ * 일관되게 읽힌다. */
 function wraparoundCanvas(side) {
   return h`<div class="zb-wrap-viewport">
   <div class="zb-wrap-canvas zb-wrap-canvas--${side}" aria-hidden="true">
-    <span class="zb-wrap-word">THE</span>
-    <span class="zb-wrap-word">ANSWER</span>
-    <span class="zb-wrap-word">ZINE</span>
+    <span class="zb-wrap-word zb-wrap-fade">THE</span>
+    <span class="zb-wrap-word">${raw(splitCoverWord("ANSWER", 0, 1))}</span>
+    <span class="zb-wrap-word">${raw(splitCoverWord("MAGAZINE", 4, 7))}</span>
   </div>
 </div>`;
 }

@@ -720,9 +720,9 @@ const INTRO = `
    상속받게 짜여 있어(아래 .intro-word의 -webkit-text-stroke도 포함) 이 두 줄만
    바꾸면 나머지가 자동으로 따라온다. */
 .intro { text-align: center; position: relative; background: #000; color: #fff; }
-/* 인트로는 뷰포트보다 60vh 더 큰 상자다 — 그 여유분만큼 안쪽 콘텐츠가 상단에
+/* 인트로는 뷰포트보다 큰 상자다 — 그 여유분만큼 안쪽 콘텐츠가 상단에
    고정(sticky)된 채로 머물러서, 스크롤해도 그냥 지나가 버리지 않고 전환 과정
-   자체가 눈에 보인다. app.js의 진행률 계산이 이 160svh를 전제한다.
+   자체가 눈에 보인다. app.js의 진행률 계산이 이 높이(현재 240svh)를 전제한다.
    2026-08-11 여덟 번째 라운드: 가로 스크롤바 방지용 overflow: hidden을 이 요소에
    붙였었다 — 아래에서 글자 크기를 더 키워 가장자리에 닿을 만큼 커지므로, 자간·
    서브픽셀 반올림으로 생기는 1px 안팎도 가로 스크롤바를 안 만들게 막으려던
@@ -735,8 +735,16 @@ const INTRO = `
    흘러가 버린다(꽤 알려진 CSS 함정) — 실측(Playwright로 스크롤 중 AN 조각의
    좌표를 프레임마다 재봄)으로 발견했다. .intro-inner는 sticky 요소 자기 자신이라
    overflow: hidden을 걸어도 자기 고정 축 계산에는 영향이 없다 — 가로 클리핑
-   목적은 그대로 살아 있고, 위쪽 조상에서 고정이 깨지는 문제만 없앤다. */
-.intro { height: 160svh; }
+   목적은 그대로 살아 있고, 위쪽 조상에서 고정이 깨지는 문제만 없앤다.
+   2026-08-12 열아홉 번째 라운드 — 160svh → 240svh로 늘렸다(사용자 요청: "ANZINE
+   문구가 완성되면 바로 메인 콘텐츠로 떨어지지 말고 스크롤 한두번 하면 떨어지게").
+   예전엔 합쳐지는 애니메이션이 끝나자마자(CONVERGE_END=.75) 남은 고정 구간이
+   전체 여유분의 25%(0.25×60vh=15vh)뿐이라 완성된 "ANZINE"을 보자마자 거의 곧바로
+   본문이 딸려 올라왔다. 상자를 키우고 app.js의 CONVERGE_END를 낮춰(아래 참고) 완성
+   이후의 "홀드" 구간 자체를 늘렸다 — 마우스 휠 한 칸(브라우저·기기마다 델타가
+   달라 픽셀로 정확히 "1~2회"를 못 박을 수는 없다)이 아니라, 그 정도의 스크롤을
+   확실히 요구하는 물리적 거리(뷰포트 높이의 약 60%)로 근사했다. */
+.intro { height: 240svh; }
 .intro-inner {
   position: sticky; top: 0; height: 100svh; display: flex; flex-direction: column;
   align-items: center; justify-content: center; padding: var(--s6) var(--s3);
@@ -972,6 +980,14 @@ body.has-zb { padding-bottom: 0; }
   display: block; font-family: var(--sans); font-weight: 900; font-stretch: condensed;
   font-size: 262px; line-height: .76; letter-spacing: -.03em; white-space: nowrap; text-align: center;
 }
+/* 2026-08-12 열아홉 번째 라운드 — "ANZINE" 강조(render-zinebook.mjs splitCoverWord()
+   참고). 표지는 흰 배경(.zb-panel--cover)이라 인트로(검정 배경, css.mjs INTRO 블록의
+   rgba(255,255,255,.4))와는 반대 방향 회색을 쓴다 — 옅어지는 글자는 배경보다 어둡되
+   진한 글자(#111)보다는 확실히 옅은 중간 회색으로, 강조 글자는 원래 표지 색(#111)을
+   그대로 유지한다(currentColor로 획 등 다른 효과가 얹혀 있지 않아 리터럴 색으로도
+   충분하다 — 인트로처럼 스크롤 트랜지션이 없다). */
+.zb-wrap-fade { color: #b3b0a6; }
+.zb-wrap-keep { color: #111; }
 /* About — 표지 바로 뒷장, 페이지 전체(사용자 요청 — "not a small section of an A4
    page"). 2026-08-12 다섯 번째 라운드 — 사용자가 본문 전체를 새 카피로 교체하며 제목
    크기(36px)·본문 크기(18~24px)를 직접 지정했다(render-zinebook.mjs aboutPanel() 주석
@@ -1066,6 +1082,19 @@ body.has-zb { padding-bottom: 0; }
 .zb-sticker svg { display: block; width: 100%; height: 100%; filter: drop-shadow(0 2px 4px rgba(0,0,0,.25)); }
 .zb-sticker:active { cursor: grabbing; }
 .zb-sticker.is-dragging { opacity: .55; }
+/* 크기 조절 손잡이 — 2026-08-12 열아홉 번째 라운드 신규(사용자 요청, "스티커는
+   사이즈도 Adjustable하게"). 그리드 캔버스(.zb-tile-face)에 놓인 스티커에만
+   붙는다 — 인쇄 시트(.zb-half) 쪽 미러 사본은 순수 정적 표시라 손잡이 자체를
+   안 만든다(assets/zinebook.js upsertMirror() 참고, 그래서 이 규칙은 별도
+   숨김 처리가 필요 없다 — 애초에 그 DOM에 없다). 스티커 자기 자신보다 z-index를
+   1 높여 항상 위에서 잡힌다. */
+.zb-sticker-resize {
+  position: absolute; right: -7px; bottom: -7px; width: 16px; height: 16px; z-index: 6;
+  background: #fff; border: 2px solid #111; border-radius: 999px;
+  cursor: nwse-resize; touch-action: none;
+}
+.zb-sticker-resize:hover, .zb-sticker-resize:focus-visible { background: #1C4FA0; border-color: #fff; }
+@media print { .zb-sticker-resize { display: none; } }
 .zb-drag-ghost {
   position: fixed; z-index: 999; width: 48px; height: 48px; pointer-events: none;
   opacity: .85; transform: translate(-50%, -50%);
@@ -1113,6 +1142,49 @@ body.has-zb { padding-bottom: 0; }
 }
 `;
 
+/* ── 홈 전용 다크모드 ──────────────────────────────────────────
+   2026-08-12 열아홉 번째 라운드 — 사용자 요청: "인트로~스크롤을 끝까지 내렸을 때
+   도달하는 전체 페이지는 다크모드로 만들어줘, 검은 바탕에 흰 글씨. 로고~Book까지
+   카테고리도 Intro와 같은 백그라운드/폰트 색상으로 맞춰줘." 사이트는 원래 다크/
+   라이트 토글이 없는 단일 흰 테마다(theme.mjs 상단 주석) — 그 전제 자체를 깨지
+   않고, 홈 문서 하나(body.is-home, layout.mjs page() — showIntro가 true인 페이지
+   에만 붙는다, 즉 홈뿐이다)에서만 전역 테마 토큰을 재정의한다. 이미 --bg/--ink/
+   --secondary 같은 토큰을 참조하는 컴포넌트(데이트라인·통합 인사이트·페이저 등)는
+   컴포넌트마다 색을 다시 지정할 필요 없이 이 재정의만으로 자동으로 뒤집힌다.
+   스토리·about·아카이브·인쇄 진 페이지는 이 클래스가 안 붙어 기존 흰 테마
+   그대로다 — 이전 라운드에 사용자가 확인한 범위(브랜드 강화는 /about/에만, 홈
+   인트로 카피는 그대로 유지)와 같은 원칙으로, 이번 다크모드도 홈 하나로 좁힌다.
+
+   마스트헤드(.site-header)는 원래도 사이트 전역에서 항상 어두운 바(#16150F)였다
+   (2026-08-11 열세 번째 라운드, "전역 다크모드가 아니라 이 바 하나에 국한된
+   배색") — 로고(.logo)는 이미 invert(1)로 흰 잉크로 뒤집혀 나오고 내비 글자도
+   이미 흰 계열(rgba(255,255,255,.7))이라 그 자체로는 손댈 게 없었다. 이번 요청은
+   "인트로와 정확히 같은 색"이므로 홈에서만 그 바의 리터럴 배경을 #16150F→#000으로
+   맞춘다(다른 페이지는 그대로 #16150F, 이 규칙 자체가 body.is-home 스코프다). */
+const HOME_DARK = `
+body.is-home {
+  --bg: #000;
+  --ink: #fff;
+  --secondary: rgba(255,255,255,.7);
+  --tertiary: rgba(255,255,255,.55);
+  --divider: rgba(255,255,255,.24);
+  --rule: #fff;
+  --rule-soft: rgba(255,255,255,.4);
+  --surface: #000;
+}
+body.is-home .site-header,
+body.is-home .category-divider { background: #000; }
+/* 카테고리 카드는 예외다 — cardColor(밝은 파스텔)가 실제 배경이고, 그 카드의
+   글자색(COMPONENTS의 .category-card { color: var(--ink) })은 그 배경과 짝지어
+   이미 AA 대비를 맞춘 값이다(domains/registry.json contrastPass, test/theme.test.mjs가
+   검증). 페이지 전체가 어두워졌다고 --ink를 흰색으로 물려받게 두면 밝은 파스텔
+   배경 위에 흰 글자가 얹혀 대비가 무너진다 — 그래서 이 카드만 원래의 어두운
+   잉크색을 리터럴로 고정한다. .is-dark 폴백 카드(cardColor가 없는 도메인, 어두운
+   colorPaper 배경)는 이미 별도로 color:#fff를 리터럴로 쓰고 있어 애초에 영향이
+   없다 — :not(.is-dark)로 그 카드는 건드리지 않는다. */
+body.is-home .category-card:not(.is-dark) { color: #17150F; }
+`;
+
 const MOTION = `
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
@@ -1127,7 +1199,7 @@ const MOTION = `
 
 export function stylesheet(domains = []) {
   // 시스템 폰트만 쓰므로(2026-08-10) __BASE__ 접두사가 필요한 @font-face가 없다.
-  return [themeCSS(), domainCSS(domains), BASE, TYPE, CHROME, LAYOUT, COMPONENTS, ZINE, INTRO, REVEAL, PRINT, ZINEBOOK, MOTION]
+  return [themeCSS(), domainCSS(domains), BASE, TYPE, CHROME, LAYOUT, COMPONENTS, ZINE, INTRO, REVEAL, PRINT, ZINEBOOK, HOME_DARK, MOTION]
     .join("\n")
     .trim() + "\n";
 }

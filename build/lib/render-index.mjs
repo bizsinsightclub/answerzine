@@ -16,7 +16,7 @@
  */
 import { h, raw, escapeHTML } from "./html.mjs";
 import { u } from "./site.mjs";
-import { dateline, SITE } from "./layout.mjs";
+import { SITE } from "./layout.mjs";
 import { latestByDomain, visibleDomains } from "./data.mjs";
 import { darken } from "./color.mjs";
 
@@ -86,7 +86,13 @@ const card = (d, s) => h`<a class="category-card${d.cardColor ? "" : " is-dark"}
  * 넓은 지원 뷰포트(1920px, design.md §10)보다 넓어야 이음매가 안 보인다 — 텍스트
  * 6회 반복 폭이 1920px를 넉넉히 넘는다. `prefers-reduced-motion: reduce`는
  * css.mjs의 전역 MOTION 규칙(`*` 선택자)이 이미 처리한다. */
-const MARQUEE_REPEAT = Array(6).fill("<span>THE ANSWER ZINE</span>").join("");
+// 2026-08-12 열아홉 번째 라운드 — 마퀴 문구를 "THE ANSWER ZINE"(사이트 이름을
+// 그대로 반복)에서 "DESIGN YOUR OWN ZINE"으로 바꿨다(사용자 요청). 이 밴드는
+// 순수 장식이 아니라 DIY 진 오버레이를 여는 버튼이다(`data-zb-open`) — 누르면
+// 실제로 일어나는 일("자기만의 진을 만든다")을 문구가 직접 말하게 했다. 반복
+// 폭이 1920px(design.md §10 최대 지원 뷰포트)를 넉넉히 넘어야 이음매가 안
+// 보인다는 전제는 그대로다 — 글자 수가 비슷해 6회 반복으로 충분하다.
+const MARQUEE_REPEAT = Array(6).fill("<span>DESIGN YOUR OWN ZINE</span>").join("");
 const divider = () => h`<button type="button" class="category-divider" data-zb-open aria-label="이번 호 미니 진 열기">
   <span class="marquee-track" aria-hidden="true">${raw(MARQUEE_REPEAT + MARQUEE_REPEAT)}</span>
 </button>`;
@@ -138,8 +144,14 @@ export function renderIndex(issues, stories, registry) {
     if ((i + 1) % 2 === 0 && i + 1 < tiles.length) withDividers.push(divider());
   });
 
+  // 2026-08-12 열아홉 번째 라운드 — 사용자 요청으로 "서울, 대한민국 — 2026년 8월
+  // 1주차"(dateline(latest.range), layout.mjs)를 고정 라벨 "WEEKLY ANSWER"로
+  // 바꿨다. 회차마다 값이 바뀌던 자리를 상시 표시되는 섹션 이름표로 바꾼 것 —
+  // 그래서 latest 유무를 더는 안 따진다(회차가 없을 때의 "준비 중" 분기도 같이
+  // 없앴다). dateline() 자체는 지우지 않았다 — 인쇄 진(render-zine.mjs)이 여전히
+  // 그 회차의 실제 날짜를 써야 해서 그대로 쓴다. 이 자리는 홈 화면 전용이다.
   const content = h`<main class="shell-edge">
-  <p class="dateline">${latest ? dateline(latest.range) : "준비 중"}</p>
+  <p class="dateline">WEEKLY ANSWER</p>
   <div class="insight-lead">
     ${latest?.insight ? raw(h`<h1 class="issue-insight" data-reveal>${latest.insightLines ? multiline(latest.insightLines) : latest.insight}</h1>`) : ""}
     ${latest?.insightNote ? raw(h`<p class="issue-insight-note" data-reveal>${latest.insightNote}</p>`) : ""}
