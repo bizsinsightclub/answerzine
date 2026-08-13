@@ -167,3 +167,13 @@ test("카테고리 카드는 좌측 정렬이다 — 2026-08-12 사용자 요청
   assert.match(cover[1], /align-items:\s*flex-start/);
   assert.match(cover[1], /text-align:\s*left/);
 });
+
+test("커버는 height:100%로 늘어난 카드 전체를 채운다 — 짧은 카드 옆 사진이 새지 않게", () => {
+  // 2026-08-13 — 실제 사진을 연결하고서야 발견한 버그. .category-grid는
+  // align-items 기본값(stretch)이라 같은 행의 짧은 카드도 옆 긴 카드만큼
+  // 키가 늘어난다. 커버가 height:100%로 그 늘어난 키를 안 채우면, 사진
+  // 레이어(부모 .category-card 전체를 채운다)가 커버 아래 빈 틈에서
+  // 그대로 드러난다 — 짧은 카드일수록 더 크게 샌다.
+  const cover = css.match(/\.category-card-cover\s*\{([^}]*)\}/);
+  assert.match(cover[1], /height:\s*100%/, "height:100%가 없으면 짧은 카드에서 사진이 샌다");
+});

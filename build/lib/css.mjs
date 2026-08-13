@@ -432,13 +432,25 @@ const COMPONENTS = `
    커버를 in-flow로 둔다 — position:absolute로 바꾸면 카드가 min-height에 고정돼
    버려서 긴 헤드라인이 카드 밖으로 잘리는 회귀가 생긴다(실측으로 확인하고 피했다).
    카드(.category-card)의 실제 높이는 여전히 이 커버의 내용이 정한다 — 사진 레이어는
-   absolute라 그 결과 높이에 맞춰 뒤에서 조용히 따라간다. */
+   absolute라 그 결과 높이에 맞춰 뒤에서 조용히 따라간다.
+
+   height: 100% — 실제 사진을 연결한 뒤에 발견한 버그를 고친 값이다.
+   .category-grid는 align-items 기본값(stretch)이라, 같은 행의 카드끼리 더 긴
+   쪽에 맞춰 키가 늘어난다(글이 짧은 카드도 옆 카드만큼 커진다 — 이건 사진을
+   넣기 전부터 있던 의도된 동작이다, 회색/파스텔 배경이 옆 카드와 나란히 꽉
+   차 보이는 이유). 그런데 커버는 자기 "내용"만큼만 커서, 카드가 늘어난 만큼
+   커버 아래 빈 틈이 생기고, 그 틈에서 뒤에 깔린 사진(position:absolute
+   inset:0, 부모인 .category-card 전체 — 늘어난 키까지 — 를 채운다)이 커버
+   없이 그대로 보였다. 짧은 카드(예: 헤드라인 2줄짜리)가 긴 카드(헤드라인
+   4줄짜리)와 같은 행에 있을 때 실제 사진으로 실측하고서야 드러났다 — 사진이
+   없을 땐 커버 자체가 배경색이라 그 틈도 그냥 같은 배경색으로 보여서 회귀가
+   안 보였다. height:100%로 커버가 부모의 늘어난 키까지 정확히 채우게 한다. */
 /* position:relative + 명시적 z-index로 이 커버 전체가 사진 레이어(z-index:-1) 위에
    확실히 쌓이는 스태킹 컨텍스트를 새로 연다 — 안 그러면 커버 안의 .category-card-tag
    (z-index:-1, 커버 내부용) 값이 바깥 .category-card 컨텍스트로 새어나가 사진과
    순서가 뒤섞일 수 있다. */
 .category-card-cover {
-  position: relative; z-index: 0;
+  position: relative; z-index: 0; height: 100%;
   display: flex; flex-direction: column; align-items: flex-start; justify-content: center;
   text-align: left; min-height: 420px; padding: var(--s7) 24px var(--s5) 24px;
   clip-path: inset(0% 0% 0% 0%);

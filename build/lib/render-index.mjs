@@ -97,9 +97,15 @@ const emptyCard = (d) => h`<div class="category-card is-empty">
  * 일반 흐름(in-flow)에 있어 카드 높이를 그 내용(헤드라인 줄 수 등)에 맞춰
  * 그대로 키운다 — absolute로 바꾸면 카드가 min-height에 고정돼 긴 헤드라인이
  * 잘리는 회귀가 생긴다(직접 실측으로 확인하고 피했다).
+ *
+ * story.image는 u()를 거쳐야 한다 — 이 사이트의 모든 내부 링크가 그렇듯(site.mjs
+ * 상단 주석, test/site.test.mjs가 강제) GitHub Pages 프로젝트 사이트 하위 경로
+ * 배포 시 접두사가 안 붙으면 404가 난다. 처음 이 기능을 만들 때는 아직 어느
+ * story에도 image가 없어서 이 <img> 태그 자체가 렌더된 적이 없었고, 그래서
+ * u() 누락이 테스트를 안 거치고 넘어갔다 — 실제 사진을 연결하면서 발견하고 고쳤다.
  */
 const card = (d, s) => h`<a class="category-card${d.cardColor ? "" : " is-dark"}${s.image ? " has-photo" : ""}" data-reveal href="${u(s.url)}">
-  ${s.image ? raw(h`<img class="category-card-photo" src="${s.image}" alt="" aria-hidden="true" loading="lazy">`) : ""}
+  ${s.image ? raw(h`<img class="category-card-photo" src="${u(s.image)}" alt="" aria-hidden="true" loading="lazy">`) : ""}
   <div class="category-card-cover" style="${raw(cardPalette(d))}">
     <span class="category-card-tag" aria-hidden="true" style="color:${cardAccent(d)}">${verticalLabel(cardLabel(d))}</span>
     <span class="sr-only">${cardLabel(d)}</span>

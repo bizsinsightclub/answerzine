@@ -14,6 +14,7 @@
       "market": "KR",
       "anchorDate": "2026-08-05",
       "anchorSourceUrl": "https://www.news1.kr/entertain/movie/6124047",
+      "image": "/assets/img/covers/movie.jpg",
       "headline": "영화표를 산 게 아니라, 희소성을 산 것이다",
       "headlineLines": [
         "영화표를 산 게 아니라",
@@ -59,6 +60,7 @@
       "anchorDate": "2026-07-17",
       "anchorSourceUrl": "https://www.hankyung.com/article/2026071711471",
       "kicker": "SOLD BY WORD OF MOUTH",
+      "image": "/assets/img/covers/book.jpg",
       "headline": "2주 연속 1위, FOMO 때문이다",
       "headlineLines": [
         "2주 연속 1위",
