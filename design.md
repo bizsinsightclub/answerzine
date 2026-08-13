@@ -728,6 +728,23 @@ site-header: position: sticky; top: 0 · 항상 화면 상단에 붙는다 · �
 > `story.image`가 없다.** 실제 사진 4장이 리포에 들어오기 전까지는 카드가
 > 예전과 똑같이 보인다(아래 폴백 참고) — CLAUDE.md 상단의 "출처를 열지 않은
 > 것" 교훈과 같은 이유로, 없는 파일을 있는 것처럼 지어내지 않는다.
+>
+> **같은 날 후속 — 사용자가 사진을 받을 자리를 직접 만들었다.** GitHub 웹에서
+> `assets/img/covers`라는 이름으로 파일을 하나 만들었는데(커밋 "Create covers"),
+> 내용이 1바이트(개행 하나)뿐인 빈 파일이었다 — GitHub 웹 UI로 새 폴더를 만들
+> 때 흔히 나는 실수다(git은 빈 폴더를 못 담아서, 폴더 하나만 지정하면 그 이름의
+> **파일**이 생긴다). 그 상태로 두면 나중에 같은 경로에 진짜 사진들을 담은
+> **폴더**를 못 만든다(파일과 폴더가 같은 이름을 못 쓴다) — 그 빈 파일을 지우고
+> `assets/img/covers/README.md`(한국어로 "Add file → Upload files" 사용법 안내)로
+> 바꿔 폴더를 제대로 만들었다. 이 과정에서 `build/lib/assets.mjs`의
+> `copyAssets()`가 `assets/img/` 하위를 평면(한 겹) `readdirSync`로만 복사하던
+> 걸 발견했다 — 하위 폴더(`covers/`)가 생기자 `copyFileSync`가 폴더를 파일처럼
+> 취급하려다 `EISDIR`로 빌드 전체가 죽었다. 재귀 복사로 고쳤다(`test/assets.test.mjs`
+> 신규 — 하위 폴더가 있어도 안 죽는지 + 실제로 복사되는지 검증). `assets/img/covers/`
+> 폴더 자체는 이제 존재하고 리포에 커밋돼 있다 — 사용자가 그 폴더 안에서
+> "Add file → Upload files"로 사진 4장을 올리면(README.md가 그 방법을 안내한다)
+> 그다음은 이 문서 위 문단이 설명하는 절차(`story.image` 필드 연결→확인→발행)를
+> 그대로 밟는다.
 
 ```
 데이터:  story.image(선택, 문자열 경로/URL) — 있으면 카드가 .has-photo가 된다
