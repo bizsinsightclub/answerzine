@@ -129,6 +129,45 @@
 
 ---
 
+## 5.5 보류 중인 출처 — 검증 전까지 등록하지 않음
+
+"ANZINE — Official Data Sources & Comparative Chart Integration" 문서가 5개 후보
+(KOBIC·Circle Chart·Spotify Charts·YouTube Music Charts·YouTube Data API)를
+검토하라고 여러 차례 요청했다. 2026-08-13 재확인 결과 **4개는 이미 등록돼 있다**
+(아래 표, 등록 경위 포함) — 처음 문의에 "5개 다 미등록"이라고 잘못 답한 적이
+있어 바로잡는다. 실제로 미등록·검증 전인 건 1개뿐이다.
+
+| 출처명 | 목적 | 공식 URL | 필요 데이터 | 검증 상태 | 비고 |
+|---|---|---|---|---|---|
+| KOBIC | 도서 1차 출처 | https://www.kobic.net | 출판 통계·서지 정보 | ✅ 등록됨(`primary`) | 2026-08-07 사용자 제공 Whitelist.xlsx로 등록. `tools/collect.mjs` 어댑터·`registry.json` `book.primarySources`엔 아직 없음(수동 조회만 가능) |
+| Circle Chart | 음악 1차 출처 | https://circlechart.kr | 국내 통합 음원·음반 집계 | ✅ 등록됨(`primary`), 실사용 중 | `registry.json` `music.primarySources`에 있고 `tools/collect.mjs`에 Playwright 어댑터도 있다 — 완전히 통합됨 |
+| Spotify Charts | 음악 보조 출처(해외) | https://charts.spotify.com | 글로벌/국가별 스트리밍 차트 | ✅ 등록됨(`primary`, market: OVERSEAS) | 국내 서사에 못 씀(§2 규칙) — 보조 비교용으로만 |
+| YouTube Data API | 유튜브 1차 출처 | https://developers.google.com/youtube/v3 | 조회수·좋아요·구독자 등 공식 API 지표 | ✅ 등록됨(`primary`) | 2026-08-07 사용자 제공 Whitelist.xlsx로 등록. API 키·코드 필요해 자동 어댑터 없음(사람이 콘솔에서 수동 조회). 조회수는 `evidence_only`와 동급 취급 — "샀다"의 증거 아님 |
+| **YouTube Music Charts** | 유튜브/음악 보조 출처 | https://charts.youtube.com | 인기곡·뮤직비디오 순위, 주간/일간 차트 변동 | ⏳ **PENDING / EGRESS_BLOCKED** | 아래 참고 |
+
+### YouTube Music Charts — 미등록 사유와 재개 절차
+
+**검증 전까지 등록하지 않는다.** URL이 존재한다는 것만으로 등재하지 않고,
+접근성·데이터 존재를 지어내지 않는다(§4 "먼저 확인할 것" 원칙 그대로).
+
+- **막힌 지점:** 1단계("URL을 직접 연다")부터 막혀 있다. 이 세션(그리고 이전
+  여러 세션)에서 egress가 전면 차단돼 있고, 대조군으로 이미 등록된 `kobis.or.kr`
+  조차 같은 세션에서는 열리지 않는다 — `charts.youtube.com`만의 문제가 아니라
+  이 실행 환경 자체의 네트워크 제한이다. 2026-08-13 `WebFetch`로 재확인:
+  `EGRESS_BLOCKED`.
+- **등록 전 확인해야 할 것(§4 체크리스트 그대로):**
+  1. URL을 직접 열어 접근 가능한지 확인
+  2. 실제로 인기곡·뮤직비디오 순위 데이터가 있는지 확인
+  3. 매주 같은 방식으로 다시 열 수 있는지(주차 아카이브 여부, `series` 등급 판정)
+  4. 로그인·결제 없이 열리는지
+  5. 전부 통과하면 `sources/whitelist.json`에 `host: "charts.youtube.com"`으로
+     등재하고, 이 표의 해당 행을 지운다
+- **재개 방법:** 네트워크가 열리는 세션에서 `curl -sS "$HTTPS_PROXY/__agentproxy/status"`로
+  이 세션과 같은 패턴(대조군 `kobis.or.kr`까지 막혀 있는지)부터 확인한 뒤,
+  대조군이 뚫려 있으면 위 체크리스트를 그대로 밟는다.
+
+---
+
 ## 6. 지금 등록된 것
 
 | 등급 | 개수 | 주요 출처 |
