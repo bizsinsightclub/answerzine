@@ -404,6 +404,32 @@ npm run collect 2026-w32 -- --only=netflix,yes24
 > 라운드에서 실제로 구현했다 — `design.md` "스파크라인" 절, `build/lib/render-story.mjs`
 > 참고. §1(신규 공식 출처 등재)만 네트워크가 열리는 세션으로 넘어간다.
 
+> ⚠️ **2026-08-13 — 세 번째 재검증. "새 세션"이라는 전제로 다시 왔지만 여전히 막혀
+> 있다.** 사용자가 "이제 새 세션이니 KOBIC·Circle Chart·Spotify Charts·YouTube Music
+> Charts·YouTube Data API 5개를 다시 검증하라"고 요청 — `www.kobic.net`·`circlechart.kr`·
+> `charts.spotify.com`·`charts.youtube.com`·`developers.google.com`을 `WebFetch`로
+> 하나씩 직접 열어봤다. **다섯 개 전부 여전히 `EGRESS_BLOCKED`다.** 대조군으로 이미
+> 화이트리스트에 있는 `kobis.or.kr`도 같은 방식으로 열어봤는데 똑같이
+> `EGRESS_BLOCKED`가 떴다 — 지난 두 라운드(2026-08-12 스물다섯·스물여섯 번째)와
+> 정확히 같은 패턴이다: 이 다섯 도메인만 막힌 게 아니라, 이미 신뢰하는 출처를 포함해
+> 이 세션이 지금 나가는 웹 요청 자체를 못 한다. (참고로 같은 날 SUIT 웹폰트 CDN은
+> 이 실행 세션 안에서는 똑같이 막혔지만 GitHub Actions CI — 별도의 실 네트워크 —
+> 에서는 정상 로드됐다. 즉 "이 실행 세션의 egress가 막혀 있다"는 게 "GitHub
+> Actions까지 막혀 있다"는 뜻은 아니다 — 그래도 이 세션 안에서 5개 후보를 직접 열어
+> 확인하라는 이번 요청 자체는 이 세션의 egress로 수행해야 하는 절차라 CI 우회로
+> 대신할 수 없다.)
+>
+> **판정: 5개 중 어느 것도 화이트리스트에 추가하지 않는다.** 사용자가 명시한 규칙
+> ("URL이 존재한다는 것만으로 등재하지 않는다", "접근성·검증 결과를 지어내지
+> 않는다", "EGRESS_BLOCKED가 계속되면 화이트리스트를 그대로 두고 네트워크 제한이
+> 계속된다고 명확히 보고한다")을 그대로 따른다 — 5단계 체크리스트(URL 열기 → 접근
+> 확인 → 데이터 존재 확인 → URL 안정성·공식성 확인 → 전부 통과해야 등재) 중 1단계
+> ("URL을 직접 연다")부터 막혀서 2~4단계를 수행할 수 없었다. `sources/whitelist.json`·
+> `domains/registry.json` 둘 다 변경하지 않았다. 다음에 시도할 세션에서 먼저 확인할
+> 것: `curl -sS "$HTTPS_PROXY/__agentproxy/status"`로 이 세션과 같은 패턴(대조군
+> `kobis.or.kr`까지 막힘)인지부터 본다 — 대조군이 뚫려 있으면 그 세션은 실제로 5개를
+> 검증할 수 있는 세션이다.
+
 ### S3. 검증 — 통과 못하면 버린다
 
 이 단계가 이 웹진의 신뢰를 지탱한다. 타협하지 않는다.
