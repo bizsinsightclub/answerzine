@@ -1430,21 +1430,21 @@ body.is-home .category-card:not(.is-dark) { color: #17150F; }
 
 /* 2026-08-13 다섯 번째 라운드 — 사용자가 As-was/To-be 스크린샷으로 요청: PC에서
    마스트헤드~데이트라인~통합 인사이트 헤드라인~부연 문단 사이 여백이 지금은 너무
-   빽빽하다, 훨씬 넉넉하게 벌려 달라. 데스크톱(768px+)에서만 세 지점의 세로 간격을
-   한 단계씩 더 키운다 — 좌우(--edge)·카드 그리드 자체 크기는 안 건드린다.
-   1) .shell-edge 상단 패딩: 기존 --s8(64px)→--s9(96px). 마스트헤드 nav 줄과
-      "WEEKLY ANSWER" 데이트라인 사이 공간.
-   2) .dateline 하단 마진: 기존 --s6(32px)→--s8(64px). 데이트라인과 통합
-      인사이트 헤드라인("UNEXPECTED" 등) 사이 공간.
-   3) .insight-lead 하단 마진: 기존 --s6(32px)→--s9(96px). 헤드라인+부연 문단
-      묶음과 그 아래 카드 그리드 사이 공간.
-   토큰 스케일(--s1~--s9) 안에서만 골라 새 매직 넘버를 만들지 않았다. 인트로
-   워드마크("ANZINE")가 스크롤에 맞춰 축소·고정되는 절차(app.js의 pin/converge)는
-   이 라운드에서 손대지 않았다 — 그 부분도 더 벌리고 싶다면 별도 확인 후 진행한다. */
+   빽빽하다, 훨씬 넉넉하게 벌려 달라.
+   1차 시도(고정 토큰 --s8/--s9, 최대 96px)를 보내 확인을 요청했더니 "변화가
+   없다"는 반응 — 참고 이미지 속 간격은 96px보다 훨씬 크고(뷰포트 세로의
+   10~20% 수준), 토큰 스케일 안에서 가장 큰 값(--s9=96px)조차 그 비율에 한참
+   못 미쳤다. 이어서 사용자에게 "ANZINE 인트로는 지금의 스크롤 애니메이션을
+   유지할지, 정적 섹션으로 바꿀지" 확인 질문 — "지금의 스크롤 인트로 유지"로
+   답변받았다(app.js의 pin/converge 로직은 안 건드린다, 이 라운드는 인트로
+   *다음*에 오는 정적 구간의 간격만 다룬다).
+   2차: 고정 토큰 대신 뷰포트 높이 비례 clamp()로 바꿔 화면이 커질수록 여백도
+   비례해서 커지게 하고, 최소값도 1차보다 훨씬 키웠다 — --edge가 이미 같은
+   방식(vw 비례 clamp)으로 좌우 여백을 처리하는 것과 같은 패턴이다. */
 @media (min-width: 768px) {
-  body.is-home .shell-edge { padding-top: var(--s9); }
-  body.is-home .dateline { margin-bottom: var(--s8); }
-  body.is-home .insight-lead { margin-bottom: var(--s9); }
+  body.is-home .shell-edge { padding-top: clamp(140px, 16vh, 260px); }
+  body.is-home .dateline { margin-bottom: clamp(56px, 9vh, 140px); }
+  body.is-home .insight-lead { margin-bottom: clamp(96px, 13vh, 200px); }
 }
 `;
 
