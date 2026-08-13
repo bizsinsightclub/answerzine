@@ -160,8 +160,11 @@ const CHROME = `
    2026-08-11 세 번째 라운드: 데이트라인·통합 인사이트·페이저도 카드 그리드처럼
    가장자리에 붙여 달라는 요청 — 넓은 화면에서 마스트헤드는 꽉 차는데 그 아래 텍스트만
    가운데 좁은 칼럼에 남아 있으면 앞뒤가 안 맞는다. */
-.shell-edge { padding: var(--s5) var(--edge) var(--s8); }
-@media (min-width: 768px) { .shell-edge { padding: var(--s6) var(--edge) var(--s9); } }
+/* 2026-08-12 스물일곱 번째 라운드 — 상단 마스트헤드와 "WEEKLY ANSWER" 사이 공간을
+   넓혀 달라는 요청(사용자가 첨부한 스크린샷). 위쪽 패딩만 var(--s5)/var(--s6)에서
+   var(--s7)/var(--s8)로 키운다 — 좌우(--edge)·아래(--s8/--s9)는 그대로 둔다. */
+.shell-edge { padding: var(--s7) var(--edge) var(--s8); }
+@media (min-width: 768px) { .shell-edge { padding: var(--s8) var(--edge) var(--s9); } }
 /* 2026-08-11 네 번째 라운드: 로고 옆 공백을 줄여 달라는 요청 — 로고·내비 사이 gap을
    좁혔다(var(--s5) 24px → var(--s3) 12px). */
 .masthead-top { display: flex; align-items: center; justify-content: space-between; gap: var(--s3); flex-wrap: nowrap; }
@@ -247,10 +250,22 @@ const CHROME = `
 /* 그 호 4편을 관통하는 통합 인사이트(issue.insight). 홈의 진짜 헤드라인이라 h1로 낸다 —
    2026-08-10 두 번째 라운드에서 PC 기준 72px까지 키우고 이탤릭을 뺐다(사용자 요청,
    "이탤릭은 쓰지 말도록"). 산세리프 900이라 개별 스토리 헤드라인과 같은 문법이지만,
-   더 큰 스케일로 "이 호를 관통하는 한 줄"이라는 위계를 표시한다. */
+   더 큰 스케일로 "이 호를 관통하는 한 줄"이라는 위계를 표시한다.
+   2026-08-12 스물일곱 번째 라운드 — 좁은 화면에서 글자가 좌우 여백을 못 채우고
+   작게 떠 있다는 지적(사용자가 첨부한 스크린샷, "UNEXPECTED"가 컬럼 폭 꽉 차게).
+   vw 계수를 6.5→13으로 키우고 최소값도 34→40으로 올려 모바일에서 실제로 폭을 채운다.
+   최대값(72px)은 그대로다 — 13vw가 72px에 도달하는 지점이 554px 근처라 기존에
+   72px로 보이던 데스크톱 폭(768px+)은 이전과 똑같이 72px로 캡핀다, 안 커진다.
+   flex-shrink 기본 min-width:auto는 한 단어짜리 영문 인사이트("UNEXPECTED"처럼
+   공백이 없어 줄바꿈 지점이 없는 문자열)에서 flex item이 min-content 폭 아래로
+   못 줄어들어 컨테이너를 뚫고 넘치는 걸 실측으로 발견했다(390px에서 h1이 382px,
+   컨테이너는 370px). min-width: 0 + overflow-wrap: anywhere로 필요할 때만(꽉 안 차면)
+   단어 중간에서 줄바꿈해 페이지 가로 넘침 자체를 원천 차단한다 — §10 QA의
+   "375~1920px 무넘침" 불변식이 어떤 회차의 insight 문구가 오든 깨지지 않게 한다. */
 .issue-insight {
-  font-family: var(--sans); font-weight: 900; font-size: clamp(34px, 6.5vw, 72px);
+  font-family: var(--sans); font-weight: 900; font-size: clamp(40px, 13vw, 72px);
   line-height: 1.04; letter-spacing: -.03em; margin: 0; flex: 2 1 480px;
+  min-width: 0; overflow-wrap: anywhere;
 }
 /* 부연설명 — 헤드라인이 압축한 것을 한 문단으로 풀어준다(2026-08-10 두 번째 라운드 도입,
    issue.insightNote). 2026-08-11부터 헤드라인 옆(아래가 아니라)에 온다 — flex: 1로
