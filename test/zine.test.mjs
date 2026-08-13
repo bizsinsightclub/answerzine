@@ -270,6 +270,28 @@ test("통합 인사이트가 헤드라인(h1)+부연설명(insightNote)으로 �
   assert.match(content, /<p class="issue-insight-note" data-reveal>부연설명 문단\.<\/p>/);
 });
 
+/**
+ * 2026-08-13 — "ANZINE — WEEKLY ANSWER → UNEXPECTED HERO RESTRUCTURE".
+ * ".dateline"의 "UNEXPECTED"는 이제 고정 편집 라벨이다 — issue.insight 값과
+ * 무관해야 한다(예전엔 "WEEKLY ANSWER"였고, 그 자리가 issue.insight 값과
+ * 우연히 같은 단어("UNEXPECTED")로 겹쳐 보이던 게 이번 요청의 출발점이었다).
+ * 이 테스트는 issue.insight를 완전히 다른 문장으로 줘도 라벨이 그대로
+ * "UNEXPECTED"로 고정돼 있는지 — 즉 데이터에서 읽어오는 게 아니라 리터럴
+ * 문자열인지 — 확인한다.
+ */
+test("고정 라벨(.dateline)은 'UNEXPECTED'다 — issue.insight 값과 무관하게 고정", () => {
+  const withSentence = {
+    ...ISSUE,
+    insight: "소비를 움직인 건, 우리가 보고 있던 곳에 없었다.",
+    insightLines: ["소비를 움직인 건,", "우리가 보고 있던 곳에 없었다."],
+  };
+  const { content } = renderIndex([withSentence], stories, REG);
+  assert.match(content, /<p class="dateline">UNEXPECTED<\/p>/);
+  // 테제 자체는 여전히 데이터값 그대로 h1에 나온다 — 라벨과 헤드라인이 같은
+  // 문자열("UNEXPECTED")로 겹치지 않는다는 게 이번 변경의 핵심이다.
+  assert.match(content, /<h1 class="issue-insight" data-reveal>소비를 움직인 건,<br>우리가 보고 있던 곳에 없었다\.<\/h1>/);
+});
+
 test("insightNote가 인용부호로 시작하면 리드 문장(굵게)과 분석 문단(옅게)으로 쪼개 낸다 — 2026-08-12 스물한 번째 라운드(사용자 요청)", () => {
   const withQuote = {
     ...ISSUE, insight: "UNEXPECTED",

@@ -316,45 +316,46 @@ const CHROME = `
 }
 .back-link:hover { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
 
-.dateline { font-family: var(--sans); font-size: 12px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--secondary); margin-bottom: var(--s6); }
+/* 2026-08-13 — "WEEKLY ANSWER → UNEXPECTED HERO RESTRUCTURE". "UNEXPECTED"는
+   이제 고정 편집 라벨이라(render-index.mjs 주석 참고) 바로 아래 테제 문장과
+   한 호흡으로 읽혀야 한다 — margin을 --s6(32px)에서 --s4(16px)로 좁혔다. 큰
+   여백은 이 라벨-테제 사이가 아니라 테제 블록 전체와 카드 그리드 사이로
+   옮겼다(.insight-lead 참고, "숨 고르는 지점"은 넷을 향해 걸어 들어가기
+   직전이어야지, 라벨과 제 테제 사이여야 할 이유가 없다). */
+.dateline { font-family: var(--sans); font-size: 12px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--secondary); margin-bottom: var(--s4); }
 
-/* 2026-08-11 여섯 번째 라운드 — 헤드라인+부연설명이 좁은 왼쪽 칼럼에 몰려 있고
-   화면 오른쪽이 통째로 비어 보인다는 지적(사용자 요청) — 나란히 두 칼럼으로 펼쳐
-   페이지 너비를 실제로 쓴다. 좁은 화면에서는 flex-wrap이 자동으로 위아래로 접는다. */
-.insight-lead {
-  display: flex; align-items: center; flex-wrap: wrap; gap: var(--s7); margin: 0 0 var(--s6);
-}
-/* 그 호 4편을 관통하는 통합 인사이트(issue.insight). 홈의 진짜 헤드라인이라 h1로 낸다 —
-   2026-08-10 두 번째 라운드에서 PC 기준 72px까지 키우고 이탤릭을 뺐다(사용자 요청,
-   "이탤릭은 쓰지 말도록"). 산세리프 900이라 개별 스토리 헤드라인과 같은 문법이지만,
-   더 큰 스케일로 "이 호를 관통하는 한 줄"이라는 위계를 표시한다.
-   2026-08-12 스물일곱 번째 라운드 — 좁은 화면에서 글자가 좌우 여백을 못 채우고
-   작게 떠 있다는 지적(사용자가 첨부한 스크린샷, "UNEXPECTED"가 컬럼 폭 꽉 차게).
-   vw 계수를 6.5→13으로 키우고 최소값도 34→40으로 올려 모바일에서 실제로 폭을 채운다.
-   최대값(72px)은 그대로다 — 13vw가 72px에 도달하는 지점이 554px 근처라 기존에
-   72px로 보이던 데스크톱 폭(768px+)은 이전과 똑같이 72px로 캡핀다, 안 커진다.
-   flex-shrink 기본 min-width:auto는 한 단어짜리 영문 인사이트("UNEXPECTED"처럼
-   공백이 없어 줄바꿈 지점이 없는 문자열)에서 flex item이 min-content 폭 아래로
-   못 줄어들어 컨테이너를 뚫고 넘치는 걸 실측으로 발견했다(390px에서 h1이 382px,
-   컨테이너는 370px). min-width: 0 + overflow-wrap: anywhere로 필요할 때만(꽉 안 차면)
-   단어 중간에서 줄바꿈해 페이지 가로 넘침 자체를 원천 차단한다 — §10 QA의
-   "375~1920px 무넘침" 불변식이 어떤 회차의 insight 문구가 오든 깨지지 않게 한다. */
+/* 2026-08-11 여섯 번째 라운드엔 테제+부연설명을 나란히 두 칼럼(flex row)으로 펼쳤었다
+   — 그때 issue.insight가 "UNEXPECTED"처럼 짧은 한 단어라 세로로 쌓으면 오른쪽이
+   비어 보였기 때문이다. 2026-08-13 "WEEKLY ANSWER → UNEXPECTED HERO RESTRUCTURE"에서
+   issue.insight 자체가 두 줄짜리 실제 문장으로 바뀌면서 그 전제가 사라졌다 — 이제는
+   "라벨 → 테제 → (선택적) 부연 → 넉넉한 여백 → 카드"로 세로 한 칼럼이 에디토리얼
+   호흡에 맞다(사용자 요청 §8 "editorial left alignment, constrained text width").
+   큰 여백은 이 블록 전체와 카드 그리드 사이의 하단 margin이 진다 — "테제가 넷의
+   개념적 입구처럼 느껴지게" 하는 지점이다. */
+.insight-lead { display: block; margin: 0 0 clamp(48px, 12vh, 100px); }
+/* 그 호 4편을 관통하는 통합 인사이트(issue.insight). 홈의 진짜 헤드라인이라 h1로 낸다.
+   2026-08-13 재조정 — 예전(72px/900)은 issue.insight가 "UNEXPECTED" 한 단어였을 때
+   그 한 단어가 화면을 채우도록 잡은 값이다. 지금은 두 줄짜리 실제 문장이라 그
+   크기·굵기를 그대로 물려받으면 사용자가 명시적으로 경계한 "오버사이즈 광고
+   헤드라인"이 된다 — "가장 무거운 폰트 웨이트가 필요한 건 아니다, 크기·줄높이·
+   폭·여백으로 무게를 만들라"(§2)는 요청대로 900→700, 최대 72px→42px로 낮추고
+   line-height를 1.04(한 단어 전용 값)에서 1.32(문장이 읽기 편한 값)로 올렸다.
+   max-width(32ch)는 "constrained text width"(§8) 요청 — 줄 끝까지 화면을 꽉 채우는
+   대신 에디토리얼 칼럼처럼 스스로 좁아진다. min-width: 0 + overflow-wrap: anywhere는
+   그대로 남긴다 — 어떤 회차의 문장이 와도(공백 없는 긴 단어가 섞여도) §10 QA의
+   "375~1920px 무넘침" 불변식이 깨지지 않는 안전망이다. */
 .issue-insight {
-  font-family: var(--sans); font-weight: 900; font-size: clamp(40px, 13vw, 72px);
-  line-height: 1.04; letter-spacing: -.03em; margin: 0; flex: 2 1 480px;
+  font-family: var(--sans); font-weight: 700; font-size: clamp(30px, 7vw, 42px);
+  line-height: 1.32; letter-spacing: -.015em; margin: 0 0 var(--s5); max-width: 32ch;
   min-width: 0; overflow-wrap: anywhere;
 }
-/* 부연설명 — 헤드라인이 압축한 것을 한 문단으로 풀어준다(2026-08-10 두 번째 라운드 도입,
-   issue.insightNote). 2026-08-11부터 헤드라인 옆(아래가 아니라)에 온다 — flex: 1로
-   나머지 폭을 채워 오른쪽 빈 공간을 없앤다.
-   2026-08-12 — issue.insight가 짧은 영어 한 단어("UNEXPECTED" 등)로 바뀌면서
-   insightNote가 그 옆을 채우는 본격 분석 문단(3~4문장)이 됐다(CLAUDE.md §5.5).
-   text-align: left를 명시했다 — 기존에도 상속으로 왼쪽 정렬이었지만(다른 어떤
-   조상도 가운데 정렬을 안 건다), 사용자가 "문단은 left aligned로"라고 명시적으로
-   요청해 암묵적 상속에 기대지 않고 못박는다. */
+/* 부연설명 — 테제를 한 문단으로 풀어준다(issue.insightNote). 2026-08-13 재조정 —
+   테제가 이제 그 자체로 완결된 문장이라, 부연설명은 "테제 옆을 채우는 두 번째
+   헤드라인"이 아니라 테제 아래 오는 조용한 분석 한 단락(신문의 "덱")으로
+   물러난다 — flex 폭 계산을 없애고 그냥 다음 줄에 흐르게 둔다. */
 .issue-insight-note {
   font-family: var(--serif); font-weight: 400; font-size: 18px; line-height: 1.6;
-  color: var(--secondary); margin: 0; flex: 1 1 320px; max-width: 44ch; text-align: left;
+  color: var(--secondary); margin: 0; max-width: 44ch; text-align: left;
 }
 /* 2026-08-12 스물한 번째 라운드 — 사용자가 스크린샷으로 지정: insightNote 안의
    인용부호로 감싼 리드 문장(§5.5 3단 구조의 1단, "장 제목이 재정의다" 기법)을
@@ -1521,56 +1522,30 @@ body.is-home .category-grid { background: #000; border-top-color: #000; border-b
    없다 — :not(.is-dark)로 그 카드는 건드리지 않는다. */
 body.is-home .category-card:not(.is-dark) { color: #17150F; }
 
-/* 2026-08-13 다섯 번째 라운드 — 사용자가 As-was/To-be 스크린샷으로 요청: PC에서
-   마스트헤드~데이트라인~통합 인사이트 헤드라인~부연 문단 사이 여백이 지금은 너무
-   빽빽하다, 훨씬 넉넉하게 벌려 달라.
-   1차 시도(고정 토큰 --s8/--s9, 최대 96px)를 보내 확인을 요청했더니 "변화가
-   없다"는 반응 — 참고 이미지 속 간격은 96px보다 훨씬 크고(뷰포트 세로의
-   10~20% 수준), 토큰 스케일 안에서 가장 큰 값(--s9=96px)조차 그 비율에 한참
-   못 미쳤다. 이어서 사용자에게 "ANZINE 인트로는 지금의 스크롤 애니메이션을
-   유지할지, 정적 섹션으로 바꿀지" 확인 질문 — "지금의 스크롤 인트로 유지"로
-   답변받았다(app.js의 pin/converge 로직은 안 건드린다, 이 라운드는 인트로
-   *다음*에 오는 정적 구간의 간격만 다룬다).
-   2차: 고정 토큰 대신 뷰포트 높이 비례 clamp()로 바꿔 화면이 커질수록 여백도
-   비례해서 커지게 하고, 최소값도 1차보다 훨씬 키웠다 — --edge가 이미 같은
-   방식(vw 비례 clamp)으로 좌우 여백을 처리하는 것과 같은 패턴이다. */
-@media (min-width: 768px) {
-  body.is-home .shell-edge { padding-top: clamp(140px, 16vh, 260px); }
-  body.is-home .dateline { margin-bottom: clamp(56px, 9vh, 140px); }
-  body.is-home .insight-lead { margin-bottom: clamp(96px, 13vh, 200px); }
-}
-
-/* ⚠️ 2026-08-13 여섯 번째 라운드 — 사용자가 "이 오더들은 사이트에 바로
-   적용하지 않고, 먼저 캡쳐 이미지가 필요해"라고 명시해, 커밋 전에 로컬에서만
-   빌드해 스크린샷 2장(마스트헤드~그리드 전체 구간, 세로 스택 중앙 정렬)을
-   보내 확인받았다. 사용자 확인: "오케이 적용해봐" — 승인 후 커밋한다.
-   요청 셋:
-   1) ANZINE(인트로) ↔ 마스트헤드(Fixed Header) 간격 — 스크롤 로직(app.js pin/
-      converge)은 그대로 두고("스크롤 로직이 아니라"), 인트로가 끝나고 본문이
-      시작되는 지점에 순수 여백만 추가한다. #main-content는 #intro의 형제
-      요소라(layout.mjs) margin-top 하나로 그 사이에 빈 스크롤 구간이 생긴다.
-   2) 마스트헤드 ↔ WEEKLY ANSWER 간격 — 위 다섯 번째 라운드 값(clamp(140px,
-      16vh, 260px))을 한 단계 더 키운다.
-   3) WEEKLY ANSWER ↔ UNEXPECTED 간격 — 마찬가지로 한 단계 더.
-   4) 배치 변경 — WEEKLY ANSWER·UNEXPECTED·부연 문단을 좌우 2단(현재)이 아니라
-      세로로 쌓아 페이지 중앙에 정렬한다(참고 이미지와 같은 구조). 스택으로
-      바뀌면서 헤드라인과 문단 사이 간격도 더 벌린다.
-      주의 — 기존 명시적 지시와 충돌. .issue-insight-note는 2026-08-12
-      스물한 번째 라운드에 사용자가 "문단은 left aligned로"라고 명시 요청해
-      text-align:left를 못박은 자리다(바로 위 COMPONENTS 섹션 주석 참고). 이
-      미리보기는 그 지시를 정면으로 뒤집는다 — 승인 시 그 사실을 알린다. */
+/* 2026-08-13 다섯·여섯 번째 라운드 — 마스트헤드~히어로 사이 세로 간격을 여러
+   차례에 걸쳐 키웠다(As-was/To-be 스크린샷 확인, "지금의 스크롤 인트로 유지"
+   확답 후 인트로 *다음* 정적 구간만 조정). #main-content·shell-edge의 padding은
+   이 라운드가 다루는 자리(히어로 내부 위계)와 무관해 그대로 둔다. */
 @media (min-width: 768px) {
   body.is-home #main-content { margin-top: clamp(80px, 14vh, 220px); }
   body.is-home .shell-edge { padding-top: clamp(200px, 22vh, 340px); }
-  body.is-home .dateline { margin-bottom: clamp(80px, 12vh, 180px); text-align: center; }
-  body.is-home .insight-lead {
-    flex-direction: column; align-items: center; text-align: center;
-  }
-  body.is-home .issue-insight { text-align: center; margin-bottom: clamp(56px, 9vh, 140px); }
-  body.is-home .issue-insight-note {
-    text-align: center; margin: 0 auto;
-  }
-  body.is-home .insight-note-lead, body.is-home .insight-note-body { text-align: center; }
+}
+
+/* 2026-08-13 일곱 번째 라운드 — "ANZINE — WEEKLY ANSWER → UNEXPECTED HERO
+   RESTRUCTURE". 여섯 번째 라운드가 만든 중앙 정렬·좌우 2단→세로 스택 구조를
+   여기서 다시 뒤집는다 — 이번 요청이 명시적으로 "가운데 정렬한 거대 마케팅
+   헤드라인을 피하라, 에디토리얼 왼쪽 정렬·제한된 폭·비대칭 여백을 검토하라"고
+   지정했다(§8). 6번째 라운드 당시 이미 한 번 뒤집었던 "문단은 left aligned로"
+   지시(2026-08-12 스물한 번째 라운드)가 이번 라운드로 다시 원래대로 돌아오는
+   셈이다 — 같은 자리를 두고 서로 다른 세션에서 반대 방향 요청이 반복된 것일
+   뿐, 이번이 가장 최근이자 가장 구체적인 지시라 그대로 따른다.
+   COMPONENTS 섹션의 기본값(왼쪽 정렬)이 이미 새 의도와 같은 방향이라, 여기서는
+   center 계열 규칙을 전부 지우고 뷰포트가 넓어질수록 "라벨→테제→(부연)→카드"
+   블록 전체와 카드 그리드 사이 여백만 더 벌린다 — "테제가 넷의 개념적 입구처럼
+   느껴지게" 하려면 그 하단 여백이 이 페이지에서 가장 큰 정적 간격이어야 한다. */
+@media (min-width: 768px) {
+  body.is-home .dateline { margin-bottom: var(--s5); }
+  body.is-home .insight-lead { margin-bottom: clamp(80px, 14vh, 180px); }
 }
 `;
 

@@ -196,8 +196,21 @@ export function renderIndex(issues, stories, registry) {
   // 그래서 latest 유무를 더는 안 따진다(회차가 없을 때의 "준비 중" 분기도 같이
   // 없앴다). dateline() 자체는 지우지 않았다 — 인쇄 진(render-zine.mjs)이 여전히
   // 그 회차의 실제 날짜를 써야 해서 그대로 쓴다. 이 자리는 홈 화면 전용이다.
+  //
+  // 2026-08-13 — "ANZINE — WEEKLY ANSWER → UNEXPECTED HERO RESTRUCTURE". 고정
+  // 라벨을 "WEEKLY ANSWER"에서 "UNEXPECTED"로 바꿨다. 이전까지 "UNEXPECTED"는
+  // 2026-w32의 issue.insight 값(매주 바뀌는 데이터)이었는데, 그 값 자체가 마침
+  // "고정 라벨로 쓰기 좋은 한 단어"였을 뿐이다 — 이번 요청이 그 두 역할(①매주
+  // 안 바뀌는 편집 장치의 이름 ②그 주의 실제 편집 테제)을 분리해 달라고
+  // 명시했다("UNEXPECTED is a fixed editorial label... the sentence beneath it
+  // ... MUST be replaceable every week"). 그래서 "UNEXPECTED"는 이제 여기
+  // 리터럴 문자열로 고정되고(옛 "WEEKLY ANSWER"와 정확히 같은 자리·같은
+  // 메커니즘), issue.insight는 이번 주부터 그 주의 테제 문장("소비를 움직인
+  // 건, 우리가 보고 있던 곳에 없었다." 같은)을 담는다 — 필드 자체의 용도는
+  // 안 바뀌었다(여전히 회차마다 바뀌는 값), 화면에 같이 보이던 고정 라벨과
+  // 우연히 값이 겹쳤던 상태를 풀었을 뿐이다.
   const content = h`<main class="shell-edge">
-  <p class="dateline">WEEKLY ANSWER</p>
+  <p class="dateline">UNEXPECTED</p>
   <div class="insight-lead">
     ${latest?.insight ? raw(h`<h1 class="issue-insight" data-reveal>${latest.insightLines ? multiline(latest.insightLines) : latest.insight}</h1>`) : ""}
     ${latest?.insightNote ? raw(insightNoteHTML(latest.insightNote)) : ""}
