@@ -104,17 +104,29 @@ const emptyCard = (d) => h`<div class="category-card is-empty">
  * story에도 image가 없어서 이 <img> 태그 자체가 렌더된 적이 없었고, 그래서
  * u() 누락이 테스트를 안 거치고 넘어갔다 — 실제 사진을 연결하면서 발견하고 고쳤다.
  */
-const card = (d, s) => h`<a class="category-card${d.cardColor ? "" : " is-dark"}${s.image ? " has-photo" : ""}" data-reveal href="${u(s.url)}">
+/* 2026-08-13 — 모바일에서 문자간격(세로로 쌓인 글자 사이 간격, line-height로
+   조절하는 그 자리)을 더 좁혀 달라는 요청에 "YOUTUBE는 안 잘릴 정도로"라는
+   단서가 붙었다. 실측(getBoundingClientRect)해 보니 단일 line-height 값으로는
+   둘 다 못 만족한다 — 짧은 단어(MUSIC·BOOKS, 5자)는 간격을 완전히 닫으려면
+   line-height ≈1.5~1.6이 필요한데, 긴 단어(YOUTUBE 7자·MOVIES 6자)는 그 값에서
+   이미 카드 높이를 넘어서(overflow) 글자가 카드 경계에서 잘리기 시작한다 — 글자
+   수가 적을수록 채워야 할 세로 칸이 커서 필요한 line-height가 크고, 글자 수가
+   많을수록 이미 꽉 차 있어 조금만 늘려도 넘친다. 그래서 글자 수 기준으로 두
+   단계(≤5자만 더 좁힘)로 나눴다 — `card-tag--tight` 클래스, css.mjs 참고. */
+const card = (d, s) => {
+  const label = cardLabel(d);
+  return h`<a class="category-card${d.cardColor ? "" : " is-dark"}${s.image ? " has-photo" : ""}" data-reveal href="${u(s.url)}">
   ${s.image ? raw(h`<img class="category-card-photo" src="${u(s.image)}" alt="" aria-hidden="true" loading="lazy">`) : ""}
   <div class="category-card-cover" style="${raw(cardPalette(d))}">
-    <span class="category-card-tag" aria-hidden="true" style="color:${cardAccent(d)}">${verticalLabel(cardLabel(d))}</span>
-    <span class="sr-only">${cardLabel(d)}</span>
+    <span class="category-card-tag${label.length <= 5 ? " category-card-tag--tight" : ""}" aria-hidden="true" style="color:${cardAccent(d)}">${verticalLabel(label)}</span>
+    <span class="sr-only">${label}</span>
     ${s.draft ? raw('<span class="draft-flag">작업 중</span>') : ""}
     <h2 class="category-card-headline">${s.headlineLines ? multiline(s.headlineLines) : s.headline}</h2>
     <p class="category-card-teaser">${s.teaser}</p>
     <span class="category-card-date">최신 · ${s.range}</span>
   </div>
 </a>`;
+};
 
 /* 참고 이미지의 가로 구분 밴드 — grid-column: 1 / -1로 항상 전체 폭을 차지해,
  * 열 수가 바뀌어도(모바일 1열) 새 줄로 떨어진다.

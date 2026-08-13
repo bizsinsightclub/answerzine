@@ -195,7 +195,26 @@ test("우측 세로 도메인 라벨 — 한 글자씩 <span>으로 쌓이고, �
 
 test("cardColor가 없는 도메인(.is-dark 폴백)도 세로 라벨을 쓴다 — 색만 흰색으로 고정된다", () => {
   const { content } = renderIndex([ISSUE], stories, REG); // REG는 cardColor가 없다
-  assert.match(content, /<span class="category-card-tag" aria-hidden="true" style="color:#fff">/);
+  // class 뒤에 category-card-tag--tight가 붙는지는 라벨 길이(≤5자)에 달려 있다
+  // (2026-08-13 — 모바일 문자간격 조정, 이 테스트가 확인하려는 건 색상 폴백이다).
+  assert.match(content, /<span class="category-card-tag(?: category-card-tag--tight)?" aria-hidden="true" style="color:#fff">/);
+});
+
+/**
+ * 2026-08-13 — 모바일 카드 배경 라벨 문자간격 추가 조정. line-height 하나로는
+ * 짧은 단어(간격을 완전히 닫으려면 큰 값 필요)와 긴 단어(그 값에서 이미 넘쳐
+ * 잘리기 시작)를 동시에 못 맞춰서, 라벨 길이 ≤5자에만 category-card-tag--tight
+ * (더 좁은 line-height)를 붙이도록 갈랐다 — "YOUTUBE는 안 잘릴 정도로"라는
+ * 사용자 단서가 그 경계였다.
+ */
+test("카드 배경 라벨 — 5자 이하 단어만 category-card-tag--tight가 붙는다", () => {
+  const reg5 = { domains: REG.domains.map((d) => ({ ...d, cardColor: "#F890CD", nameCard: "MUSIC" })) }; // 5자
+  const { content: c5 } = renderIndex([ISSUE], stories, reg5);
+  assert.match(c5, /<span class="category-card-tag category-card-tag--tight"/, "5자 라벨엔 --tight가 붙어야 한다");
+
+  const reg6 = { domains: REG.domains.map((d) => ({ ...d, cardColor: "#F890CD", nameCard: "MOVIES" })) }; // 6자
+  const { content: c6 } = renderIndex([ISSUE], stories, reg6);
+  assert.ok(!c6.includes("category-card-tag--tight"), "6자 이상 라벨엔 --tight가 붙으면 안 된다(YOUTUBE 등이 잘릴 위험)");
 });
 
 test("스토리가 없는 빈 카드는 세로 라벨이 아니라 예전 작은 가로 라벨을 쓴다 — 세로 라벨 색은 cardColor에서 계산되는데 빈 카드는 배경색이 없다", () => {

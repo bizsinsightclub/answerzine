@@ -603,15 +603,22 @@ const COMPONENTS = `
    간격 0으로 붙어 있었고, 5자 단어(MUSIC·BOOKS)만 카드 높이에 따라 10~20px
    간격이 남아 있었다 — 카드마다 헤드라인 줄 수가 달라 높이가 다르고, 짧은
    단어일수록 space-between이 남기는 빈 칸이 커지는 구조는 열두 번째 라운드와
-   같다. 그때와 같은 레버(자간 자체가 아니라 글자 한 칸의 세로 높이)를 다시
-   당긴다 — line-height 1.4→1.6으로, BOOKS(가장 큰 잔여 간격 20px)까지 완전히
-   붙는 값을 실측으로 역산했다(필요 line-height ≈ 1.576, 여유를 둬 1.6). MOVIES·
-   YOUTUBE처럼 이미 붙어 있던 단어는 카드 폭 안에서 처리되는 아주 약간의 초과분이
-   조금 더 늘 뿐이다 — .category-card의 overflow: hidden(열일곱 번째 라운드)이
-   카드 경계 밖으로 새는 것만 막고, 카드 안에서는 그대로 "살짝 넘치는 느낌"으로
-   남는다(의도된 동작, 위 열한 번째 라운드 주석 참고). */
+   같다. line-height를 1.4→1.6으로 일괄 올려 BOOKS까지 닫았는데(필요
+   line-height ≈ 1.576, 실측으로 역산), 그다음 라운드에서 "YOUTUBE는 안 잘릴
+   정도로"라는 단서가 붙어 다시 실측했다 — 단일 값으로는 둘을 동시에 못 맞춘다.
+   글자 수가 적을수록 채워야 할 세로 칸이 커서 간격을 닫는 데 필요한
+   line-height가 크고(5자 MUSIC·BOOKS ≈1.5~1.6), 글자 수가 많을수록 이미 꽉
+   차 있어 그 값에서 초과분(overflow)이 커진다(7자 YOUTUBE는 1.4에서도 이미
+   131px 넘치는데, 1.6에서는 259px로 거의 2배— 실제로 카드 경계에서 글자가
+   잘리기 시작하는 지점이었다). 그래서 line-height 하나를 공유하는 대신 글자
+   수 기준으로 갈랐다(render-index.mjs의 card()가 라벨 길이 ≤5일 때만
+   .category-card-tag--tight를 붙인다) — 기본값은 YOUTUBE의 원래 안전한 여유
+   (1.4, 사용자가 문제 삼기 전부터 있던 초과분 131px 그대로)를 유지하고,
+   MUSIC·BOOKS(≤5자)만 더 좁힌다(1.6). 도메인 이름이 나중에 바뀌어도(예:
+   "BOOKS"→"BOOK") 글자 수 기준이라 자동으로 맞는 쪽으로 분류된다. */
 @media (max-width: 640px) {
-  .category-card-tag { width: 116px; font-size: 92px; line-height: 1.6; }
+  .category-card-tag { width: 116px; font-size: 92px; line-height: 1.4; }
+  .category-card-tag--tight { line-height: 1.6; }
 }
 /* 2026-08-11 네 번째 라운드: PC 기준 40~48px 범위로 조정. 다섯 번째 라운드에서
    범위를 없애고 40px 고정값으로 좁혔다(사용자 요청 — "정확히 40pt"). 모바일에서도
