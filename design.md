@@ -1109,7 +1109,6 @@ eyebrow(.why-eyebrow):  산세리프 700 · 12px · letter-spacing .14em · uppe
 중심 질문(.why-question, h1): 산세리프 900 · clamp(30px, 5.4vw, 52px) · lh 1.3 · max-width 15ch
 설명(.why-body p):      명조 400 · 17px · lh 1.75 · --ink · max-width 58ch
 닫는 문장(.why-closing): 산세리프 700 · clamp(21px, 2.6vw, 28px) · lh 1.4
-경계(.about-mechanics): border-top 1px --rule · padding-top 48px · margin-top 64px
 ```
 
 "ANZINE — ABOUT / WHY ANZINE Refinement" 요청 — About을 "사이트에서 가장 강한 편집
@@ -1139,9 +1138,11 @@ eyebrow(.why-eyebrow):  산세리프 700 · 12px · letter-spacing .14em · uppe
 "A가 아니라 B다" 대구조와 같은 자리(§6 문장 규칙)에서 이 페이지의 "답의 순간"
 역할을 한다.
 
-**기존 사실 관계 문단(선정 기준·데이터 출처·발행 주기)은 문장 하나 안 고쳤다** —
-`.about-mechanics`의 얇은 괘선(`.nav-row`가 이미 쓰는 문법과 같다)으로 WHY ANZINE
-블록과 시각적으로만 분리했다. "저 위는 왜, 이 아래는 어떻게"로 읽힌다.
+**기존 사실 관계 문단(선정 기준·데이터 출처·발행 주기) — 2026-08-13 네 번째 개정에서
+삭제.** 사용자가 그 세 문단("순위는 결과다...", "도메인마다 실 구매...", "한 호가
+나오면...")을 직접 지목해 삭제를 요청했다. WHY ANZINE 블록과 그 문단들을 나누던
+얇은 괘선(`.about-mechanics`)도 감쌀 내용이 없어져 함께 뺐다 — 지금 About은
+WHY ANZINE 섹션 하나 + "전체 아카이브 보기" 링크로만 끝난다.
 
 **About 페이지의 UNEXPECTED — 검토했지만 애초에 없었다.** 2026-08-13 Editorial
 Readability Pass에서 텍스트 검색 + 스크린샷으로 이미 확인한 사실이다(§위 마스트헤드

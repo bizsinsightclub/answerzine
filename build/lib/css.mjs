@@ -868,10 +868,6 @@ const ABOUT_PAGE = `
   font-family: var(--sans); font-weight: 700; font-size: clamp(21px, 2.6vw, 28px);
   line-height: 1.4; letter-spacing: -.01em; margin: var(--s7) 0 0;
 }
-/* 기존 사실 관계 문단(선정 기준·데이터 출처·발행 주기)과 WHY ANZINE 사이의 경계선 —
-   "다른 About 섹션과 뚜렷이 분리되어야 한다"(§3)는 요청을 얇은 괘선 하나로 표시한다.
-   .nav-row가 이미 쓰는 문법(border-top 1px --rule)과 같다. */
-.about-mechanics { border-top: 1px solid var(--rule); padding-top: var(--s7); margin-top: var(--s8); }
 `;
 
 /* 인쇄 진.

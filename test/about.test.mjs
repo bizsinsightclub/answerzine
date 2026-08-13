@@ -29,11 +29,13 @@ test("중심 질문이 페이지의 유일한 h1이다", () => {
   assert.match(content, /<h1 class="why-question">사람들은 지금/);
 });
 
-test("기존 사실 관계 문단(선정 기준·데이터 출처·발행 주기)은 그대로 남아 있다", () => {
+test("기존 사실 관계 문단(선정 기준·데이터 출처·발행 주기)은 2026-08-13 삭제됐다", () => {
+  // 사용자가 이 세 문단을 직접 지목해 삭제를 요청했다 — 되살아나면 회귀다.
   const { content } = renderAbout();
-  assert.match(content, /순위는 결과다\. 우리가 싣는 건 그 결과를 만든 계기다\./);
-  assert.match(content, /도메인마다 실 구매·실 소비 숫자/);
-  assert.match(content, /한 호가 나오면 이 아카이브가 갱신되고/);
+  assert.ok(!content.includes("순위는 결과다"), "삭제 요청된 문단이 남아 있다");
+  assert.ok(!content.includes("도메인마다 실 구매"), "삭제 요청된 문단이 남아 있다");
+  assert.ok(!content.includes("한 호가 나오면 이 아카이브가 갱신되고"), "삭제 요청된 문단이 남아 있다");
+  assert.ok(!content.includes("about-mechanics"), "내용이 없어진 구분 괘선도 같이 빠져야 한다");
 });
 
 test("About 페이지에는 UNEXPECTED가 없다 — 건드릴 것 자체가 없었다", () => {
