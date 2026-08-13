@@ -456,13 +456,21 @@ const COMPONENTS = `
   clip-path: inset(0% 0% 0% 0%);
   transition: clip-path .6s cubic-bezier(.4, 0, .2, 1);
 }
-/* clip-path: inset(top right bottom left). top·right를 함께 0→100%로 키우면
-   남는(안 잘리는) 영역이 항상 "왼쪽 아래 모서리에 붙은 직사각형"이 된다 — 그
-   직사각형은 우상단부터 좌상단·우측 순으로 먼저 깎여 나가고, 좌하단 모서리
-   한 점에서 마지막으로 사라진다. 우상단에서 시작해 좌하단으로 벗겨지는 방향을
-   대각선 삼각함수 없이 두 인셋 값만으로 만든다(직접 좌표로 검증한 결과). */
-.category-card.has-photo:hover .category-card-cover {
-  clip-path: inset(100% 100% 0% 0%);
+/* 2026-08-13 두 번째 라운드 — 사용자 피드백: "PC는 좋은데, 오른쪽부터 일자로
+   요거트 뚜껑 따듯한 이펙트로." 대각선(우상단→좌하단, 위 이전 버전 기록 참고)
+   대신 오른쪽 인셋 하나만 0→100%로 움직인다 — top·bottom은 항상 0%로 고정해
+   두면 남는(안 잘리는) 영역의 오른쪽 경계가 수직 직선 그대로 왼쪽으로 미끄러져
+   간다. 대각선 두 축을 같이 움직이던 이전 버전과 달리 축 하나만 쓰므로 결과
+   경계선이 항상 카드 세로변과 평행한 일자다 — 오른쪽부터 벗겨져 왼쪽으로
+   쓸려가는 요거트 뚜껑 모양이 된다.
+   모바일(터치)에서는 호버 자체가 없거나 탭 후에도 눌린 채로 남는 등 신뢰할 수
+   없는 상태라 사용자가 "모바일은 제외"를 명시했다 — hover:hover +
+   pointer:fine(실제 마우스가 있는 기기만) 미디어 쿼리로 감싸, 터치 기기에서는
+   이 규칙 자체가 안 걸려 커버가 항상 그대로(사진이 안 드러난 채) 남는다. */
+@media (hover: hover) and (pointer: fine) {
+  .category-card.has-photo:hover .category-card-cover {
+    clip-path: inset(0% 100% 0% 0%);
+  }
 }
 /* 2026-08-12 열일곱 번째 라운드 — 사용자 신고: "youtube 도 4개 박스에서 여전히
    잘려서 보임." 배경 라벨(.category-card-tag)이 justify-content:space-between으로
