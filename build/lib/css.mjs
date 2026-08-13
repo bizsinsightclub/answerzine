@@ -1446,6 +1446,39 @@ body.is-home .category-card:not(.is-dark) { color: #17150F; }
   body.is-home .dateline { margin-bottom: clamp(56px, 9vh, 140px); }
   body.is-home .insight-lead { margin-bottom: clamp(96px, 13vh, 200px); }
 }
+
+/* ⚠️ 2026-08-13 여섯 번째 라운드 — 사용자가 "이 오더들은 사이트에 바로
+   적용하지 않고, 먼저 캡쳐 이미지가 필요해"라고 명시해, 커밋 전에 로컬에서만
+   빌드해 스크린샷 2장(마스트헤드~그리드 전체 구간, 세로 스택 중앙 정렬)을
+   보내 확인받았다. 사용자 확인: "오케이 적용해봐" — 승인 후 커밋한다.
+   요청 셋:
+   1) ANZINE(인트로) ↔ 마스트헤드(Fixed Header) 간격 — 스크롤 로직(app.js pin/
+      converge)은 그대로 두고("스크롤 로직이 아니라"), 인트로가 끝나고 본문이
+      시작되는 지점에 순수 여백만 추가한다. #main-content는 #intro의 형제
+      요소라(layout.mjs) margin-top 하나로 그 사이에 빈 스크롤 구간이 생긴다.
+   2) 마스트헤드 ↔ WEEKLY ANSWER 간격 — 위 다섯 번째 라운드 값(clamp(140px,
+      16vh, 260px))을 한 단계 더 키운다.
+   3) WEEKLY ANSWER ↔ UNEXPECTED 간격 — 마찬가지로 한 단계 더.
+   4) 배치 변경 — WEEKLY ANSWER·UNEXPECTED·부연 문단을 좌우 2단(현재)이 아니라
+      세로로 쌓아 페이지 중앙에 정렬한다(참고 이미지와 같은 구조). 스택으로
+      바뀌면서 헤드라인과 문단 사이 간격도 더 벌린다.
+      주의 — 기존 명시적 지시와 충돌. .issue-insight-note는 2026-08-12
+      스물한 번째 라운드에 사용자가 "문단은 left aligned로"라고 명시 요청해
+      text-align:left를 못박은 자리다(바로 위 COMPONENTS 섹션 주석 참고). 이
+      미리보기는 그 지시를 정면으로 뒤집는다 — 승인 시 그 사실을 알린다. */
+@media (min-width: 768px) {
+  body.is-home #main-content { margin-top: clamp(80px, 14vh, 220px); }
+  body.is-home .shell-edge { padding-top: clamp(200px, 22vh, 340px); }
+  body.is-home .dateline { margin-bottom: clamp(80px, 12vh, 180px); text-align: center; }
+  body.is-home .insight-lead {
+    flex-direction: column; align-items: center; text-align: center;
+  }
+  body.is-home .issue-insight { text-align: center; margin-bottom: clamp(56px, 9vh, 140px); }
+  body.is-home .issue-insight-note {
+    text-align: center; margin: 0 auto;
+  }
+  body.is-home .insight-note-lead, body.is-home .insight-note-body { text-align: center; }
+}
 `;
 
 const MOTION = `

@@ -527,6 +527,52 @@ site-header: position: sticky; top: 0 · 항상 화면 상단에 붙는다 · �
 > 무엇이 바뀌었는지 알 수 있게" 마스트헤드~카드 그리드 시작 구간 전체를 새로 캡처해
 > 다시 보냈다.
 
+> **같은 날 여섯 번째 라운드 — 세 지점 간격 재요청 + 중앙 정렬, 미리보기 선행.**
+> 사용자가 참고 이미지를 다시 보내며 "이게 내가 원하는 구조긴 해"라고 확인한 뒤,
+> 곧이어 더 구체적인 세 가지를 요청했다: (1) ANZINE(인트로) ↔ 마스트헤드(Fixed
+> Header) 간격, (2) 마스트헤드 ↔ WEEKLY ANSWER 간격, (3) WEEKLY ANSWER ↔
+> UNEXPECTED 간격 — "스크롤 로직이 아니라" 간격 문제라고 명시(=`app.js`는 안 건드림).
+> 추가로 WEEKLY ANSWER·UNEXPECTED·인사이트 문단을 참고 이미지처럼 페이지 중앙에
+> 세로로 쌓아 달라고 요청했고, "UNEXPECTED와 본문 사이 간격도 넓혔으면" 한다고
+> 덧붙였다. **그리고 "이 오더들은 사이트에 바로 적용하지 않고, 먼저 캡쳐 이미지가
+> 필요해"라고 명시** — 이번 라운드는 커밋 전에 로컬 빌드+스크린샷으로 먼저
+> 확인받는 절차를 밟았다.
+>
+> 구현:
+> 1. **ANZINE ↔ 마스트헤드 간격.** `#main-content`가 `#intro`의 형제 요소라는 점을
+>    이용해(`layout.mjs`), `body.is-home #main-content { margin-top: clamp(80px,
+>    14vh, 220px); }`로 순수 여백만 추가했다 — 인트로의 pin/converge 스크립트
+>    (`assets/app.js`)는 전혀 건드리지 않는다. 인트로가 완전히 스크롤되어 나간
+>    뒤, 마스트헤드가 나타나기 전까지 빈 검정 스크롤 구간이 추가로 생긴다
+>    (390px 뷰포트에서 재확인 결과 `margin-top`은 미디어 쿼리 밖이라 0px 그대로 —
+>    모바일 영향 없음).
+> 2. **마스트헤드 ↔ WEEKLY ANSWER.** `.shell-edge` 상단 패딩을 `clamp(140px, 16vh,
+>    260px)` → `clamp(200px, 22vh, 340px)`로 한 단계 더 키웠다.
+> 3. **WEEKLY ANSWER ↔ UNEXPECTED.** `.dateline` 하단 마진을 `clamp(56px, 9vh,
+>    140px)` → `clamp(80px, 12vh, 180px)`로 키웠다.
+> 4. **중앙 정렬 + 세로 스택.** `.insight-lead`를 `flex-direction: column;
+>    align-items: center`로 바꿔 헤드라인과 문단을 나란히(2단)가 아니라 위아래로
+>    쌓는다. `.dateline`·`.issue-insight`·`.issue-insight-note`(및 리드/바디
+>    분리 변형)에 `text-align: center`를 추가했고, `.issue-insight`에
+>    `margin-bottom: clamp(56px, 9vh, 140px)`을 새로 줘 헤드라인과 문단 사이
+>    간격도 벌렸다. 전부 `@media (min-width: 768px)` 안, `body.is-home` 스코프라
+>    모바일과 다른 페이지는 전혀 영향받지 않는다(390px 뷰포트에서 `flex-direction:
+>    row`·좌측 정렬 그대로임을 재확인).
+>
+> **기존 명시 지시와의 충돌을 투명하게 알렸다.** `.issue-insight-note`의
+> `text-align: left`는 2026-08-12 스물한 번째 라운드에 사용자가 "문단은 left
+> aligned로"라고 명시적으로 요청해 못박은 값이다 — 이번 중앙 정렬 요청은 그
+> 지시를 정면으로 뒤집는다. 스크린샷을 보낼 때 이 충돌을 먼저 알렸고, 사용자가
+> "오케이 적용해봐"로 승인한 뒤에야 커밋했다.
+>
+> **미리보기 절차.** 로컬에서 `node build/build.mjs`로 빌드한 `dist/`를 Playwright로
+> 두 시점 캡처했다 — (a) 인트로 "ANZINE"이 완성된 상태(변경 없음, 참고용, 최종
+> 메시지에는 첨부하지 않음) (b) 마스트헤드부터 카드 그리드 시작까지 전체
+> (`reducedMotion: 'reduce'`로 `data-reveal` 페이드인 타이밍 이슈를 피하고,
+> 뷰포트 높이를 콘텐츠 총 높이(1550px)에 맞춰 한 화면에 전부 담았다 — `clip`
+> 옵션은 뷰포트보다 큰 영역을 못 담아 처음엔 위쪽만 잘려 나왔다). (b)만 사용자에게
+> 보내 확인받았다.
+
 ### 통합 인사이트 — 헤드라인 + 부연설명 (2026-08-10 두 번째 라운드 확장)
 
 ```
