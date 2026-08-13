@@ -5,6 +5,7 @@
  *   node tools/collect.mjs 2026-w32
  *   node tools/collect.mjs 2026-w32 --only=kobis,yes24
  *   node tools/collect.mjs 2026-w32 --dry
+ *   node tools/collect.mjs 2026-w32 --force   # 이미 있는 그 주 스냅숏을 의도적으로 재수집
  *
  * ── 이 도구가 있는 이유 ────────────────────────────────────────
  * 이 저장소의 출처 절반은 `snapshot`이다. 조회 시점의 순위만 보여주고
@@ -282,7 +283,7 @@ const ADAPTERS = {
 
 /* ══════════════ 실행 ══════════════ */
 
-export async function collect(id, { only = null, dry = false, root = ROOT } = {}) {
+export async function collect(id, { only = null, dry = false, force = false, root = ROOT } = {}) {
   const bounds = weekBounds(id);
   const range = rangeLabel(bounds);
   const outDir = join(root, "runs/raw", id);
@@ -308,6 +309,21 @@ export async function collect(id, { only = null, dry = false, root = ROOT } = {}
       results.push({ name, status: "refused", reason: `snapshot-only, ${id} != ${nowWeek}` });
       continue;
     }
+    /* 2026-08-13 — 그 주의 정본은 한 번만 찍는다. 같은 주를 두 번 수집하면(재실행·재시도)
+       두 번째 값이 첫 번째를 조용히 덮어써, 그 주 안의 "어느 시점 스냅숏인지"가 실행할
+       때마다 바뀌는 문제가 생긴다 — 이번 주가 문제가 아니라, 그 파일이 미래에
+       trendSnapshots로 인용될 때 "그날 실제로 뭐가 있었는지"가 흔들리면 추세선 전체의
+       신뢰가 깨진다(§ 상단 "못 그리는 진짜 이유는 아무도 아카이브를 안 해서다"와 정반대
+       실수). 이미 있는 파일은 기본적으로 지킨다 — 정말 다시 뜬 값으로 바꿔야 하면
+       `--force`를 명시한다. */
+    const outFile = join(outDir, `${name}.json`);
+    if (!dry && !force && existsSync(outFile)) {
+      bad(`${name} — 이미 ${id} 주의 스냅숏이 있다(runs/raw/${id}/${name}.json). `
+        + "그 주의 정본을 조용히 덮어쓰지 않는다. 정말 다시 뜬 값으로 바꾸려면 --force를 쓴다 "
+        + "(과거 시계열의 그 점이 바뀐다는 뜻이다).");
+      results.push({ name, status: "refused", reason: "existing snapshot, use --force to overwrite" });
+      continue;
+    }
     try {
       const r = await a.run({ id, ...bounds });
       const payload = {
@@ -320,7 +336,7 @@ export async function collect(id, { only = null, dry = false, root = ROOT } = {}
       };
       if (!dry) {
         mkdirSync(outDir, { recursive: true });
-        writeFileSync(join(outDir, `${name}.json`), JSON.stringify(payload, null, 2) + "\n");
+        writeFileSync(outFile, JSON.stringify(payload, null, 2) + "\n");
       }
       ok(`${name} — ${payload.rowCount}건${dry ? " (dry)" : ` → runs/raw/${id}/${name}.json`}`);
       results.push({ name, status: "ok", rowCount: payload.rowCount });
@@ -346,7 +362,8 @@ if (import.meta.url.startsWith("file:") && process.argv[1] && fileURLToPath(impo
   const args = process.argv.slice(2);
   const id = args.find((a) => !a.startsWith("--"));
   if (!id) {
-    console.log("사용법: node tools/collect.mjs YYYY-wNN [--only=a,b] [--dry]");
+    console.log("사용법: node tools/collect.mjs YYYY-wNN [--only=a,b] [--dry] [--force]");
+    console.log("  --force  이미 있는 그 주 스냅숏을 덮어쓴다 (과거 시계열이 끊길 수 있다 — 신중히).");
     console.log(`어댑터: ${Object.keys(ADAPTERS).join(", ")}`);
     process.exit(1);
   }
@@ -354,6 +371,7 @@ if (import.meta.url.startsWith("file:") && process.argv[1] && fileURLToPath(impo
   const r = await collect(id, {
     only: onlyArg ? onlyArg.slice(7).split(",") : null,
     dry: args.includes("--dry"),
+    force: args.includes("--force"),
   });
   process.exit(r.results.some((x) => x.status === "failed" || x.status === "refused") ? 1 : 0);
 }

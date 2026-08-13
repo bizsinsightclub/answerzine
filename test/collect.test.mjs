@@ -6,7 +6,10 @@
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { weekBounds, rangeLabel, isoWeekOf } from "../tools/collect.mjs";
+import { mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { weekBounds, rangeLabel, isoWeekOf, collect, ADAPTERS } from "../tools/collect.mjs";
 
 const d = (s) => new Date(`${s}T00:00:00Z`);
 
@@ -44,4 +47,52 @@ test("넷플릭스 주 라벨(일요일)이 우리 주 종료일과 같다", () 
 test("주차 형식이 틀리면 조용히 넘어가지 않는다", () => {
   for (const bad of ["2026-31", "26-w31", "", null, "2026-wXX"])
     assert.throws(() => weekBounds(bad), /YYYY-wNN/);
+});
+
+/**
+ * 2026-08-13 — 그 주의 정본은 한 번만 찍는다.
+ * 네트워크가 필요 없는 가짜 어댑터를 임시로 끼워 실제 collect()를 돈다 — 진짜 사이트를
+ * 안 건드리면서도 "이미 있는 스냅숏을 조용히 덮어쓰지 않는다"는 회귀를 실측으로 잡는다.
+ */
+test("이미 있는 주간 스냅숏은 --force 없이는 안 덮어쓴다", async () => {
+  const root = mkdtempSync(join(tmpdir(), "az-collect-"));
+  const calls = [];
+  ADAPTERS.__test_snapshot_guard__ = {
+    domains: ["book"],
+    needs: null,
+    async run() {
+      calls.push(1);
+      return { method: "fetch", url: "http://example.invalid", rows: [{ n: calls.length }], note: "test" };
+    },
+  };
+  try {
+    const opts = { only: ["__test_snapshot_guard__"], root };
+    const file = join(root, "runs/raw/2099-w01/__test_snapshot_guard__.json");
+
+    const first = await collect("2099-w01", opts);
+    assert.equal(first.results[0].status, "ok");
+    const firstBody = JSON.parse(readFileSync(file, "utf8"));
+    assert.equal(firstBody.rows[0].n, 1);
+
+    // 다시 돈다 — force 없이. 거부는 a.run() 호출 자체보다 먼저 걸리므로(불필요한
+    // 네트워크 요청을 아예 안 한다), calls는 늘지 않고 파일도 그대로여야 한다.
+    const second = await collect("2099-w01", opts);
+    assert.equal(second.results[0].status, "refused");
+    assert.equal(calls.length, 1, "거부됐다면 run()이 다시 호출되면 안 된다");
+    const secondBody = JSON.parse(readFileSync(file, "utf8"));
+    assert.equal(secondBody.rows[0].n, 1, "거부됐다면 파일 내용이 첫 실행 그대로여야 한다");
+
+    // --force면 의도적으로 덮어쓸 수 있다 — 이때는 run()이 다시 호출된다(두 번째 실제 실행).
+    const third = await collect("2099-w01", { ...opts, force: true });
+    assert.equal(third.results[0].status, "ok");
+    const thirdBody = JSON.parse(readFileSync(file, "utf8"));
+    assert.equal(thirdBody.rows[0].n, 2, "force 실행은 두 번째 실제 run() 호출 결과를 반영해야 한다");
+
+    // --dry는 파일이 있어도 항상 통과한다(애초에 아무것도 안 쓰므로 덮어쓸 게 없다).
+    const dryRun = await collect("2099-w01", { ...opts, dry: true });
+    assert.equal(dryRun.results[0].status, "ok");
+  } finally {
+    delete ADAPTERS.__test_snapshot_guard__;
+    rmSync(root, { recursive: true, force: true });
+  }
 });
