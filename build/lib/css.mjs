@@ -1390,6 +1390,14 @@ body.is-home {
 }
 body.is-home .site-header,
 body.is-home .category-divider { background: #000; }
+/* 2026-08-13 — 사용자 신고: "그 사각형 박스(카테고리 카드) 쪽에서 도형 윤곽선이
+   흰색으로 보인다." .category-grid(COMPONENTS)는 gap 1px + background: var(--ink)로
+   카드 사이 얇은 괘선을 만든다 — 라이트 테마에서는 --ink가 검정이라 옅은 검정
+   괘선이지만, 바로 위 :root 재정의로 홈에서만 --ink가 흰색이 되면서 카드를 두르는
+   흰 윤곽선처럼 보이게 됐다. 카드 그리드는 이 페이지에서도 검은 배경 위에 있으므로
+   괘선 색을 리터럴 검정으로 고정해 배경에 녹아들게 한다(다른 페이지는 영향 없다 —
+   .category-grid 자체가 홈 전용이라 이 규칙 밖에서는 쓰이지 않는다). */
+body.is-home .category-grid { background: #000; border-top-color: #000; border-bottom-color: #000; }
 /* 카테고리 카드는 예외다 — cardColor(밝은 파스텔)가 실제 배경이고, 그 카드의
    글자색(COMPONENTS의 .category-card { color: var(--ink) })은 그 배경과 짝지어
    이미 AA 대비를 맞춘 값이다(domains/registry.json contrastPass, test/theme.test.mjs가
