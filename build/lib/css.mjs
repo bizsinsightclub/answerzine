@@ -1427,6 +1427,25 @@ body.is-home .category-grid { background: #000; border-top-color: #000; border-b
    colorPaper 배경)는 이미 별도로 color:#fff를 리터럴로 쓰고 있어 애초에 영향이
    없다 — :not(.is-dark)로 그 카드는 건드리지 않는다. */
 body.is-home .category-card:not(.is-dark) { color: #17150F; }
+
+/* 2026-08-13 다섯 번째 라운드 — 사용자가 As-was/To-be 스크린샷으로 요청: PC에서
+   마스트헤드~데이트라인~통합 인사이트 헤드라인~부연 문단 사이 여백이 지금은 너무
+   빽빽하다, 훨씬 넉넉하게 벌려 달라. 데스크톱(768px+)에서만 세 지점의 세로 간격을
+   한 단계씩 더 키운다 — 좌우(--edge)·카드 그리드 자체 크기는 안 건드린다.
+   1) .shell-edge 상단 패딩: 기존 --s8(64px)→--s9(96px). 마스트헤드 nav 줄과
+      "WEEKLY ANSWER" 데이트라인 사이 공간.
+   2) .dateline 하단 마진: 기존 --s6(32px)→--s8(64px). 데이트라인과 통합
+      인사이트 헤드라인("UNEXPECTED" 등) 사이 공간.
+   3) .insight-lead 하단 마진: 기존 --s6(32px)→--s9(96px). 헤드라인+부연 문단
+      묶음과 그 아래 카드 그리드 사이 공간.
+   토큰 스케일(--s1~--s9) 안에서만 골라 새 매직 넘버를 만들지 않았다. 인트로
+   워드마크("ANZINE")가 스크롤에 맞춰 축소·고정되는 절차(app.js의 pin/converge)는
+   이 라운드에서 손대지 않았다 — 그 부분도 더 벌리고 싶다면 별도 확인 후 진행한다. */
+@media (min-width: 768px) {
+  body.is-home .shell-edge { padding-top: var(--s9); }
+  body.is-home .dateline { margin-bottom: var(--s8); }
+  body.is-home .insight-lead { margin-bottom: var(--s9); }
+}
 `;
 
 const MOTION = `
