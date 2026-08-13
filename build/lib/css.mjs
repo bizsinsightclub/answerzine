@@ -186,6 +186,18 @@ h3 { font-weight: 900; font-size: 22px; line-height: 1.15; letter-spacing: -.025
   font-weight: 900; font-size: 34px; letter-spacing: -.03em;
   font-variant-numeric: tabular-nums; line-height: 1.1;
 }
+/* 2026-08-13 여섯 번째 라운드 — stat.value 끝의 괄호 부연설명을 주 숫자와 다른 무게로
+   낸다("ANZINE — Editorial Readability Pass" §7, render-story.mjs의 splitStatValue()
+   참고). 주 숫자는 위 .stat-value(34px/900)를 그대로 물려받고, 이 span만 작고 옅은
+   무게로 다음 줄에 앉는다 — "213만 (6일 연속 박스오피스 1위)"가 전부 같은 굵기로
+   경쟁하던 걸, 숫자가 먼저 눈에 들어오고 맥락은 그 아래에서 보충하는 순서로 바꾼다.
+   괄호 문자 자체는 안 보여준다(내용은 그대로, 감싸는 기호만 뗀다) — 이미 이 코드베이스가
+   〈〉를 렌더 시점에만 벗기는 것과 같은 종류의 처리다(CLAUDE.md §6 참고). */
+.stat-value-context {
+  display: block; font-weight: 700; font-size: 15px; letter-spacing: 0;
+  font-variant-numeric: normal; color: var(--secondary); line-height: 1.4;
+  margin-top: var(--s1);
+}
 `;
 
 const CHROME = `
@@ -229,10 +241,24 @@ const CHROME = `
    크기로 자라서, 가운데 칸(로고)이 뷰포트 정중앙에 고정된다. 좁은 화면(768px
    미만)은 기존 space-between(로고 좌측·내비 우측 붙이기)을 그대로 쓴다 — 내비
    항목이 6개라 화면이 좁아지면 가운데 배치보다 좌우 붙이기가 공간 활용에 낫다. */
+/* 2026-08-13 여섯 번째 라운드 — 768~1050px 사이에서 로고와 내비가 겹치는 실측 버그를
+   고쳤다("ANZINE — Editorial Readability Pass" §3의 "실제 기능 결함" 예외). 1fr 트랙은
+   minmax(auto, 1fr)과 같아서, 그 칸에 놓인 아이템(.wordmark·.category-nav)의 콘텐츠
+   자체 폭보다 좁게는 못 줄어든다 — 두 칸을 합친 콘텐츠 폭이 가운데 로고 칸(auto,
+   고정)을 뺀 나머지보다 넓어지는 순간 두 트랙이 서로를 밀어내지 못하고 겹친다.
+   Playwright로 768/900/1000px에서 겹침을 실측하고(로고 우측 끝이 내비 좌측 시작을
+   넘어감), minmax(0, 1fr)으로 바꿔 트랙이 필요하면 0까지 줄어들 수 있게 했다 —
+   .category-nav는 이미 overflow-x: auto라 내용이 넘치면 내비 스스로 가로 스크롤을
+   흡수한다(§위 카테고리 내비 주석). 같은 폭에서 재실측해 겹침이 없어진 것을 확인했다. */
 @media (min-width: 768px) {
-  .masthead-top { display: grid; grid-template-columns: 1fr auto 1fr; }
+  .masthead-top { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); }
   .wordmark { grid-column: 2; justify-self: center; }
-  .category-nav { grid-column: 3; justify-self: end; }
+  /* min-width:0만으로는 부족했다 — justify-self: end인 그리드 아이템은 트랙 크기와
+     무관하게 자기 콘텐츠의 선호 폭(flex row의 min-content 합)만큼 렌더되고, 트랙보다
+     넓으면 정렬 기준(오른쪽)의 반대 방향(가운데 로고 쪽)으로 넘친다 — 겹침의 진짜
+     원인이었다(실측: 900px에서 트랙은 329px인데 nav 박스는 393px로 그려짐). width:
+     100%로 트랙 폭에 정확히 맞춰야 overflow-x: auto가 내부 콘텐츠를 실제로 가둔다. */
+  .category-nav { grid-column: 3; justify-self: end; min-width: 0; width: 100%; }
 }
 /* 워드마크는 2026-08-10부터 브래킷 마크 + "the answer company"만 남긴 축소판이다
    (기존의 큰 ANSWER/Zine 로고타입은 뺐다 — CLAUDE.md 참고).
@@ -712,9 +738,13 @@ const COMPONENTS = `
 
 /* 색 보더는 1px을 넘기지 않는다 —
    impeccable craft-floor: "a colored border-left above 1px on callouts". */
+/* 2026-08-13 여섯 번째 라운드 — "답의 순간" 앞뒤 여백을 비대칭으로 늘렸다("ANZINE —
+   Editorial Readability Pass" §6). 위쪽을 아래쪽보다 더 벌려(--s7 48px vs --s6 32px)
+   본문을 다 읽고 이 문장에 도달했을 때 숨을 한 번 고르는 느낌을 준다 — 글자 크기·색·
+   결론 문구는 그대로다(더 크게·화려하게 만들지 않는다는 요청 그대로). */
 .pullquote {
   font-family: var(--serif); font-weight: 700; font-size: 22px; line-height: 1.55;
-  letter-spacing: -.01em; margin: var(--s6) 0; padding-left: var(--s4);
+  letter-spacing: -.01em; margin: var(--s7) 0 var(--s6); padding-left: var(--s4);
   border-left: 1px solid var(--dc, var(--rule)); max-width: var(--measure);
 }
 /* "THE ANSWER" 라벨 — 2026-08-11 도입. .insight-label과 같은 스펙(11px·700·

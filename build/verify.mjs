@@ -345,6 +345,33 @@ if (!chromium) {
       await page.close();
     }
     if (!overflow) ok("375 / 768 / 1280 / 1920px에서 가로 넘침 없음");
+
+    /* --- 마스트헤드: 로고·카테고리 내비 겹침 없음 (2026-08-13 "ANZINE — Editorial
+       Readability Pass" §3에서 실측으로 찾은 결함) --- 768~1050px 사이에서 3칸 그리드
+       (`.masthead-top`)의 가운데 칸(로고, auto 폭)과 오른쪽 칸(내비)이 겹쳐 로고 그래픽이
+       "ABOUT" 글자 위로 그려졌었다 — css.mjs의 minmax(0,1fr) + .category-nav width:100%로
+       고쳤다. 실측 폭 하나(예: 900px)만 확인하면 회귀가 다시 좁은 범위로 숨어들 때
+       못 잡으므로, 겹침이 실제로 있었던 범위를 촘촘히 훑는다. */
+    let mastheadOverlap = 0;
+    {
+      const page = await browser.newPage();
+      await page.goto(`${base}/2026-w31/book/`, { waitUntil: "networkidle" });
+      for (const w of [768, 800, 900, 1000, 1050, 1100, 1200]) {
+        await page.setViewportSize({ width: w, height: 300 });
+        const r = await page.evaluate(() => {
+          const wm = document.querySelector(".wordmark")?.getBoundingClientRect();
+          const nav = document.querySelector(".category-nav")?.getBoundingClientRect();
+          if (!wm || !nav) return null;
+          return { logoRight: wm.right, navLeft: nav.left };
+        });
+        if (r && r.logoRight > r.navLeft) {
+          fail("마스트헤드", `${w}px에서 로고(우측 끝 ${Math.round(r.logoRight)}px)가 카테고리 내비(좌측 시작 ${Math.round(r.navLeft)}px)와 겹친다.`);
+          mastheadOverlap++;
+        }
+      }
+      await page.close();
+    }
+    if (!mastheadOverlap) ok("768~1200px에서 마스트헤드 로고·카테고리 내비 겹침 없음");
   } finally {
     await browser.close();
     server.close();

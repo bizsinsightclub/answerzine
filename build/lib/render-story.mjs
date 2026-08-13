@@ -60,6 +60,28 @@ const dcVar = (story) => (story.slug ? `--dc: var(--dc-${story.slug});` : "");
  * "화면에는 `비교 기준`으로 렌더된다"고 적어 두고 있었는데 실제 렌더러는 그 문장을
  * 낸 적이 없었다(문서-코드 불일치, 이번에 맞췄다). design.md "스파크라인" 절 참고.
  */
+/**
+ * stat.value 안의 괄호 부연설명을 시각적으로 분리한다 (2026-08-13 가독성 개편, CLAUDE.md
+ * 참고 — "ANZINE — Editorial Readability Pass"). "213만 (6일 연속 박스오피스 1위)"처럼
+ * 끝에 괄호가 붙는 패턴이 현재 발행된 4편 stat.value 전부에 있다 — 지금까지는 이 문자열
+ * 전체가 34px/900(진한 굵기) 한 덩어리로 나와, 정작 봐야 할 숫자와 부연 설명이 같은
+ * 무게로 경쟁했다. 데이터(issues/*.json의 stat.value 원문)는 손대지 않는다 — 렌더
+ * 시점에만 주 숫자와 괄호 안 문구를 갈라 굵기·크기를 다르게 준다. 괄호가 없거나(예:
+ * "+9.9%") 중간에 있거나 괄호가 여러 개면 매치되지 않아 원래 문자열을 그대로 낸다 —
+ * 새로운 포맷을 강제하지 않고, 이미 있는 한 가지 패턴만 조용히 개선한다.
+ */
+function splitStatValue(value) {
+  const m = typeof value === "string" && value.match(/^(.+\S)\s*\(([^()]+)\)$/);
+  return m ? { primary: m[1], context: m[2] } : { primary: value, context: null };
+}
+
+function statValueHTML(value) {
+  const { primary, context } = splitStatValue(value);
+  return context
+    ? h`${primary}<span class="stat-value-context">${context}</span>`
+    : h`${primary}`;
+}
+
 function statPanel(stat, story) {
   if (!stat) return "";
   const hasChart = Array.isArray(stat.trend) && stat.trend.length >= 2;
@@ -73,7 +95,7 @@ function statPanel(stat, story) {
       : "";
   return h`<div class="stat-card is-single" data-reveal style="${raw(dcVar(story))}">
     <div class="label">${stat.label}</div>
-    <div class="stat-value">${stat.value}</div>
+    <div class="stat-value">${raw(statValueHTML(stat.value))}</div>
 ${raw(chart)}
 </div>`;
 }

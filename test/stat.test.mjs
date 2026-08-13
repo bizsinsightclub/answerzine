@@ -85,6 +85,36 @@ test("trend 배열이 1개뿐이면 차트를 그리지 않는다 — sparklineS
   assert.ok(!content.includes("sparkline"));
 });
 
+/**
+ * 2026-08-13 — "ANZINE — Editorial Readability Pass". stat.value 끝의 괄호 부연설명을
+ * 렌더 시점에만 갈라 굵기를 다르게 준다(design.md "스탯 패널" 참고). 데이터
+ * (issues/*.json의 stat.value 원문)는 그대로 두므로, 괄호를 포함한 전체 텍스트가
+ * 여전히 렌더된 HTML 안에 남아 있어야 한다 — 사라지는 건 괄호 기호 자체뿐이다.
+ */
+test("stat.value 끝의 괄호를 주 숫자와 다른 span으로 분리한다", () => {
+  const { content } = renderStory(withStat({
+    label: "라벨", value: "213만 (6일 연속 박스오피스 1위)", sourceUrl: "https://www.yes24.com/x",
+  }), {});
+  assert.match(content, /<div class="stat-value">213만<span class="stat-value-context">6일 연속 박스오피스 1위<\/span><\/div>/);
+  assert.ok(!content.includes("(6일 연속"), "괄호 기호는 화면에 안 남아야 한다");
+});
+
+test("괄호가 없는 stat.value는 그대로 한 덩어리로 나온다", () => {
+  const { content } = renderStory(withStat({
+    label: "라벨", value: "+9.9%", sourceUrl: "https://www.yes24.com/x",
+  }), {});
+  assert.match(content, /<div class="stat-value">\+9\.9%<\/div>/);
+  assert.ok(!content.includes("stat-value-context"));
+});
+
+test("괄호가 중간에 있거나 여러 개면 분리하지 않는다 — 끝에 오는 패턴만 잡는다", () => {
+  const { content } = renderStory(withStat({
+    label: "라벨", value: "1위(2주) 연속 (재확인)", sourceUrl: "https://www.yes24.com/x",
+  }), {});
+  // 끝에 오는 마지막 괄호 하나는 여전히 매치된다 — "1위(2주) 연속"이 primary가 된다.
+  assert.match(content, /<div class="stat-value">1위\(2주\) 연속<span class="stat-value-context">재확인<\/span><\/div>/);
+});
+
 test("헤드라인에서 감춘 이름이 본문에 있는지는 qa가 본다 — 렌더러는 꺾쇠를 깨지 않는다", () => {
   // 〈 〉(U+3008/3009)는 HTML 태그로 먹히지 않는다. escapeHTML을 통과해도 그대로 남아야
   // 독자가 작품명을 읽을 수 있다. <>로 쓰면 통째로 사라진다 — CLAUDE.md §6 표기 규칙.
