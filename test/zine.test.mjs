@@ -131,6 +131,27 @@ test("카드 제목 밑에 teaser 한 줄이 나온다 — 2026-08-11 여섯 번
   }
 });
 
+/**
+ * 2026-08-13 — "ANZINE — CARD HEADER DESCRIPTION REWRITE". cardTeaser는
+ * headlineLines/insightLines와 같은 표시 전용 대안 필드다 — 있으면 카드에서만
+ * 그 값을 쓰고, 스토리 페이지·메타 description·인쇄 진이 참조하는 teaser
+ * 원본은 안 건드린다.
+ */
+test("cardTeaser가 있으면 카드에서만 그 값을 쓴다 — teaser 원본은 그대로 남는다", () => {
+  const withCardTeaser = { ...stories[0], cardTeaser: "2년 반 전 책이 갑자기 1위가 됐다." };
+  const { content } = renderIndex([ISSUE], [withCardTeaser, ...stories.slice(1)], REG);
+  assert.match(content, /class="category-card-teaser">2년 반 전 책이 갑자기 1위가 됐다\./);
+  assert.ok(!content.includes(withCardTeaser.teaser), "cardTeaser가 있으면 카드에 원래 teaser가 남으면 안 된다");
+});
+
+test("cardTeaser가 없으면 예전처럼 teaser로 폴백한다", () => {
+  const { content } = renderIndex([ISSUE], stories, REG);
+  for (const s of stories) {
+    assert.ok(!("cardTeaser" in s), "이 테스트 픽스처는 cardTeaser가 없어야 폴백을 확인할 수 있다");
+    assert.match(content, new RegExp(`class="category-card-teaser">${s.teaser.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`));
+  }
+});
+
 test("headlineLines가 있으면 카드 헤드라인이 <br>로 여러 줄로 나온다 — 2026-08-12 사용자 요청", () => {
   const withLines = { ...stories[0], headlineLines: ["부고 다음날,", "서점이 붐볐다."] };
   const { content } = renderIndex([ISSUE], [withLines, ...stories.slice(1)], REG);

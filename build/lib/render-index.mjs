@@ -113,6 +113,19 @@ const emptyCard = (d) => h`<div class="category-card is-empty">
    수가 적을수록 채워야 할 세로 칸이 커서 필요한 line-height가 크고, 글자 수가
    많을수록 이미 꽉 차 있어 조금만 늘려도 넘친다. 그래서 글자 수 기준으로 두
    단계(≤5자만 더 좁힘)로 나눴다 — `card-tag--tight` 클래스, css.mjs 참고. */
+/**
+ * story.cardTeaser — 2026-08-13 "ANZINE — CARD HEADER DESCRIPTION REWRITE".
+ *
+ * 카드 밑 한 줄의 역할을 바꿔 달라는 요청 — 기사 요약("무슨 일이, 왜")이 아니라
+ * 클릭을 부르는 편집 훅("긴장·질문·미완의 사실 하나")으로. 기존 `story.teaser`는
+ * 건드리지 않는다 — 스토리 페이지 부제·메타 description·인쇄 진 본문
+ * (render-zine.mjs)이 전부 그 문자열을 그대로 참조하고 있어서, 거기서 값을
+ * 바꾸면 이 카드 하나가 아니라 스토리 페이지·SEO·인쇄물까지 전부 바뀐다. 대신
+ * `headlineLines`/`insightLines`와 같은 패턴으로 **표시 전용 대안 필드**를
+ * 새로 둔다 — 있으면 카드에서만 그 값을 쓰고, 없으면 예전처럼 `teaser`로
+ * 그대로 폴백한다(과거 회차·다른 도메인은 아무것도 안 바뀐다). CLAUDE.md §3.1
+ * 데이터 계약에 문서화했다.
+ */
 const card = (d, s) => {
   const label = cardLabel(d);
   return h`<a class="category-card${d.cardColor ? "" : " is-dark"}${s.image ? " has-photo" : ""}" data-reveal href="${u(s.url)}">
@@ -122,7 +135,7 @@ const card = (d, s) => {
     <span class="sr-only">${label}</span>
     ${s.draft ? raw('<span class="draft-flag">작업 중</span>') : ""}
     <h2 class="category-card-headline">${s.headlineLines ? multiline(s.headlineLines) : s.headline}</h2>
-    <p class="category-card-teaser">${s.teaser}</p>
+    <p class="category-card-teaser">${s.cardTeaser ?? s.teaser}</p>
     <span class="category-card-date">최신 · ${s.range}</span>
   </div>
 </a>`;
