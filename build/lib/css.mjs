@@ -828,6 +828,52 @@ const COMPONENTS = `
 .to-archive a:hover { color: var(--ink); }
 `;
 
+const ABOUT_PAGE = `
+/* "WHY ANZINE" — /about/ 전용 (2026-08-13 "ANZINE — ABOUT / WHY ANZINE Refinement").
+ * 사이트에서 가장 강한 편집 모먼트 중 하나로 만들어 달라는 요청 — 홈의 큰 통합
+ * 인사이트(.issue-insight, 72px)와 스토리의 답의 순간(.pullquote+.answer-label)이
+ * 이미 쓰는 "질문/답을 시각적으로 지배하게 한다" 문법을 이 페이지에도 가져온다.
+ * 클래스를 공유하지 않고 새로 둔 이유는 이 코드베이스의 기존 관행과 같다 —
+ * .answer-label을 만들 때도 .insight-label과 스펙은 같지만 별도 클래스로
+ * 뒀다(design.md "풀쿼트 & 출처 박스" 참고, "다른 컴포넌트라 나중에 독립적으로
+ * 조정할 여지를 남긴다"). */
+.why-anzine { margin: var(--s8) 0 var(--s7); max-width: 640px; }
+.why-eyebrow {
+  display: block; font-family: var(--sans); font-size: 12px; font-weight: 700;
+  letter-spacing: .14em; text-transform: uppercase; color: var(--secondary);
+  margin: 0 0 var(--s5);
+}
+.why-lead {
+  font-family: var(--serif); font-size: 18px; line-height: 1.7; color: var(--secondary);
+  margin: 0 0 var(--s6); max-width: 46ch;
+}
+/* 중심 질문 — 이 페이지의 진짜 h1이다(시맨틱하게도 가장 강한 헤딩). 데스크톱·모바일
+   둘 다 "그 자체로 묵직해야" 하므로(요청 §8) clamp 하한을 30px로 높게 잡았다 —
+   본문(18px)·티저(20px)보다 확연히 크게 유지되어, 화면이 좁아져도 "축소된 본문"이
+   아니라 "이 페이지의 무게중심"으로 계속 읽힌다. 두 문장의 줄바꿈은 원문 그대로
+   <br> 하드 브레이크를 쓴다(§4 "의도적 줄바꿈") — 뷰포트에 따라 자동으로 다르게
+   접히면 "사람들은 지금 무엇에 돈을 쓰고 있을까."라는 한 문장의 리듬이 깨진다. */
+.why-question {
+  font-family: var(--sans); font-weight: 900; font-size: clamp(30px, 5.4vw, 52px);
+  line-height: 1.3; letter-spacing: -.02em; margin: 0 0 var(--s7); max-width: 15ch;
+}
+.why-body p {
+  font-family: var(--serif); font-size: 17px; line-height: 1.75; color: var(--ink);
+  max-width: 58ch; margin: 0 0 var(--s5);
+}
+/* 닫는 문장 — quote.text의 "A가 아니라 B다" 대구조와 같은 자리다(§5 "결과보다
+   이유를, 순위보다 왜 팔렸는지를"는 SITE.tagline의 확장판). 중심 질문(.why-question)
+   보다는 작게 눌러 뒀다 — 스포트라이트는 하나만("절제된 볼드", §3). */
+.why-closing {
+  font-family: var(--sans); font-weight: 700; font-size: clamp(21px, 2.6vw, 28px);
+  line-height: 1.4; letter-spacing: -.01em; margin: var(--s7) 0 0;
+}
+/* 기존 사실 관계 문단(선정 기준·데이터 출처·발행 주기)과 WHY ANZINE 사이의 경계선 —
+   "다른 About 섹션과 뚜렷이 분리되어야 한다"(§3)는 요청을 얇은 괘선 하나로 표시한다.
+   .nav-row가 이미 쓰는 문법(border-top 1px --rule)과 같다. */
+.about-mechanics { border-top: 1px solid var(--rule); padding-top: var(--s7); margin-top: var(--s8); }
+`;
+
 /* 인쇄 진.
  *
  * 2026-08-10 전면 개편 — 사용자가 첨부한 참고 목업(print.html)의 포맷을 따른다.
@@ -1546,7 +1592,7 @@ const MOTION = `
 
 export function stylesheet(domains = []) {
   // 시스템 폰트만 쓰므로(2026-08-10) __BASE__ 접두사가 필요한 @font-face가 없다.
-  return [themeCSS(), domainCSS(domains), BASE, TYPE, CHROME, LAYOUT, COMPONENTS, ZINE, INTRO, REVEAL, PRINT, ZINEBOOK, HOME_DARK, MOTION]
+  return [themeCSS(), domainCSS(domains), BASE, TYPE, CHROME, LAYOUT, COMPONENTS, ABOUT_PAGE, ZINE, INTRO, REVEAL, PRINT, ZINEBOOK, HOME_DARK, MOTION]
     .join("\n")
     .trim() + "\n";
 }

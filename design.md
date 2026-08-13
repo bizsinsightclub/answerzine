@@ -1101,6 +1101,56 @@ bg --surface · border 1px --divider · border-left 1px 도메인 컬러 · padd
 `::selection`, `:focus-visible`, `caret-color`, 스크롤바를 전부 팔레트에서 지정한다.
 그리지 않은 부분도 디자인을 짊어진다.
 
+### About — WHY ANZINE (2026-08-13 도입)
+
+```
+eyebrow(.why-eyebrow):  산세리프 700 · 12px · letter-spacing .14em · uppercase · --secondary
+리드(.why-lead):        명조 400 · 18px · lh 1.7 · --secondary · max-width 46ch
+중심 질문(.why-question, h1): 산세리프 900 · clamp(30px, 5.4vw, 52px) · lh 1.3 · max-width 15ch
+설명(.why-body p):      명조 400 · 17px · lh 1.75 · --ink · max-width 58ch
+닫는 문장(.why-closing): 산세리프 700 · clamp(21px, 2.6vw, 28px) · lh 1.4
+경계(.about-mechanics): border-top 1px --rule · padding-top 48px · margin-top 64px
+```
+
+"ANZINE — ABOUT / WHY ANZINE Refinement" 요청 — About을 "사이트에서 가장 강한 편집
+모먼트 중 하나"로 만들어 달라는 요청에, 홈의 통합 인사이트(`.issue-insight`)·스토리의
+답의 순간(`.pullquote`+`.answer-label`)이 이미 쓰는 "질문/답을 시각적으로 지배하게
+한다" 문법을 이 페이지에도 가져왔다. 별도 클래스로 둔 이유는 이 코드베이스의 기존
+관행과 같다(`.answer-label`이 `.insight-label`과 스펙은 같지만 별도 클래스인 것과
+동일 — "다른 컴포넌트라 나중에 독립적으로 조정할 여지를 남긴다").
+
+**대체한 것.** 이전 개정(2026-08-11 두 번째)의 `<h1>${SITE.tagline}</h1>` + 옅은
+티저 한 줄 오프닝을 걷어내고 그 자리에 이 블록을 앉혔다 — 새 섹션을 얹은 게 아니라
+같은 이야기("결과보다 이유")의 약한 버전을 강한 버전으로 바꾼 것이다. `SITE.tagline`
+자체는 `site.mjs`에 그대로 있고 홈 메타 설명·OG 이미지 alt에 계속 쓰인다 — 이
+페이지의 화면 표시 자리에서만 뺐다.
+
+**중심 질문이 이 페이지의 진짜 `<h1>`이다** — 시맨틱하게도 가장 강한 헤딩을 실제로
+가장 강한 시각 요소에 준다. `clamp()` 하한을 30px로 높게 잡은 이유는 모바일에서도
+"축소된 본문"이 아니라 "이 페이지의 무게중심"으로 계속 읽히게 하기 위해서다(요청
+§8 "데스크톱 타이포를 비례로 줄이지 말 것"). 두 문장 사이는 `<br>` 하드 브레이크를
+쓴다 — 뷰포트마다 자동으로 다르게 접히면 문장의 리듬이 흔들린다. 각 문장 자체는
+여전히 뷰포트 폭에 따라 자연히 줄바꿈된다(하드 브레이크는 두 문장 "사이"에만
+걸려 있다).
+
+**닫는 문장("결과보다 이유를, 순위보다 왜 팔렸는지를.")은 중심 질문보다 작게 눌러
+뒀다** — 스포트라이트는 하나만 준다는 원칙(요청 §3 "절제된 볼드")을 지킨다. 이
+문장은 `SITE.tagline`("순위 말고, 팔린 이유.")의 확장판이자, `quote.text`가 쓰는
+"A가 아니라 B다" 대구조와 같은 자리(§6 문장 규칙)에서 이 페이지의 "답의 순간"
+역할을 한다.
+
+**기존 사실 관계 문단(선정 기준·데이터 출처·발행 주기)은 문장 하나 안 고쳤다** —
+`.about-mechanics`의 얇은 괘선(`.nav-row`가 이미 쓰는 문법과 같다)으로 WHY ANZINE
+블록과 시각적으로만 분리했다. "저 위는 왜, 이 아래는 어떻게"로 읽힌다.
+
+**About 페이지의 UNEXPECTED — 검토했지만 애초에 없었다.** 2026-08-13 Editorial
+Readability Pass에서 텍스트 검색 + 스크린샷으로 이미 확인한 사실이다(§위 마스트헤드
+겹침 수정 라운드와 같은 날) — `/about/`에는 "UNEXPECTED" 문구가 렌더된 적이 없다.
+그 표현은 홈(`.issue-insight`, 매주 바뀌는 `issue.insight` 값)과 DIY 진 7쪽에만
+있고, 둘 다 이번 요청이 명시적으로 보호한 자리다 — 그래서 이번 라운드에서
+UNEXPECTED 관련해 뺀 것도 바꾼 것도 없다. `test/about.test.mjs`가 이 사실을
+회귀 검사로 고정한다("About 페이지에는 UNEXPECTED가 없다").
+
 ---
 
 ## 8. 진(zine) 전용 장치 — "한 장 요약"(`/YYYY-wNN/print/`)
