@@ -1163,9 +1163,30 @@ body.has-zb { padding-bottom: 0; }
 .zb-wrap-canvas { position: relative; width: 1122px; flex: none; }
 .zb-wrap-canvas--back { left: 0; }
 .zb-wrap-canvas--front { left: -561px; }
+/* ⚠️ 2026-08-13 일곱 번째 라운드 — 사용자가 "적용전에 캡쳐좀"이라고 명시해,
+   커밋 전에 로컬 빌드+스크린샷 3장(현재/앞표지 수정본/뒤표지 수정본)을 보내
+   확인받았다. 사용자 확인: "오케이 적용해봐" — 승인 후 커밋한다.
+   사용자 신고: "zine 표지의 magazine이 잘리는데." 원인 — font-size:262px는
+   2026-08-12 세 번째 라운드에 "ANSWER"(6자)가 1122px 캔버스의 99.6%를 채우도록
+   실측해서 잡은 값이다(design.md "표지" 절). 그 후 열아홉 번째 라운드에서 셋째
+   줄이 "ZINE"(4자)에서 "MAGAZINE"(8자)으로 바뀌면서 이제 MAGAZINE이 세 줄 중
+   가장 긴 단어가 됐는데, font-size는 그대로 262px에 머물러 있었다 — 실측
+   (Playwright, display:inline-block으로 바꿔 콘텐츠 고유 폭만 잰다)하니 MAGAZINE이
+   1334px로 캔버스보다 212px 넓다. text-align:center라 양쪽 끝에서 106px씩
+   균등하게 넘치고, 그 넘친 부분은 두 패널(각자 561px, overflow:hidden)의 바깥
+   경계 밖이라 어느 쪽에도 그려지지 않는다 — 글자가 반으로 쪼개져 나뉘어 보이는
+   게 아니라 완전히 유실된다(design.md의 "이음매 없이 맞아떨어진다"는 전제가
+   깨진 상태).
+   고침: 같은 원칙(가장 긴 줄이 캔버스의 ~99.6%를 채운다)을 지금 가장 긴 단어인
+   MAGAZINE 기준으로 재계산했다. 219px에서 MAGAZINE 고유 폭이 1115px(캔버스의
+   99.4%) — 원래 계수에 가장 가깝고 여유도 조금 남는다(폰트 렌더링 환경차 대비,
+   font-stretch:condensed가 없는 이 세션 환경 기준 측정이라 실제 사용자 환경
+   중 조건부로 더 좁게 나오는 쪽만 있고 더 넓게 나오는 경우는 없다). THE·ANSWER는
+   전용 스타일이 없어 같은 클래스를 공유하므로 함께 작아진다 — 세 줄이 계속 같은
+   크기를 유지해야 한다는 기존 설계 원칙과 일치한다. */
 .zb-wrap-word {
   display: block; font-family: var(--sans); font-weight: 900; font-stretch: condensed;
-  font-size: 262px; line-height: .76; letter-spacing: -.03em; white-space: nowrap; text-align: center;
+  font-size: 219px; line-height: .76; letter-spacing: -.03em; white-space: nowrap; text-align: center;
 }
 /* 2026-08-12 열아홉 번째 라운드 — "ANZINE" 강조(render-zinebook.mjs splitCoverWord()
    참고). 표지는 흰 배경(.zb-panel--cover)이라 인트로(검정 배경, css.mjs INTRO 블록의

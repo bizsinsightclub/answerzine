@@ -252,6 +252,32 @@ if (!chromium) {
       if (clip.length) for (const c of clip) fail("ZINE", `"${c.label}" 콘텐츠가 페이지보다 ${c.over}px 길어 잘린다.`);
       else ok("DIY 진 8쪽 전부 — 콘텐츠가 페이지 안에 들어간다 (overflow:hidden에 잘리지 않음)");
 
+      /* 2026-08-13 — 표지 랩어라운드 캔버스(THE/ANSWER/MAGAZINE) 회귀 검사.
+         render-zinebook.mjs의 문구가 바뀌면(예: MAGAZINE→더 긴 단어) 공유
+         font-size(css.mjs .zb-wrap-word)가 새 최장 단어를 캔버스(1122px) 안에
+         못 담아 양 끝이 통째로 유실되는 사고가 실제로 있었다 — 재발 방지.
+         display:inline-block으로 바꿔 block 스트레치를 없앤 뒤 offsetWidth로
+         고유 폭을 재는 것이 핵심이다(scrollWidth는 이미 박스에 맞춰 클램프돼
+         있어 캔버스보다 좁은 경우를 구분 못 한다). */
+      const wrapOverflow = await page.evaluate(() => {
+        const canvas = document.querySelector('.zb-tile-face[data-zb-page="cover-front"] .zb-wrap-canvas');
+        if (!canvas) return [];
+        const words = [...canvas.querySelectorAll(".zb-wrap-word")];
+        return words
+          .map((w) => {
+            const prevDisplay = w.style.display;
+            w.style.display = "inline-block";
+            const width = w.offsetWidth;
+            w.style.display = prevDisplay;
+            return { text: w.textContent.trim(), width, over: Math.round(width - 1122) };
+          })
+          .filter((r) => r.over > 0);
+      });
+      if (wrapOverflow.length)
+        for (const w of wrapOverflow)
+          fail("ZINE", `표지 랩어라운드 "${w.text}"가 캔버스보다 ${w.over}px 넓어 양 끝이 잘린다 — css.mjs .zb-wrap-word font-size를 줄여라.`);
+      else ok("DIY 진 표지 — THE/ANSWER/MAGAZINE 전부 랩어라운드 캔버스 안에 들어간다 (잘림 없음)");
+
       /* --- 스티커 드래그앤드롭 (2026-08-12 일곱 번째 라운드) ---
          실측으로 찾은 회귀: 스티커를 놓는 순간 컨테이너 쿼리 컨테이너(.zb-tile-face)에
          자식이 추가되면서, 그 직후 발생하는 합성 click 이벤트의 e.target이 타일이
