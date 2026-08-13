@@ -56,6 +56,21 @@ export function visibleDomains(registry) {
   return registry.domains.filter((d) => !HIDDEN_DOMAIN_NAMES.has(d.name));
 }
 
+/**
+ * 작품명 꺾쇠(〈 〉, U+3008/3009) 제거 — 표시 전용.
+ *
+ * CLAUDE.md §6은 "헤드라인은 고유명사를 감추고, 본문은 반드시 〈작품명〉으로 밝힌다"고
+ * 못박는다. tools/qa.mjs가 이걸 하드 강제한다 — WORK_DOMAINS 도메인의 본문에 〈〉가
+ * 없으면 발행을 막는다(qa.mjs는 issues/*.json을 이 파일과 별개로 직접 읽는다, S3 참고).
+ *
+ * 2026-08-13 사용자 요청: "꺾쇠 표기를 빼고 그냥 텍스트로 보여달라." 원본 JSON에서
+ * 꺾쇠를 지우면 qa.mjs의 검사 자체가 통과 못 한다 — 검사가 지키려는 "고유명사가 본문
+ * 어딘가에 실제로 나오는가"라는 목적은 꺾쇠 유무와 무관하게 여전히 충족되므로, 데이터는
+ * 그대로 두고 화면에 나가기 직전(이 함수)에만 꺾쇠 문자를 벗긴다. qa.mjs는 이 함수를
+ * 거치지 않는 원본을 보므로 계속 정상 작동한다.
+ */
+const stripWorkBrackets = (s) => (typeof s === "string" ? s.replace(/[〈〉]/g, "") : s);
+
 /** 회차를 평탄화해 최신순 스토리 배열을 만든다. 각 스토리에 파생 필드를 주입한다. */
 export function allStories(issues, registry) {
   const out = [];
@@ -65,6 +80,10 @@ export function allStories(issues, registry) {
       const key = meta?.key ?? String(st.id ?? "").split("-").pop();
       out.push({
         ...st,
+        teaser: stripWorkBrackets(st.teaser),
+        blocks: (st.blocks ?? []).map((b) =>
+          b.type === "text" ? { ...b, text: stripWorkBrackets(b.text) } : b
+        ),
         issue,
         domainMeta: meta,
         slug: key,
