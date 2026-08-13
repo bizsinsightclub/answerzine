@@ -597,9 +597,21 @@ const COMPONENTS = `
    결과 카드 4개 중 3개(MOVIES·MUSIC·YOUTUBE)는 간격이 완전히 0으로 붙고,
    헤드라인이 가장 긴 BOOKS만 카드 자체가 커서 약간의 간격(~20px)이 남는다 —
    카드 높이는 헤드라인 줄 수가 정하므로 완전한 균일함은 이 구조상 못 만든다.
-   커진 글자에 맞춰 라벨 폭도 92→116px로 넓혔다. */
+   커진 글자에 맞춰 라벨 폭도 92→116px로 넓혔다.
+   2026-08-13 — 사용자가 모바일 뷰에서 다시 "문자간격을 좁혀 달라"고 요청. 실측
+   (Playwright, getBoundingClientRect)해 보니 6·7자 단어(MOVIES·YOUTUBE)는 이미
+   간격 0으로 붙어 있었고, 5자 단어(MUSIC·BOOKS)만 카드 높이에 따라 10~20px
+   간격이 남아 있었다 — 카드마다 헤드라인 줄 수가 달라 높이가 다르고, 짧은
+   단어일수록 space-between이 남기는 빈 칸이 커지는 구조는 열두 번째 라운드와
+   같다. 그때와 같은 레버(자간 자체가 아니라 글자 한 칸의 세로 높이)를 다시
+   당긴다 — line-height 1.4→1.6으로, BOOKS(가장 큰 잔여 간격 20px)까지 완전히
+   붙는 값을 실측으로 역산했다(필요 line-height ≈ 1.576, 여유를 둬 1.6). MOVIES·
+   YOUTUBE처럼 이미 붙어 있던 단어는 카드 폭 안에서 처리되는 아주 약간의 초과분이
+   조금 더 늘 뿐이다 — .category-card의 overflow: hidden(열일곱 번째 라운드)이
+   카드 경계 밖으로 새는 것만 막고, 카드 안에서는 그대로 "살짝 넘치는 느낌"으로
+   남는다(의도된 동작, 위 열한 번째 라운드 주석 참고). */
 @media (max-width: 640px) {
-  .category-card-tag { width: 116px; font-size: 92px; line-height: 1.4; }
+  .category-card-tag { width: 116px; font-size: 92px; line-height: 1.6; }
 }
 /* 2026-08-11 네 번째 라운드: PC 기준 40~48px 범위로 조정. 다섯 번째 라운드에서
    범위를 없애고 40px 고정값으로 좁혔다(사용자 요청 — "정확히 40pt"). 모바일에서도
