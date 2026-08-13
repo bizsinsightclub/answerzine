@@ -6,15 +6,39 @@ import { loadRegistry } from "../build/lib/data.mjs";
 const css = stylesheet(loadRegistry(".").domains);
 
 test("로드하지 않은 폰트 웨이트를 참조하지 않는다 — §9.8", () => {
+  // @font-face 안의 "font-weight: 100 900"은 배리어블 폰트가 지원하는 범위
+  // 선언이지 실제로 쓰는 웨이트 목록이 아니다 — 스캔에서 제외한다(2026-08-13).
+  const withoutFontFace = css.replace(/@font-face\s*\{[^}]*\}/g, "");
   const allowed = new Set(["400", "700", "900"]);
-  const used = [...css.matchAll(/font-weight:\s*(\d{3})/g)].map((m) => m[1]);
+  const used = [...withoutFontFace.matchAll(/font-weight:\s*(\d{3})/g)].map((m) => m[1]);
   const bad = [...new Set(used)].filter((w) => !allowed.has(w));
   assert.deepEqual(bad, [], `로드하지 않은 웨이트 참조: ${bad.join(", ")}`);
 });
 
-test("@font-face를 쓰지 않는다 — 2026-08-10부터 시스템 헬베티카 스택뿐이다", () => {
-  assert.equal((css.match(/@font-face/g) ?? []).length, 0);
-  assert.ok(css.includes("Helvetica"), "--sans/--serif가 헬베티카 스택을 가리켜야 한다");
+test("SUIT @font-face가 정확히 1개다 — 2026-08-13부터 한글 폴백이 SUIT이다", () => {
+  // 2026-08-10~2026-08-13까지는 "@font-face를 쓰지 않는다"였다(시스템 헬베티카
+  // 스택뿐). 사용자가 "SUIT 웹폰트를 실제로 로드하라"고 명시적으로 요청해
+  // 되돌렸다 — CLAUDE.md §9 4번·design.md §3 참고. 여기서는 정확히 SUIT
+  // 하나만 늘었는지(다른 폰트가 몰래 딸려오지 않는지) 지킨다 — "0개"였던
+  // 예전 불변식의 정신(무분별한 폰트 추가 방지)은 "정확히 1개, 그것도
+  // SUIT" 형태로 이어진다.
+  const faces = css.match(/@font-face/g) ?? [];
+  assert.equal(faces.length, 1, `@font-face 개수가 1이 아니다: ${faces.length}`);
+  assert.match(css, /font-family:\s*'SUIT Variable'/, "SUIT Variable을 선언해야 한다");
+  assert.match(css, /font-weight:\s*100 900/, "배리어블 폰트는 전 웨이트(100~900)를 커버해야 한다");
+  assert.match(css, /font-display:\s*swap/, "font-display: swap이 없으면 폰트 로딩 중 텍스트가 안 보일 수 있다(FOIT)");
+});
+
+test("--sans/--serif가 Helvetica Neue를 먼저, SUIT을 그다음에 둔다", () => {
+  // 라틴은 Helvetica Neue, 한글은 그 폰트에 글리프가 없어 자동으로 SUIT으로
+  // 넘어간다 — 순서가 바뀌면 한글에 라틴 폰트가, 또는 라틴에 SUIT이 먼저
+  // 걸릴 수 있다.
+  const stack = css.match(/--sans:\s*([^;]+);/)?.[1] ?? "";
+  const heIdx = stack.indexOf("Helvetica Neue");
+  const suitIdx = stack.indexOf("SUIT Variable");
+  assert.ok(heIdx >= 0, "--sans에 Helvetica Neue가 있어야 한다");
+  assert.ok(suitIdx >= 0, "--sans에 SUIT Variable이 있어야 한다");
+  assert.ok(heIdx < suitIdx, "Helvetica Neue가 SUIT Variable보다 먼저 와야 한다");
 });
 
 test("자간 하한 -0.04em을 넘지 않는다", () => {

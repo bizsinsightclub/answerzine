@@ -13,15 +13,44 @@
  */
 import { themeCSS, domainCSS } from "./theme.mjs";
 
-/* 라틴 글자는 Helvetica Neue/Helvetica/Arial에서, 한글은 그 폰트들에 글리프가 없어
-   자동으로 다음 순번(Apple SD Gothic Neo·맑은 고딕)으로 넘어간다 — 둘 다 헬베티카와
-   같은 계열의 중립 그로테스크라 톤이 크게 안 어긋난다. */
-const HELVETICA = `-apple-system, "Helvetica Neue", Helvetica, Arial, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif`;
+/* 2026-08-13 스물여덟 번째 라운드 — 한글 폴백을 시스템 고딕(Apple SD Gothic Neo·맑은
+   고딕)에서 SUIT으로 바꿨다. CLAUDE.md §9 "되돌리면 안 되는 것" 4번("@font-face를
+   CSS에 다시 넣지 말 것 — 2026-08-10부터 시스템 헬베티카 스택뿐이다")을 뒤집는
+   변경이다 — 사용자가 이번에 "SUIT 웹폰트를 실제로 로드하라"고 명시적으로 요청해
+   되돌렸다. CLAUDE.md §9·design.md §3에 날짜와 함께 기록해 뒀다.
+   라틴 글자는 여전히 Helvetica Neue/Helvetica/Arial에서 먼저 골라진다 — 그 폰트들에
+   한글 글리프가 없어서 자동으로 다음 순번(SUIT Variable)으로 넘어간다. SUIT도
+   라틴 글리프를 갖고 있지만 순서상 안 쓰인다 — 이 폴백 매커니즘 자체는 기존과
+   같다(글리프 존재 여부로 자동 전환), 순번에 SUIT 한 단계가 늘었을 뿐이다. */
+const SANS_STACK = `-apple-system, "Helvetica Neue", Helvetica, Arial, "SUIT Variable", SUIT, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif`;
+
+/* SUIT 배리어블 폰트 — sunn-us/SUIT 공식 저장소가 README에서 권장하는 CDN 스니펫
+   그대로다(자체 호스팅 대신 jsdelivr GitHub CDN 경유). 배리어블 폰트 하나가
+   100~900 전 웨이트를 커버해서, 이 사이트가 실제로 쓰는 400/700/900(§design.md §3)에
+   각각 별도 파일이 필요 없다. font-display: swap — 폰트가 늦게 도착하거나 실패해도
+   본문은 이미 폴백(Apple SD Gothic Neo 등)으로 보이고 있어 텍스트가 안 보이는 구간이
+   없다(FOIT 방지).
+   ⚠️ 이 세션은 egress가 전면 차단돼(kobis.or.kr·google.com까지 EGRESS_BLOCKED,
+   CLAUDE.md 참고) 이 URL이 실제로 살아 있는지 이 세션에서 직접 열어 확인하지
+   못했다 — 두 사고("출처를 열지 않은 것")의 재발을 막기 위해 이 사실을 그대로
+   남긴다. 실제 검증은 GitHub Actions CI(실 네트워크가 있다)의 브라우저 콘솔
+   검사(build/verify.mjs)가 한다 — 로컬에서는 같은 검사가 이 세션의 네트워크
+   차단 때문에 requestfailed로 실패할 수 있다(font URL이 잘못된 게 아니라
+   이 세션이 못 나가는 것). CI가 그린이면 실제로 뜬 것이다. */
+const FONT_FACE = `
+@font-face {
+  font-family: 'SUIT Variable';
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('https://cdn.jsdelivr.net/gh/sunn-us/SUIT@2/fonts/variable/woff2/SUIT-Variable.woff2') format('woff2-variations');
+}`;
 
 const BASE = `
+${FONT_FACE}
+
 :root {
-  --sans: ${HELVETICA};
-  --serif: ${HELVETICA};
+  --sans: ${SANS_STACK};
+  --serif: ${SANS_STACK};
   --measure: 68ch;
   --shell: 1240px;
   --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px; --s5: 24px;

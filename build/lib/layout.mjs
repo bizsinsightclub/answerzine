@@ -124,6 +124,10 @@ export function page({ title, description, url, content, noindex = false, bodyCl
 ${noindex ? '<meta name="robots" content="noindex">' : ""}
 <link rel="canonical" href="${escapeHTML(canonical)}">
 <link rel="icon" href="${u("/assets/img/favicon.svg")}" type="image/svg+xml">
+<!-- 2026-08-13 스물여덟 번째 라운드 — SUIT 배리어블 폰트(css.mjs FONT_FACE)가
+     jsdelivr CDN에서 온다. preconnect로 DNS·TLS 핸드셰이크를 미리 끝내 둔다 —
+     crossorigin이 있어야 폰트처럼 CORS 모드로 요청되는 리소스에 실제로 적용된다. -->
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="${escapeHTML(SITE.name)}">
 <meta property="og:title" content="${escapeHTML(title)}">
