@@ -139,11 +139,19 @@
 
 | 출처명 | 목적 | 공식 URL | 필요 데이터 | 검증 상태 | 비고 |
 |---|---|---|---|---|---|
-| KOBIC | 도서 1차 출처 | https://www.kobic.net | 출판 통계·서지 정보 | ✅ 등록됨(`primary`) | 2026-08-07 사용자 제공 Whitelist.xlsx로 등록. `tools/collect.mjs` 어댑터·`registry.json` `book.primarySources`엔 아직 없음(수동 조회만 가능) |
-| Circle Chart | 음악 1차 출처 | https://circlechart.kr | 국내 통합 음원·음반 집계 | ✅ 등록됨(`primary`), 실사용 중 | `registry.json` `music.primarySources`에 있고 `tools/collect.mjs`에 Playwright 어댑터도 있다 — 완전히 통합됨 |
-| Spotify Charts | 음악 보조 출처(해외) | https://charts.spotify.com | 글로벌/국가별 스트리밍 차트 | ✅ 등록됨(`primary`, market: OVERSEAS) | 국내 서사에 못 씀(§2 규칙) — 보조 비교용으로만 |
-| YouTube Data API | 유튜브 1차 출처 | https://developers.google.com/youtube/v3 | 조회수·좋아요·구독자 등 공식 API 지표 | ✅ 등록됨(`primary`) | 2026-08-07 사용자 제공 Whitelist.xlsx로 등록. API 키·코드 필요해 자동 어댑터 없음(사람이 콘솔에서 수동 조회). 조회수는 `evidence_only`와 동급 취급 — "샀다"의 증거 아님 |
-| **YouTube Music Charts** | 유튜브/음악 보조 출처 | https://charts.youtube.com | 인기곡·뮤직비디오 순위, 주간/일간 차트 변동 | ⏳ **PENDING / EGRESS_BLOCKED** | 아래 참고 |
+| KOBIC | 도서 보조 출처 | https://www.kobic.net | 출판 통계·서지 정보 | ✅ 등록됨(`primary` tier), **의도적으로 도메인 1차로는 안 씀** | 2026-08-07 사용자 제공 Whitelist.xlsx로 등록. `book.md` §2.5에서 이유 확정(2026-08-13) — 데이터 범위가 "베스트셀러 순위"가 아니라 "출판 통계"라 이 도메인 용도와 안 맞고, 실제 페이지도 아직 못 열어봤다. `registry.json` `book.primarySources`에 추가하지 않기로 결정 |
+| Circle Chart | 음악 1차 출처 | https://circlechart.kr | 국내 통합 음원·음반 집계 | ✅ 등록됨(`primary`), **코드는 완성, 실수집은 0회** | `registry.json` `music.primarySources`에 있고 `tools/collect.mjs`에 Playwright 어댑터도 있다 — 그러나 `runs/raw/`에 `circlechart.json`이 한 번도 생성된 적 없다(egress 차단, KOBIS도 같은 세션에서 동일하게 막힘). `music.md` §2·§2.5에서 사용 규칙 확정(2026-08-13) — 문서(구 "보조")·registry(primary)가 어긋나 있던 걸 문서를 registry에 맞춰 바로잡았다 |
+| Spotify Charts | 음악 보조 출처(해외) | https://charts.spotify.com | 글로벌/국가별 스트리밍 차트 | ✅ 등록됨(`primary`, market: OVERSEAS) | 국내 서사에 못 씀(`market-scope.md` §6). `music.md`에 전용 절 신설해 역할 확정(2026-08-13) — 스트림을 매출로 임의 환산 금지 포함. 수집기는 아직 없음 |
+| YouTube Data API | 유튜브 계기 측 보조 출처 | https://developers.google.com/youtube/v3 | 조회수·좋아요·구독자 등 공식 API 지표 | ✅ 등록됨(`primary`) | 2026-08-07 사용자 제공 Whitelist.xlsx로 등록. API 키·코드 필요해 자동 어댑터 없음(사람이 콘솔에서 수동 조회). 조회수는 `evidence_only`와 동급 취급 — "샀다"의 증거 아님. `youtube.md`에서 trend·추정 매출 금지 명시(2026-08-13) |
+| **YouTube Music Charts** | 유튜브/음악 보조 출처 | https://charts.youtube.com | 인기곡·뮤직비디오 순위, 주간/일간 차트 변동 | ⏳ **PENDING / EGRESS_BLOCKED** | 아래 참고 — 이번 라운드에서도 상태 변화 없음 |
+
+> **2026-08-13 후속 — 소스 역할(role) 정의 확정.** 위 표는 "화이트리스트에 등록됐는가"만
+> 판정한다. **"등록됨"이 "그 도메인에서 실제로 쓸 수 있게 준비됐다"는 뜻은 아니다** —
+> az-verify 감사에서 Circle Chart·KOBIC이 정확히 이 차이로 문서·registry가 어긋나 있었다.
+> 각 소스의 실제 사용 규칙(언제 `sourceUrl`로 쓰는지, 언제 `trend`로 쓰는지, 수집기
+> 유무)은 이제 해당 도메인 문서(`domains/music.md` §2·§2.5, `domains/book.md` §2.5,
+> `domains/youtube.md` YouTube Data API 절)에 있다 — 이 표를 보충 설명 없이 "primary니까
+> 바로 쓸 수 있다"로 읽지 않는다.
 
 ### YouTube Music Charts — 미등록 사유와 재개 절차
 
