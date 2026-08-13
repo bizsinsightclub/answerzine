@@ -23,6 +23,13 @@
  * "ANZINE"은 인트로 애니메이션·DIY 진 표지가 이미 쓰는 브랜드 축약형(SITE.name
  * "ANSWER ZINE" 자체는 안 바뀐다, layout.mjs intro() 참고)과 같은 문법을 여기서도
  * 쓴다. SITE.name을 더는 안 써서 import도 뺐다.
+ *
+ * 2026-08-13 — 바이라인을 티저 아래(헤드라인/티저와 스탯 패널 사이 구분선 역할)에서
+ * 헤드라인과 같은 줄 우측으로 옮겼다(사용자가 첨부한 전/후 스크린샷). `.story-title-row`
+ * (헤드라인 + 바이라인 flex 행)로 묶었다 — 헤드라인이 늘어나는 칸, 바이라인은
+ * `margin-left:auto`로 항상 오른쪽에 붙는다(줄바꿈되어도 유지). 옛 위치의
+ * border-bottom(섹션 구분선 역할)은 이 이동으로 없어졌다 — "To Be" 스크린샷에도
+ * 그 구분선이 없다.
  */
 import { h, raw, escapeHTML } from "./html.mjs";
 import { u } from "./site.mjs";
@@ -136,9 +143,11 @@ export function renderStory(story, { prev, next } = {}) {
     <header class="story-head" data-reveal>
       <p class="meta"><span class="domain-tag">${story.domain}</span> · ${story.range}${story.draft ? raw(' <span class="draft-flag">작업 중</span>') : ""}</p>
       ${story.kicker ? raw(h`<p class="kicker">${story.kicker}</p>`) : ""}
-      <h1 class="story-headline">${story.headline}</h1>
+      <div class="story-title-row">
+        <h1 class="story-headline">${story.headline}</h1>
+        <p class="byline">- BY ANZINE</p>
+      </div>
       <p class="teaser">${story.teaser}</p>
-      <p class="byline">- BY ANZINE</p>
     </header>
 
     <div class="story-grid">

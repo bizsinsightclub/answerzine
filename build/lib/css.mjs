@@ -132,6 +132,20 @@ h1, .story-headline {
   font-weight: 900; font-size: clamp(36px, 5.8vw, 58px);
   line-height: 1.06; letter-spacing: -.035em; margin: 0 0 var(--s4);
 }
+/* 2026-08-13 — 헤드라인 + 바이라인을 한 행에 둔다(사용자가 첨부한 전/후 스크린샷).
+   헤드라인이 남는 폭을 다 차지하고(flex:1 1 auto, min-width:0으로 필요하면 줄어들
+   수 있게 — 헤드라인 폭 채우기 때 겪은 flex 기본 min-width:auto 오버플로 버그와
+   같은 종류라 미리 막는다), 바이라인은 margin-left:auto로 항상 오른쪽에 붙는다 —
+   줄바꿈돼 자기 줄로 내려가도 오른쪽 정렬이 유지된다. 이 행 안에서는 각 자식의
+   개별 margin-bottom을 0으로 두고 행 자체에 옛 h1의 margin-bottom(var(--s4))을
+   준다 — 안 그러면 flex row에서 h1의 margin-bottom이 행 높이에 끼어들어 바이라인과
+   베이스라인이 어긋난다. */
+.story-title-row {
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 var(--s4);
+  margin: 0 0 var(--s4);
+}
+.story-title-row .story-headline { flex: 1 1 auto; min-width: 0; margin: 0; }
+.story-title-row .byline { flex: 0 0 auto; margin: 0 0 0 auto; }
 h2 { font-weight: 900; font-size: clamp(27px, 3.8vw, 38px); line-height: 1.1; letter-spacing: -.03em; margin: 0 0 var(--s3); }
 h3 { font-weight: 900; font-size: 22px; line-height: 1.15; letter-spacing: -.025em; margin: 0 0 var(--s2); }
 
@@ -141,15 +155,16 @@ h3 { font-weight: 900; font-size: 22px; line-height: 1.15; letter-spacing: -.025
   max-width: var(--measure);
 }
 
-/* "- BY ANZINE" — 인쇄 진의 킥커류와 같은 문법이다. 2026-08-10 개편: 헤드라인/티저와
-   스탯 패널 사이의 경계선 역할도 겸한다(border-bottom).
-   2026-08-12 스물두 번째 라운드 — 사용자가 첨부한 스크린샷대로 우측 정렬했다.
-   문구도 "BY ANSWER ZINE · {도메인} 데이터 기반"에서 "- BY ANZINE"으로 줄었다
-   (render-story.mjs 주석 참고) — 도메인은 바로 위 .meta에 이미 있어 중복이었다. */
+/* "- BY ANZINE" — 인쇄 진의 킥커류와 같은 문법이다.
+   2026-08-10 개편~2026-08-13 이전엔 티저 아래 자기 줄에서 헤드라인/티저와 스탯 패널
+   사이의 경계선 역할(border-bottom)을 겸했다. 2026-08-13 — 헤드라인과 같은 줄
+   우측으로 옮기면서 그 구분선 역할은 없앴다(위 .story-title-row 참고, 사용자가
+   첨부한 전/후 스크린샷에도 그 선이 없다). 문구도 "BY ANSWER ZINE · {도메인} 데이터
+   기반"에서 "- BY ANZINE"으로 줄었다(render-story.mjs 주석 참고) — 도메인은 바로 위
+   .meta에 이미 있어 중복이었다. */
 .byline {
   font-family: var(--sans); font-size: 12px; font-weight: 700; letter-spacing: .1em;
-  text-transform: uppercase; color: var(--secondary); margin: 0 0 var(--s6);
-  padding-bottom: var(--s4); border-bottom: 1px solid var(--divider); text-align: right;
+  text-transform: uppercase; color: var(--secondary); white-space: nowrap;
 }
 
 .story-body p { margin: 0 0 var(--s5); max-width: var(--measure); }
