@@ -159,7 +159,11 @@ test("카테고리 카드는 배경을 풀블리드한다 — §2 불변식 3번
 });
 
 test("카테고리 카드는 좌측 정렬이다 — 2026-08-12 사용자 요청(가운데·양쪽 정렬 금지)", () => {
-  const base = css.match(/\.category-card\s*\{([^}]*)\}/);
-  assert.match(base[1], /align-items:\s*flex-start/);
-  assert.match(base[1], /text-align:\s*left/);
+  // 2026-08-13 — 사진 호버 리빌 기능으로 flex 배치·정렬이 .category-card에서
+  // .category-card-cover(커버 레이어)로 옮겨갔다(render-index.mjs 주석 참고).
+  // 정렬 자체(좌측)는 안 바뀌었다 — 어느 규칙이 갖고 있는지만 바뀌었다.
+  const cover = css.match(/\.category-card-cover\s*\{([^}]*)\}/);
+  assert.ok(cover, ".category-card-cover 규칙이 있어야 한다");
+  assert.match(cover[1], /align-items:\s*flex-start/);
+  assert.match(cover[1], /text-align:\s*left/);
 });

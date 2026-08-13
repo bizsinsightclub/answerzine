@@ -84,13 +84,30 @@ const emptyCard = (d) => h`<div class="category-card is-empty">
   <p class="category-card-status">아직 신호가 없다.</p>
 </div>`;
 
-const card = (d, s) => h`<a class="category-card${d.cardColor ? "" : " is-dark"}" data-reveal href="${u(s.url)}" style="${raw(cardPalette(d))}">
-  <span class="category-card-tag" aria-hidden="true" style="color:${cardAccent(d)}">${verticalLabel(cardLabel(d))}</span>
-  <span class="sr-only">${cardLabel(d)}</span>
-  ${s.draft ? raw('<span class="draft-flag">작업 중</span>') : ""}
-  <h2 class="category-card-headline">${s.headlineLines ? multiline(s.headlineLines) : s.headline}</h2>
-  <p class="category-card-teaser">${s.teaser}</p>
-  <span class="category-card-date">최신 · ${s.range}</span>
+/**
+ * 카드 호버 — 커버가 우상단→좌하단으로 벗겨지며 뒤의 사진(흑백)이 드러난다.
+ * (2026-08-13 사용자가 첨부한 4장의 참고 이미지 + 요청.)
+ *
+ * `story.image`가 있는 카드만 이 효과를 쓴다(`.has-photo` 수식자) — 없는 카드는
+ * 예전처럼 헤드라인 밑줄 호버로 남는다(css.mjs `.category-card:hover
+ * .category-card-headline`, 안 건드렸다). 사진 레이어(`.category-card-photo`)는
+ * 카드 뒤에 절대 위치로 깔리고, 기존에 `.category-card` 자신이 하던 배경색·
+ * 패딩·flex 배치 역할은 전부 새 `.category-card-cover`로 옮겼다 — 커버 하나만
+ * 독립적으로 clip-path를 걸어 벗겨낼 수 있어야 하기 때문이다. 커버는 여전히
+ * 일반 흐름(in-flow)에 있어 카드 높이를 그 내용(헤드라인 줄 수 등)에 맞춰
+ * 그대로 키운다 — absolute로 바꾸면 카드가 min-height에 고정돼 긴 헤드라인이
+ * 잘리는 회귀가 생긴다(직접 실측으로 확인하고 피했다).
+ */
+const card = (d, s) => h`<a class="category-card${d.cardColor ? "" : " is-dark"}${s.image ? " has-photo" : ""}" data-reveal href="${u(s.url)}">
+  ${s.image ? raw(h`<img class="category-card-photo" src="${s.image}" alt="" aria-hidden="true" loading="lazy">`) : ""}
+  <div class="category-card-cover" style="${raw(cardPalette(d))}">
+    <span class="category-card-tag" aria-hidden="true" style="color:${cardAccent(d)}">${verticalLabel(cardLabel(d))}</span>
+    <span class="sr-only">${cardLabel(d)}</span>
+    ${s.draft ? raw('<span class="draft-flag">작업 중</span>') : ""}
+    <h2 class="category-card-headline">${s.headlineLines ? multiline(s.headlineLines) : s.headline}</h2>
+    <p class="category-card-teaser">${s.teaser}</p>
+    <span class="category-card-date">최신 · ${s.range}</span>
+  </div>
 </a>`;
 
 /* 참고 이미지의 가로 구분 밴드 — grid-column: 1 / -1로 항상 전체 폭을 차지해,

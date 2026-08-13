@@ -163,6 +163,27 @@ test("onclick을 쓰지 않는다 — 카드는 순수 링크다", () => {
   assert.match(content, /<a class="category-card(?: is-dark)?"/);
 });
 
+/* --- 카드 호버 사진 리빌 — 2026-08-13 사용자 요청(첨부 이미지 4장 + "커버가
+   벗겨지며 흑백 사진이 드러나게"). story.image가 있을 때만 켜진다 — 없는 카드는
+   예전 그대로(밑줄 호버)다. 실제 사진 파일은 이 세션에서 구할 수 없어서(네트워크
+   차단, 첨부 이미지는 파일로 저장되지 않는다) 데이터에는 아직 아무 story.image도
+   없다 — 이 테스트는 메커니즘 자체(마크업 조건부 렌더)만 지킨다. */
+test("story.image가 있으면 has-photo 카드가 되고 사진 레이어가 나온다", () => {
+  const withImage = { ...stories[0], image: "/assets/img/covers/book.jpg" };
+  const { content } = renderIndex([ISSUE], [withImage, ...stories.slice(1)], REG);
+  assert.match(content, /<a class="category-card is-dark has-photo"/);
+  assert.match(content, /<img class="category-card-photo" src="\/assets\/img\/covers\/book\.jpg" alt="" aria-hidden="true" loading="lazy">/);
+  // 헤드라인·티저·라벨은 사진과 무관하게 여전히 커버 안에 그대로 있다.
+  assert.match(content, /class="category-card-cover"/);
+  assert.match(content, /부고 다음날, 서점이 붐볐다\./);
+});
+
+test("story.image가 없으면 has-photo·사진 레이어 둘 다 없다 — 기존 카드 그대로", () => {
+  const { content } = renderIndex([ISSUE], stories, REG);
+  assert.ok(!content.includes("has-photo"), "이미지 없는 카드에 has-photo가 붙었다");
+  assert.ok(!content.includes("category-card-photo"), "이미지 없는 카드에 사진 레이어가 나왔다");
+});
+
 test("우측 세로 도메인 라벨 — 한 글자씩 <span>으로 쌓이고, 실제 라벨은 sr-only로 낸다 — 2026-08-12 사용자 요청(참고 스크린샷)", () => {
   const withCardColor = { domains: REG.domains.map((d) => ({ ...d, cardColor: "#F890CD", nameCard: "MOVIES" })) };
   const { content } = renderIndex([ISSUE], stories, withCardColor);

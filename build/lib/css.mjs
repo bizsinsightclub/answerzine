@@ -408,11 +408,42 @@ const COMPONENTS = `
    헤드라인·티저 텍스트가 라벨과 안 겹치게 했었다 — 열 번째 라운드에서 라벨이
    배경으로 물러나면서(아래 주석) 더는 자리를 비워둘 필요가 없어져, 좌우 대칭
    24px로 되돌렸다. */
+/* 2026-08-13 — 사용자가 첨부한 4장의 참고 이미지 + 요청: 호버하면 커버가 우상단→
+   좌하단으로 벗겨지며 뒤의 사진이 드러나게 해 달라. 그러려면 배경색·패딩·flex
+   배치를 카드(.category-card, <a>) 자신에서 새 .category-card-cover로 옮겨야
+   한다 — 커버 하나만 독립적으로 clip-path를 걸 대상이 필요해서다. .category-card
+   자신은 이제 사진·커버 두 레이어를 겹쳐 쌓는 순수 포지셔닝 컨테이너다. */
 .category-card {
-  position: relative; z-index: 0; overflow: hidden; display: flex; flex-direction: column;
-  align-items: flex-start; justify-content: center; text-align: left;
-  min-height: 420px; padding: var(--s7) 24px var(--s5) 24px; text-decoration: none;
-  color: var(--ink);
+  position: relative; z-index: 0; overflow: hidden; display: block;
+  text-decoration: none; color: var(--ink);
+}
+.category-card-photo {
+  position: absolute; inset: 0; z-index: -1; width: 100%; height: 100%;
+  object-fit: cover; filter: grayscale(1);
+}
+/* 이전엔 이 배치(flex 세로 배치·패딩·최소 높이)가 .category-card 자신에게 있었다.
+   커버를 in-flow로 둔다 — position:absolute로 바꾸면 카드가 min-height에 고정돼
+   버려서 긴 헤드라인이 카드 밖으로 잘리는 회귀가 생긴다(실측으로 확인하고 피했다).
+   카드(.category-card)의 실제 높이는 여전히 이 커버의 내용이 정한다 — 사진 레이어는
+   absolute라 그 결과 높이에 맞춰 뒤에서 조용히 따라간다. */
+/* position:relative + 명시적 z-index로 이 커버 전체가 사진 레이어(z-index:-1) 위에
+   확실히 쌓이는 스태킹 컨텍스트를 새로 연다 — 안 그러면 커버 안의 .category-card-tag
+   (z-index:-1, 커버 내부용) 값이 바깥 .category-card 컨텍스트로 새어나가 사진과
+   순서가 뒤섞일 수 있다. */
+.category-card-cover {
+  position: relative; z-index: 0;
+  display: flex; flex-direction: column; align-items: flex-start; justify-content: center;
+  text-align: left; min-height: 420px; padding: var(--s7) 24px var(--s5) 24px;
+  clip-path: inset(0% 0% 0% 0%);
+  transition: clip-path .6s cubic-bezier(.4, 0, .2, 1);
+}
+/* clip-path: inset(top right bottom left). top·right를 함께 0→100%로 키우면
+   남는(안 잘리는) 영역이 항상 "왼쪽 아래 모서리에 붙은 직사각형"이 된다 — 그
+   직사각형은 우상단부터 좌상단·우측 순으로 먼저 깎여 나가고, 좌하단 모서리
+   한 점에서 마지막으로 사라진다. 우상단에서 시작해 좌하단으로 벗겨지는 방향을
+   대각선 삼각함수 없이 두 인셋 값만으로 만든다(직접 좌표로 검증한 결과). */
+.category-card.has-photo:hover .category-card-cover {
+  clip-path: inset(100% 100% 0% 0%);
 }
 /* 2026-08-12 열일곱 번째 라운드 — 사용자 신고: "youtube 도 4개 박스에서 여전히
    잘려서 보임." 배경 라벨(.category-card-tag)이 justify-content:space-between으로
@@ -430,8 +461,10 @@ const COMPONENTS = `
 .category-card.is-dark { color: #fff; }
 .category-card.is-dark .draft-flag { border-color: rgba(255,255,255,.6); color: #fff; }
 /* draft 배지가 세로 라벨 옆(우측 상단 절대 위치)이 아니라 헤드라인 위 흐름으로
-   옮겨갔다(2026-08-12 여덟 번째 라운드 — 세로 라벨이 그 자리를 차지하면서). */
-.category-card > .draft-flag { margin-bottom: var(--s3); }
+   옮겨갔다(2026-08-12 여덟 번째 라운드 — 세로 라벨이 그 자리를 차지하면서).
+   2026-08-13 — draft-flag가 새 .category-card-cover 안으로 한 단계 더 들어가면서
+   > 직계 선택자를 그 자리로 옮겼다(안 옮기면 이 규칙이 더는 안 걸린다). */
+.category-card-cover > .draft-flag { margin-bottom: var(--s3); }
 .category-card:hover .category-card-headline { text-decoration: underline; text-underline-offset: 4px; }
 
 /* 빈 카드(스토리 없음, is-empty) 전용 — 색이 없는 무채색 표면이라 세로 라벨(아래)의
@@ -536,8 +569,12 @@ const COMPONENTS = `
 }
 /* 그 도메인에 아직 통과분이 없을 때 — 근거(스토리)가 없는데 색만 칠하면
    "발행됐다"는 인상을 준다. 색을 비우고 표면 취급(§1 "카드는 배경색이 아니라 1px
-   테두리로만 구분")으로 되돌아간다. */
+   테두리로만 구분")으로 되돌아간다. emptyCard()는 .category-card-cover 래퍼가
+   없는 옛 평면 구조를 그대로 쓴다(사진으로 벗겨낼 것 자체가 없다) — 2026-08-13에
+   실제 카드로 옮겨간 flex 배치·패딩·최소 높이를 여기 다시 채워 넣는다. */
 .category-card.is-empty {
+  display: flex; flex-direction: column; align-items: flex-start; justify-content: center;
+  text-align: left; min-height: 420px; padding: var(--s7) 24px var(--s5) 24px;
   background: var(--surface); color: var(--secondary);
   outline: 1px dashed var(--divider); outline-offset: -1px;
 }
