@@ -149,16 +149,20 @@ export function renderStory(story, { prev, next } = {}) {
   const title = story.headline ?? "";
   const description = story.teaser ?? "";
 
-  const body = [texts[0], texts[1], texts[2]]
-    .filter(Boolean)
-    .map((t) => h`<p>${t.text}</p>`)
-    .join("\n");
+  const para = (t) => (t ? h`<div class="story-body" data-reveal><p>${t.text}</p></div>` : "");
 
   const navLink = (s, kind) =>
     s
       ? h`<a href="${u(s.url)}"><div class="nav-label">${kind === "prev" ? "← 이전 회차" : "다음 회차 →"}</div><div class="nav-headline">${s.headline}</div></a>`
       : h`<div class="nav-label" style="opacity:.4">${kind === "prev" ? "← 이전 회차 없음" : "다음 회차 없음 →"}</div>`;
 
+  /* 2026-08-13 "ANZINE — FINAL STORY PAGE CLEANUP" — 하나의 읽기 순서로 재배열.
+     문서 순서 = 읽는 순서: 무슨 일이(text0) → 근거/숫자(stat) → 왜 이례적인가(text2)
+     → 왜 일반적으로 이런 일이(insight) → 답(quote/THE ANSWER) → 마무리(text4) →
+     출처(source). 예전 구조(레일이 본문보다 먼저 나오거나 옆에 붙는 12칼럼 그리드)는
+     "무슨 일인지 읽기도 전에 큰 숫자부터 보인다"는 문제가 있었다 — CSS의 해당 절
+     주석 참고. blocksOf()가 주는 5블록 자체(§3.3)는 안 건드린다, 렌더 순서만
+     바꿨다. */
   const content = h`<main class="shell" style="${raw(dcVar(story))}">
   <a class="back-link" href="${u("/")}">← 목록으로</a>
   <article class="story">
@@ -172,19 +176,13 @@ export function renderStory(story, { prev, next } = {}) {
       <p class="teaser">${story.teaser}</p>
     </header>
 
-    <div class="story-grid">
-      <aside class="story-rail">
+${raw(para(texts[0]))}
 ${raw(statPanel(stat, story))}
-${raw(sourceBox(stat))}
+${raw(para(texts[1]))}
 ${raw(insightNote(quote, story))}
-      </aside>
-      <div class="story-col">
-        <div class="story-body" data-reveal>
-${raw(body)}
-        </div>
 ${raw(pullquote(quote, story))}
-      </div>
-    </div>
+${raw(para(texts[2]))}
+${raw(sourceBox(stat))}
   </article>
 
   <nav class="nav-row">

@@ -678,28 +678,22 @@ const COMPONENTS = `
   to { transform: translateX(-50%); }
 }
 
-/* 2026-08-11 일곱 번째 라운드: 스토리 본문이 넓은 화면에서 왼쪽에만 몰려 있다는
-   지적 — .shell(1240px)은 넓은데 본문·스탯·인사이트가 전부 --measure(68ch)로
-   막혀 왼쪽 절반만 쓰고 있었다. design.md §5.2/5.3이 원래 정의해 둔 "본문 한 칼럼 +
-   근거 레일" 12칼럼 비대칭 그리드를 여기서 실제로 구현한다 — 문서만 있고 코드가
-   없던 스펙이다. 좁은 화면(<1200px)에서는 그냥 위아래로 쌓인다(기존과 동일한
-   시각 순서 — 스탯·출처·인사이트가 본문보다 먼저 나온다). ≥1200px에서만 두 칼럼:
-   본문 1/span 7, 레일 9/span 4(세로 괘선), 레일은 position: sticky로 스크롤에 붙는다. */
-.story-grid { display: block; }
-.story-rail { margin-bottom: var(--s6); }
-@media (min-width: 1200px) {
-  .story-grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: var(--s7); align-items: start; }
-  /* grid-row: 1을 명시하지 않으면 auto-placement 커서가 DOM 순서(레일이 먼저)를
-     따라가다가 본문(1/span 7, 레일보다 앞 칼럼)을 다음 행으로 밀어낸다 — 실측으로
-     발견했다(레일 아래 빈 칸이 본문 위로 그대로 옮겨 붙었었다). 두 칼럼 다 1행에
-     고정해야 나란히 앉는다. */
-  .story-col { grid-column: 1 / span 7; grid-row: 1; min-width: 0; }
-  .story-rail {
-    grid-column: 9 / span 4; grid-row: 1; min-width: 0; margin-bottom: 0;
-    border-left: 1px solid var(--divider); padding-left: var(--s6);
-    position: sticky; top: 96px;
-  }
-}
+/* 2026-08-11 일곱 번째 라운드에 "본문 한 칼럼 + 근거 레일" 12칼럼 비대칭 그리드를
+   붙였었다(≥1200px에서 본문·레일 2단, 좁은 화면에서는 레일이 본문보다 먼저 나오는
+   스택) — design.md §5.2/5.3에 있던 스펙을 그대로 구현한 것이었다.
+   2026-08-13 "ANZINE — FINAL STORY PAGE CLEANUP"에서 이 구조 자체를 걷어냈다.
+   문제: 레일(스탯 카드)이 본문보다 항상 먼저 보였다 — 좁은 화면(<1200px, 이
+   사이트 트래픽의 대다수)에서는 DOM 순서 그대로 먼저 나왔고, ≥1200px에서도
+   시각적 무게(카드 배경·큰 숫자)가 본문보다 눈을 먼저 끌었다. "무슨 일이 있었는지
+   읽기도 전에 큰 숫자부터 본다"는 사용자 지적("sudden number" 문제, §4)이 정확히
+   이 구조를 가리킨다. 이제 모든 요소(본문 세 문단·스탯 카드·출처 박스·인사이트
+   콜아웃·풀쿼트)를 하나의 세로 흐름으로 문서 순서 그대로 낸다 — "무슨 일이 →
+   근거/숫자 → 왜 이례적인가 → 왜 일반적으로 이런 일이 → 답 → 마무리 → 출처"
+   (render-story.mjs의 renderStory() 참고). 두 칼럼·sticky 레일은 이 요구와
+   맞지 않아 뺐다 — 폭이 넓다고 두 줄기로 나뉘어 읽히면 "하나의 읽기 순서"가
+   안 된다. 각 요소는 이미 자기 max-width(var(--measure))·margin-bottom을
+   갖고 있어(.story-body p·.stat-card·.source-box·.insight-note·.pullquote,
+   전부 아래 정의) 래퍼 그리드 없이 쌓기만 해도 폭·간격이 자동으로 맞는다. */
 
 .stat-card {
   background: var(--surface); border: 1px solid var(--divider); border-radius: 16px;

@@ -79,24 +79,25 @@ test("본문 측정은 45~75자 범위 안이다", () => {
   assert.ok(ch >= 45 && ch <= 75, `measure ${ch}ch가 45~75 밖이다`);
 });
 
-// 2026-08-11 일곱 번째 라운드 되돌림: 위 테스트("리드/레일로 쪼개지 않는다")는
-// 2026-08-10 목업 기반 개편 때 명시적으로 세운 규칙이었다. 그런데 사용자가 넓은
-// 화면에서 본문이 왼쪽에만 몰려 있다고 다시 지적했고, design.md §5.2/5.3이 원래
-// 정의해 뒀던 12칼럼 비대칭 그리드(본문 1/span 7 + 근거 레일 9/span 4)를 실제로
-// 구현하는 쪽으로 되돌렸다 — 그 스펙 자체는 이번 세션 초반부터 문서에 있었고 코드만
-// 안 따라갔던 것이다. 아래 테스트가 새 계약이다.
-test("≥1200px에서 본문·근거 레일 12칼럼 그리드로 넓게 쓴다", () => {
-  assert.match(css, /grid-template-columns:\s*repeat\(12,\s*1fr\)/, "12칼럼 그리드가 있어야 한다");
-  assert.match(css, /\.story-col\s*\{[^}]*grid-column:\s*1\s*\/\s*span\s*7/, "본문 칼럼이 1/span 7이어야 한다");
-  assert.match(css, /\.story-rail\s*\{[^}]*grid-column:\s*9\s*\/\s*span\s*4/, "레일이 9/span 4여야 한다");
-  // 레일 컨테이너(.story-rail)는 sticky여도 된다 — 여기서 막는 건 개별 .stat-card가
-  // 다시 자체적으로 sticky 레일이 되는 옛 패턴이다.
-  assert.ok(!/\.stat-card[^{]*\{[^}]*position:\s*sticky/.test(css), "스탯 카드 자체가 sticky면 안 된다");
+// 2026-08-11 일곱 번째 라운드에 본문 1/span7 + 근거 레일 9/span4의 12칼럼 그리드를
+// 붙였었다. 2026-08-13 "ANZINE — FINAL STORY PAGE CLEANUP"에서 이 구조를 없앴다 —
+// 레일이 본문보다 먼저(또는 옆에서 시각적으로 먼저) 보이는 게 "무슨 일인지 읽기도
+// 전에 큰 숫자부터 본다"는 문제였다. 이제 모든 요소가 하나의 세로 흐름이다 — 화면
+// 폭과 무관하게 항상 같은 순서로 읽힌다(design.md §5.3).
+test("스토리 페이지에 더 이상 본문/레일 2단 그리드가 없다 — 한 칼럼 세로 흐름이다", () => {
+  assert.ok(!/\.story-grid/.test(css), ".story-grid가 남아 있으면 안 된다");
+  assert.ok(!/\.story-rail/.test(css), ".story-rail이 남아 있으면 안 된다");
+  assert.ok(!/\.story-col\b/.test(css), ".story-col이 남아 있으면 안 된다");
+  // 레일이 없으니 sticky로 붙일 대상 자체가 없다 — 스탯 카드가 다시 자체적으로
+  // sticky 레일이 되는 옛 패턴도 함께 막는다.
+  assert.ok(!/\.stat-card[^{]*\{[^}]*position:\s*sticky/.test(css), "스탯 카드가 sticky면 안 된다");
 });
 
-test("1200px 미만에서는 본문·레일이 한 칼럼으로 쌓인다", () => {
-  const before1200 = css.slice(0, css.indexOf("min-width: 1200px"));
-  assert.match(before1200, /\.story-grid\s*\{\s*display:\s*block/, "기본값은 한 칼럼 쌓임이어야 한다");
+test("본문·스탯 카드·출처 박스·인사이트 콜아웃·풀쿼트가 전부 같은 측정(--measure) 폭을 쓴다", () => {
+  for (const sel of [".story-body p", ".stat-card", ".source-box", ".insight-note", ".pullquote"]) {
+    const re = new RegExp(`${sel.replace(/[.*+?^${}()|[\\]\\\\]/g, "\\\\$&")}\\s*\\{[^}]*max-width:\\s*var\\(--measure\\)`);
+    assert.match(css, re, `${sel}이 var(--measure) 폭을 안 쓴다`);
+  }
 });
 
 test("768px 브레이크포인트가 있다", () => {
