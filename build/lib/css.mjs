@@ -229,8 +229,10 @@ const CHROME = `
 .shell-edge { padding: var(--s7) var(--edge) var(--s8); }
 @media (min-width: 768px) { .shell-edge { padding: var(--s8) var(--edge) var(--s9); } }
 /* 2026-08-11 네 번째 라운드: 로고 옆 공백을 줄여 달라는 요청 — 로고·내비 사이 gap을
-   좁혔다(var(--s5) 24px → var(--s3) 12px). */
-.masthead-top { display: flex; align-items: center; justify-content: space-between; gap: var(--s3); flex-wrap: nowrap; }
+   좁혔다(var(--s5) 24px → var(--s3) 12px). 2026-08-14 사용자가 스크린샷으로 지적 —
+   가운데 로고와 ABOUT~BOOK 내비가 너무 붙어 보인다며 "이전처럼 넓혀 달라"고 요청 —
+   var(--s5) 24px로 되돌린다. */
+.masthead-top { display: flex; align-items: center; justify-content: space-between; gap: var(--s5); flex-wrap: nowrap; }
 /* 2026-08-12 스물세 번째 라운드 — 사용자가 스크린샷으로 지정: PC 화면에서 로고를
    뷰포트 정중앙에 놓고(내비는 그대로 우측), 좌측 상단 자리는 비운다. 로고(auto
    너비)와 내비(가변 너비)는 폭이 서로 달라 justify-content: space-between으로는
