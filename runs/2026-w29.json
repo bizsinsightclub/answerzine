@@ -144,5 +144,65 @@
       "humanNote": "민감 소재는 없다. 다만 이 세션은 KOBIS·kofic 등 화이트리스트 출처 전부가 EGRESS_BLOCKED라 L-018 절차(WebSearch 교차확인, verify 1점 하향)로 대체했다는 점을 알린다 — 출처 사이트 구조 변경이 아니라 세션 네트워크 제한이다."
     }
   ],
-  "status": "in_progress"
+  "status": "in_progress",
+  "verdicts": [
+    {
+      "domain": "music",
+      "candidate": "최유리 '생각을 멈추다 보면' — 2년 8개월 만의 역주행",
+      "stage": "S3",
+      "agent": "az-verify",
+      "verdict": "fail",
+      "checks": {
+        "sourceTier": {
+          "ok": true,
+          "detail": "sourceUrl 호스트 xn--o39an51b2re.com — sources/whitelist.json에 tier: conditional, market: KR, domains: [music], series: archived로 등록. anchorSourceUrl 호스트 news1.kr도 tier: conditional, market: KR, domains: ['*']로 등록. 둘 다 등급 자체는 통과."
+        },
+        "valueConfirmed": {
+          "ok": true,
+          "detail": "runs/raw/2026-w27/guyso.json, runs/raw/2026-w28/guyso.json, runs/raw/2026-w29/guyso.json을 직접 열어 '최유리'/'생각을 멈추다 보면' 행을 대조 — w27 rank=71(change 13), w28 rank=54(change 17), w29 rank=39(change 15). candidate.metric.value(71→54→39, 32계단 상승)와 정확히 일치. trend/trendSnapshots 주장은 조작 없이 사실이다."
+        },
+        "trendTraceable": {
+          "ok": true,
+          "detail": "세 점 모두 커밋된 runs/raw/*/guyso.json 파일에서 직접 확인. L-011의 '우리가 뜬 스냅숏' 예외 조건을 충족 — snapshot 성격의 아카이브지만 collect.mjs가 매주 떠서 커밋했으므로 재현 가능."
+        },
+        "anchorLatest": {
+          "ok": false,
+          "detail": "WebFetch로 sourceUrl(가이섬)·anchorSourceUrl(news1.kr) 둘 다 직접 열기를 시도했으나 EGRESS_BLOCKED. WebSearch 교차확인 결과 news1.kr 기사(anchorSourceUrl)의 실제 게재일은 2026-06-11로 확인됐다 — candidate가 주장하는 w27~w29(2026.06.29~07.19) 상승 구간보다 앞선 시점의 기사다. 이 기사가 실제로 보도하는 순위 변동은 '일간 차트 984위→154위(6/11 기준)'다 — candidate의 stat인 '멜론 주간 차트 71→54→39위'와는 차트 종류(일간 vs 주간)도 수치도 다르다. anchorSourceUrl은 계기(5/29 영상 게시)의 존재는 뒷받침하지만, 정작 candidate가 인용하는 w27~w29 주간 순위 상승 구간의 원인이라는 것을 직접 보도하지 않는다 — scout의 cause 서술('6~7월 멜론 주간 차트에서 순위가 계속 올랐다')을 이 출처가 그대로 확인해 주지 않는다."
+        },
+        "anchorMarket": {
+          "ok": true,
+          "detail": "국내 아티스트(최유리)·국내 유튜브 채널('들어봐! 유리의 숲2')·국내 멜론 차트. 해외 지표 혼입 없음."
+        },
+        "anchorCrossRef": {
+          "ok": false,
+          "detail": "scout는 scoreReason에서 '뉴스1 원문 + v.daum.net 재배포 2건 + 스포츠월드 후속 보도'로 교차확인했다고 주장했으나, 실제로는 (1) v.daum.net 링크는 news1 기사를 그대로 재배포한 것이라 독립 매체가 아니고 — 이 세션에서도 EGRESS_BLOCKED로 직접 열리지 않아 내용 대조 불가, (2) 스포츠월드·네이트 기사(2026-07-15)는 이 역주행 사건이 아니라 완전히 다른 사건('막사랑' 콜라보 곡)을 다룬다 — 같은 인물 관계의 배경 설명으로만 겹칠 뿐 이번 candidate의 결과(w27~w29 주간 순위 상승)를 확인해 주지 않는다. 정작 '주간 순위 71→54→39위'라는 핵심 수치를 독립적으로 확인해 주는 2차 언론은 이번 WebSearch에서 하나도 찾지 못했다 — 이 수치는 오직 가이섬 아카이브(우리 raw 스냅숏)로만 확인된다. 즉 계기 자체(5/29 영상)는 news1 기사로 뒷받침되지만, '그 계기가 w27~w29 주간 상승의 원인'이라는 연결 고리를 독립적으로 확인해 주는 2곳 이상의 매체가 없다. 또한 L-018 절차상 sourceUrl·anchorSourceUrl을 직접 열지 못했을 때는 verify 점수를 무조건 2점이 아닌 1점으로 낮춰 기록해야 하는데, scout는 candidates[].score.verify를 2점 그대로 두었다 — 절차 미준수."
+        },
+        "timeOrder": {
+          "ok": true,
+          "detail": "기준일(anchorDate) 2026-05-29 ≤ w27 집계 시작일(2026-06-29). 순서 자체는 성립한다. 다만 anchorDate와 candidate가 실제로 쓰는 상승 구간(w27~w29, 6/29~7/19) 사이에 약 4~7주의 공백이 있고, 이 공백 기간의 실제 원인을 뒷받침하는 유일한 출처(news1, 6/11자)는 그 공백보다도 더 이전 시점(6/11)에 '일간 차트' 기준으로 이미 보도를 마쳤다 — w27~w29의 '주간' 상승 자체를 직접 설명하는 후속 보도가 확인되지 않는다. 시간 순서 자체는 통과하지만, 인과의 연속성(같은 계기가 6주 뒤까지 이어졌다는 것)은 검증되지 않은 공백으로 남는다."
+        },
+        "marketMatch": {
+          "ok": true,
+          "detail": "sourceUrl(가이섬, market: KR)·anchorSourceUrl(news1.kr, market: KR) 모두 국내 시장. 서사도 국내(최유리, 갓세븐 박진영, 멜론)로 일관됨."
+        },
+        "anomalyRecheck": {
+          "ok": false,
+          "detail": "domains/music.md §3 판정 기준표 원문: '명백한 이탈(2점) = 발매 6개월 이상 지난 곡의 TOP10 진입/재진입', '경계선(1점) = 발매 3~6개월 곡의 TOP20 재진입, 또는 30계단 이상 역상승', '통상 범위(0점) = 발매 3개월 이내/신곡 차트 진입'. 이 곡은 발매 2년 8개월(6개월 조건은 초과)이지만 w29 순위가 39위로 TOP10에 못 미쳐 '명백한 이탈' 요건(TOP10)을 문자 그대로 충족하지 못한다. scout는 이 공백을 '경계선'의 '30계단 이상 역상승' 절로 메웠으나, 그 절은 표 원문에서 '발매 3~6개월 곡의' 라는 수식어가 걸린 같은 행에 있다 — 즉 '30계단 이상 역상승'이 3~6개월 곡에 대한 대안 조건인지, 나이와 무관한 독립 조건인지 표 자체가 명확히 구분해 주지 않는다. 후자로 읽더라도 §3 '흔한 오탐'이 '컴백·신곡 발매 주간 — 급상승이 당연하다'를 0점으로 명시해 놓은 것과 정합적이려면, 이 30계단 조건은 신곡의 자연 상승과 구별되는 노후곡 전용 장치로 설계됐다고 보는 편이 도메인 문서의 다른 규정과 더 잘 맞는다 — 그렇다면 2년 8개월 곡에는 애초에 이 조건이 적용 대상이 아니다. 게다가 39위는 '경계선'의 다른 절인 TOP20 재진입 기준도 채우지 못한다(39는 TOP20 밖). 결국 이 후보는 표의 어느 등급에도 문자 그대로 들어맞지 않는다 — 명백한 이탈에는 순위가 못 미치고, 경계선에는 나이·순위 둘 다 어긋난다. 2026-w30 코르티스 GREENGREEN 건과 동일한 패턴: scout가 표에 없는 조건('30계단 이상 역상승'을 노후곡까지 확장 적용)을 임의로 만들어 1점을 부여했다. '애매하면 탈락시킨다' 원칙상 이 표 해석의 모호함 자체가 탈락 사유다."
+        }
+      },
+      "failedOn": [
+        "anchorLatest",
+        "anchorCrossRef",
+        "anomalyRecheck"
+      ],
+      "rebuttalAttempted": "이 후보를 통과시키기 위해 다음을 시도했다: (1) domains/music.md §3 표를 가장 관대하게 해석해 '30계단 이상 역상승'을 나이와 무관한 독립 조건으로 읽어 이례성 1점을 정당화하려 했으나, 이 해석은 §3 흔한 오탐의 '컴백·신곡 발매 주간 — 급상승이 당연하다(0점)' 규정과 정합성이 떨어져 표 원문이 실제로 그런 독립 조건을 의도했다고 확신할 수 없었다. (2) sourceUrl·anchorSourceUrl을 WebFetch로 직접 열어 숫자를 재확인하려 했으나 둘 다 EGRESS_BLOCKED. (3) runs/raw/2026-w27~w29/guyso.json을 직접 열어 71→54→39위 수치 자체는 실제로 존재함을 확인해 이 절반은 반증에 실패했다(즉 숫자 자체는 참이다). (4) WebSearch로 6곳 이상의 독립 매체 교차확인을 시도했으나, 실제로 찾은 것은 news1.kr 원 기사 1건과 그 재배포(v.daum.net, 독립 매체 아님), 그리고 이 사건과 무관한 후속 콜라보 기사(스포츠월드·네이트, 7/15, 다른 곡 '막사랑')뿐이었다 — scout가 주장한 '6곳 이상 교차확인'은 재현되지 않았고, 유일한 진짜 출처(news1, 6/11자)는 candidate가 쓰는 w27~w29 주간 순위가 아니라 그보다 이른 시점의 '일간 차트' 수치(982→154)를 보도한 것이었다 — candidate의 핵심 주장(주간 차트 71→54→39위, 5/29 영상이 그 원인)을 직접 확인해 주는 독립 출처를 찾지 못했다. 이 세 갈래(표 해석의 모호함, 인과 사슬의 확인되지 않은 6주 공백, 부실한 교차확인) 중 어느 하나도 통과시킬 만큼 명확하지 않았고, 오히려 전부 반증에 성공했다 — 그래서 fail로 판정한다.",
+      "lessonsApplied": [
+        "L-001",
+        "L-007",
+        "L-008",
+        "L-011",
+        "L-018"
+      ]
+    }
+  ]
 }
