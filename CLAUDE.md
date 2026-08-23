@@ -108,15 +108,21 @@ sources/
   README.md
 issues/
   README.md             회차 파일 형식
-  2026-w31.json
+  2026-w31.json  2026-w32.json
 tools/
   collect.mjs           ★ 주간 원본 수집 — 오픈API·fetch·Playwright 어댑터
+  kobis.mjs              KOBIS 오픈API 클라이언트 — collect.mjs·az-scout·az-verify가 공용
+  test.mjs                테스트 러너 (`node tools/test.mjs`). `node --test test/*.test.mjs`를
+                          직접 쓰지 않는 이유: Windows cmd.exe는 글롭을 확장하지 않아 파일명
+                          그대로 넘어가 MODULE_NOT_FOUND로 죽는다 — 파일을 나열해 넘긴다.
+  deploy.mjs             ★ 발행 — 검증→빌드→gh-pages 강제 푸시 (§2.3)
+  crop-png.mjs            로고 PNG 여백 자동 크롭 (의존성 없음, node:zlib만 쓴다)
   make-og.mjs           링크 미리보기 이미지 생성 (결과물은 커밋한다)
   dashboard.html        운영 대시보드 — 파이프라인·사람 대기·학습 현황
   zine-builder.html     제작기 (registry/whitelist를 저장소에서 읽는다)
   qa.mjs                자동 검증 — CI와 로컬 공용
 .github/workflows/
-  qa.yml                푸시·PR 검증 + main이면 Pages 배포
+  qa.yml                푸시·PR 검증 + main이면 gh-pages에 직접 배포 (§2.3, actions/deploy-pages 미사용)
 ```
 
 **★ 표시가 단일 소스다.** 문서 안의 표는 사람이 읽는 사본이므로, 값을 바꿀 때는 JSON을 먼저 고친다.
@@ -134,17 +140,17 @@ assets/ (이미지·app.js) ─┘
 
 ```
 build/
-  build.mjs             엔트리. --serve로 로컬 미리보기
+  build.mjs             엔트리. --serve로 로컬 미리보기. BASE_PATH·SITE_ORIGIN 환경변수를 읽는다(§2.3)
   verify.mjs            산출물 검증 — A4 페이지 수·콘솔 에러·링크
-  lib/*.mjs             html · data · theme · css · layout · sparkline · render-* · assets
-test/*.test.mjs         node --test. 프레임워크 없음
+  lib/*.mjs             html · data · theme · color · css · layout · site · sparkline · render-* · assets
+test/*.test.mjs         node --test 기반, 프레임워크 없음. 직접 돌릴 땐 tools/test.mjs를 거친다(위 §2.1)
 legacy/Answer_Zine.html 프로토타입 보관 — 발행 산출물이 아니다
 ```
 
 산출물 구조는 정적 디렉터리 라우팅이다. 서버 설정 없이 GitHub Pages에서 그대로 열린다.
 
 ```
-dist/index.html                홈 — 카테고리 카드 그리드, QR 도착지 (answerzine.kr)
+dist/index.html                홈 — 카테고리 카드 그리드. 인쇄 진·DIY 진 하단 URL 텍스트의 도착지 (answerzine.kr)
 dist/archive/index.html        전체 아카이브 — 모든 스토리 평면 목록 (2026-08-10 두 번째 라운드 도입)
 dist/about/index.html          About — 편집 명제 소개 (2026-08-11 도입, 마스트헤드 내비 맨 앞 링크)
 dist/2026-w31/book/index.html  개별 스토리
@@ -155,7 +161,7 @@ dist/2026-w31/print/index.html A4 인쇄 진
 > 아카이브가 모든 스토리를 평면으로 냈으므로 중복이었다. **2026-08-10 두 번째 라운드에서
 > 홈 자체가 도메인당 카드 하나(최신 스토리로 링크)인 카테고리 그리드로 바뀌면서, 평면
 > 목록은 `/archive/`로 옮겨졌다** — `render-index.mjs`(카드 그리드)와
-> `render-archive.mjs`(평면 목록)가 갈렸다. 스토리 페이지의 "← 목록으로"와 QR은 여전히
+> `render-archive.mjs`(평면 목록)가 갈렸다. 스토리 페이지의 "← 목록으로"는 여전히
 > 홈(`/`)을 가리킨다. 인쇄 진(`/print/`)은 독립 라우트라 영향받지 않는다.
 
 > **인쇄 진 미리보기 — 2026-08-10 되돌림.** 같은 날 이전 라운드에서 "인쇄하기" 버튼을 빼고
@@ -182,8 +188,32 @@ dist/2026-w31/print/index.html A4 인쇄 진
 빌드 단계 devDependency는
 `playwright`(A4·콘솔 검증, OG 카드) 하나뿐이다 — 사용자 승인 사항이다 (§7.3). `qrcode`는
 2026-08-11 정리 라운드에서 뺐다 — 인쇄 진이 QR 대신 텍스트 URL을 쓰면서(2026-08-10) 호출부
-자체가 없어졌다. `npm install` 없이도 빌드는 성공한다 — 브라우저 검사(A4·콘솔·OG 카드)만
-건너뛴다.
+자체가 없어졌다(DIY 진 8쪽도 2026-08-12 스무 번째 라운드에서 QR 스캔 페이지가 통합 인사이트
+페이지로 바뀌며 같은 이유로 QR을 완전히 뺐다). `npm install` 없이도 빌드는 성공한다 —
+브라우저 검사(A4·콘솔·OG 카드)만 건너뛴다.
+
+### 2.3 배포
+
+GitHub Pages 프로젝트 사이트는 `/<저장소명>/` 하위 경로에 놓인다. 그래서 빌드는 두 환경변수를
+읽는다 — 이걸 빠뜨리면 모든 에셋 링크가 절대경로(`/assets/...`)로 나가 404가 난다.
+
+```bash
+BASE_PATH=answerzine SITE_ORIGIN=https://bizsinsightclub.github.io node build/build.mjs
+```
+
+`build/lib/site.mjs`의 `u()`가 모든 내부 링크를 이 접두사를 거쳐서만 만들게 강제한다
+(`test/site.test.mjs`). 로컬 `--serve` 미리보기는 `BASE_PATH` 없이 루트(`/`)로 돈다.
+
+발행은 **GitHub Actions에 의존하지 않는다.** `.github/workflows/qa.yml`의 `pages` 잡이 main
+푸시마다 자동으로 `dist/`를 `gh-pages` 브랜치에 강제 푸시하긴 하지만(`actions/deploy-pages`가
+아니라 `git push --force`), 같은 절차를 `node tools/deploy.mjs`(`npm run deploy`, 드라이런은
+`npm run deploy:dry`)로 로컬에서도 그대로 실행할 수 있다 — 검증 → 빌드(배포 조건) → 산출물
+검증 → `dashboard.html`·`zine-builder.html`·`domains/`·`sources/`·`issues/`·`runs/` 동봉 →
+`gh-pages`에 강제 푸시 순서다. **왜 `actions/deploy-pages`를 안 쓰는가** — 2026-08-06에 GitHub
+Actions의 액션 다운로드 서비스가 장애(`Failed to resolve action download info`)를 일으켜
+발행이 막힌 적이 있다. 주 1회 발행하는 매체가 남의 인프라 장애로 못 나가면 안 된다는 판단으로,
+CI와 로컬 둘 다 같은 스크립트(`git init` → `commit` → `git push --force`)로 직접 `gh-pages`에
+민다. Pages 설정은 `build_type=legacy`, `source.branch=gh-pages`, `source.path=/`다.
 
 ---
 
@@ -310,16 +340,20 @@ S1 수집 → S2 선별 → S3 검증 → S4 집필 → S5 해석 → S6 빌드 
 
 ```bash
 npm run collect 2026-w32          # 전 어댑터
-npm run collect 2026-w32 -- --only=netflix,yes24
+npm run collect 2026-w32 -- --only=kobis,yes24
 ```
 
-| 어댑터 | 방법 | 필요한 것 |
-|---|---|---|
-| `netflix` | 전 주차 TSV 직접 | — |
-| `yes24` | fetch (서버 렌더) | — |
-| `kobis` | 공식 오픈API | `KOBIS_API_KEY` (무료) |
-| `kopis` | 공식 오픈API | `KOPIS_API_KEY` (무료) |
-| `kyobo` · `circlechart` | Playwright | `npm install` |
+| 어댑터 | 도메인 | 방법 | 필요한 것 |
+|---|---|---|---|
+| `yes24` | book | fetch (서버 렌더) | — (스냅숏 전용 — 현재 ISO 주만 뜬다) |
+| `kyobo` | book | Playwright (클라이언트 렌더) | `npm install` (스냅숏 전용) |
+| `kobis` | movie | 공식 오픈API | 없음 — 무료 공개 키가 `tools/kobis.mjs`에 내장. `KOBIS_API_KEY`로 덮어쓸 수 있다 |
+| `circlechart` | music | Playwright (클라이언트 렌더) | `npm install` |
+| `guyso` | music | fetch (멜론 주간차트를 보관하는 3자 아카이브) | — |
+| `kopis` | stage | 공식 오픈API | `KOPIS_API_KEY` (무료, 없으면 건너뛴다 — 현재 도메인이 휴면인 이유) |
+
+`netflix` 어댑터는 없다 — OTT 도메인이 2026-08-11에 삭제되면서 함께 빠졌다. `youtube`도 도메인은
+있지만 1차 출처 자체가 없어 수집 어댑터가 없다(`domains/youtube.md` §2, §5 참고).
 
 **수집을 거른 주는 영영 복구되지 않는다.** 스냅숏 출처는 과거를 되돌려주지 않으므로,
 수집기는 스냅숏 어댑터에 대해 **현재 주가 아니면 수집을 거부한다.** 화요일 이후에 돈다.
@@ -630,14 +664,14 @@ npm run collect 2026-w32 -- --only=netflix,yes24
 2. 빌드하고 검증한다.
 
 ```bash
-node --test test/*.test.mjs   # 단위 테스트
+node tools/test.mjs           # 단위 테스트 (= npm test. node --test test/*.test.mjs는 안 쓴다 — §2.1)
 node tools/qa.mjs             # 입력 검증 (회차 데이터)
 node build/build.mjs          # dist/ 생성
 node build/verify.mjs         # 산출물 검증 (A4·콘솔·링크·폰트)
 node build/build.mjs --serve  # 눈으로 확인
 ```
 
-`npm run check` 한 줄로 위 넷을 순서대로 돌릴 수 있다.
+`npm run check` 한 줄로 위 넷(서버 미리보기 제외)을 순서대로 돌릴 수 있다.
 
 3. 인쇄 진은 **자동 생성된다.** 손으로 고치지 않는다.
    2026-08-10부터 지면 본문은 `story.teaser`를 그대로 쓴다(스토리마다 한 문단, 리드/미니
@@ -653,7 +687,9 @@ node build/build.mjs --serve  # 눈으로 확인
 
 ### S8. 발행
 
-빌드 산출물 전달 + 이번 호 요약(도메인별 헤드라인, 사용한 출처, 결번 도메인과 사유) 보고.
+`npm run deploy`(또는 `node tools/deploy.mjs`)로 검증·빌드·gh-pages 푸시까지 로컬에서 한 번에
+끝내거나, `main`에 푸시해 CI의 `pages` 잡이 같은 일을 자동으로 하게 둔다 (§2.3). 드라이런은
+`npm run deploy:dry`. 이번 호 요약(도메인별 헤드라인, 사용한 출처, 결번 도메인과 사유) 보고.
 
 ---
 
