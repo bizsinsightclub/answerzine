@@ -1,0 +1,824 @@
+{
+  "$schema": "https://answerzine.kr/schema/whitelist-1.json",
+  "version": "2026-w32e",
+  "updated": "2026-08-07",
+  "note": "수집 소스 화이트리스트. tools/zine-builder.html이 이 파일을 읽어 sourceUrl을 판정한다. 운영 규칙은 sources/README.md 참조. 각 출처의 series는 “지난 주 값을 지금 다시 읽을 수 있는가”다 — stat.trend 허용 여부를 이 값이 결정한다. seriesKinds 참조.",
+  "tiers": {
+    "primary": {
+      "label": "1차 출처",
+      "sourceUrl": true,
+      "desc": "집계 주체가 직접 공개하는 데이터. stat.sourceUrl로 사용 가능."
+    },
+    "secondary": {
+      "label": "보조",
+      "sourceUrl": false,
+      "desc": "맥락·교차 확인용. 본문 근거로는 쓰되 sourceUrl로는 쓰지 않는다."
+    },
+    "evidence_only": {
+      "label": "계기 측 전용",
+      "sourceUrl": false,
+      "desc": "계기(영상 게시일·조회수 등) 확인에만 사용. 결과(판매) 증거가 될 수 없다."
+    },
+    "conditional": {
+      "label": "조건부",
+      "sourceUrl": true,
+      "desc": "2차 전달이지만 수치의 출처 기관이 화면·기사 안에 명시돼 검증이 되는 곳. 언론 보도와 차트 아카이브가 여기 해당한다. 원 출처가 whitelist의 primary여야 하고, 본문에는 원 집계 주체를 밝힌다.",
+      "conditions": [
+        "어느 집계의 값인지 화면 또는 기사에 명시돼 있을 것",
+        "그 원 출처가 whitelist에 primary로 등록돼 있을 것",
+        "본문에서 원 집계 주체를 이름으로 밝힐 것 (예: '멜론 주간 차트에 따르면')",
+        "가능하면 원 기관 페이지를 직접 쓰고, 원 기관이 그 시점을 다시 열어주지 않을 때만 이쪽을 쓸 것"
+      ]
+    },
+    "blocked": {
+      "label": "사용 금지",
+      "sourceUrl": false,
+      "desc": "2차 가공·개인 의견·검색 결과. 어떤 용도로도 근거가 될 수 없다."
+    }
+  },
+  "markets": {
+    "KR": "국내 시장. 기본값.",
+    "OVERSEAS": "해외 시장. market-scope.md §6의 세 조건을 충족할 때만 사용."
+  },
+  "sources": [
+    {
+      "host": "yes24.com",
+      "name": "예스24",
+      "tier": "primary",
+      "market": "KR",
+      "domains": [
+        "book"
+      ],
+      "reads": "종합/분야 베스트셀러 순위, 전주 대비 판매 지수, 구매자 연령·성별 분포",
+      "url": "https://www.yes24.com/24/category/bestseller",
+      "sourceLabel": "예스24 베스트셀러 확인하기",
+      "series": "snapshot",
+      "seriesNote": "판매지수와 순위를 서버에서 그대로 내려주지만 조회 시점의 주간분만 남는다. 지난 주 목록은 사후에 열리지 않는다."
+    },
+    {
+      "host": "kyobobook.co.kr",
+      "name": "교보문고",
+      "tier": "primary",
+      "market": "KR",
+      "domains": [
+        "book"
+      ],
+      "reads": "종합 주간 베스트 TOP100 순위 (온·오프라인 판매 합산), 집계 기간",
+      "url": "https://store.kyobobook.co.kr/bestseller/total/weekly",
+      "sourceLabel": "교보문고 주간 베스트셀러 확인하기",
+      "series": "snapshot",
+      "seriesNote": "주간 TOP100을 자사 집계로 직접 공개한다. 다만 집계 기간이 현재 주 하나뿐이고(2026.07.29 ~ 08.04 형태) 과거 주차를 고르는 장치가 없다. 순위 목록 자체도 클라이언트에서 그려지므로 사람이 눈으로 확인한다.",
+      "note": "예스24와 달리 판매지수를 공개하지 않는다. 순위만 쓴다. 두 서점의 순위가 갈리면 그 자체가 소재다 — 한쪽을 정답으로 두지 않는다."
+    },
+    {
+      "host": "aladin.co.kr",
+      "name": "알라딘",
+      "tier": "secondary",
+      "market": "KR",
+      "domains": [
+        "book"
+      ],
+      "reads": "베스트셀러 순위 (서점 편향 교차 확인용)",
+      "series": "snapshot"
+    },
+    {
+      "host": "kpipa.or.kr",
+      "name": "한국출판문화산업진흥원",
+      "tier": "primary",
+      "market": "KR",
+      "domains": [
+        "book"
+      ],
+      "reads": "출판 산업 통계, 발행 부수",
+      "series": "archived"
+    },
+    {
+      "host": "melon.com",
+      "name": "멜론",
+      "tier": "primary",
+      "market": "KR",
+      "domains": [
+        "music"
+      ],
+      "reads": "TOP100 순위, 순위 변동, 서비스 내 검색량 증감",
+      "url": "https://www.melon.com/chart/index.htm",
+      "sourceLabel": "멜론 차트 확인하기",
+      "series": "snapshot",
+      "seriesNote": "실시간·일간·주간 모두 조회 시점 스냅숏이다. 그 주에 수집하지 않으면 사라진다."
+    },
+    {
+      "host": "circlechart.kr",
+      "name": "써클차트 (구 가온차트)",
+      "tier": "primary",
+      "market": "KR",
+      "domains": [
+        "music"
+      ],
+      "reads": "국내 통합 음원·음반 집계",
+      "note": "플랫폼 편향이 없는 국내 통합 집계. 멜론 단독 수치를 검증할 때 우선 사용.",
+      "series": "archived",
+      "seriesNote": "주차를 지정해 과거 차트를 다시 여는 국내 유일의 음악 집계다. 2026-w32에 경로가 page_chart/onlinechart.circle에서 page_chart/onoff.circle로 바뀌었고 주차 아카이브는 살아 있다. 다만 순위 목록이 클라이언트 렌더라 tools/collect.mjs의 playwright 어댑터로만 읽힌다. ⚠️ 써클차트 주는 일~토라 ISO 주(월~일)와 하루 어긋난다.",
+      "url": "https://circlechart.kr/page_chart/onoff.circle?serviceGbn=ALL&termGbn=week"
+    },
+    {
+      "host": "genie.co.kr",
+      "name": "지니뮤직",
+      "tier": "secondary",
+      "market": "KR",
+      "domains": [
+        "music"
+      ],
+      "reads": "차트 순위 (플랫폼 편향 확인용)",
+      "series": "snapshot"
+    },
+    {
+      "host": "bugs.co.kr",
+      "name": "벅스",
+      "tier": "secondary",
+      "market": "KR",
+      "domains": [
+        "music"
+      ],
+      "reads": "차트 순위 (플랫폼 편향 확인용)",
+      "series": "snapshot"
+    },
+    {
+      "host": "kobis.or.kr",
+      "name": "KOBIS 영화관입장권통합전산망",
+      "tier": "primary",
+      "market": "KR",
+      "domains": [
+        "movie"
+      ],
+      "reads": "일별/주간 관객수, 누적, 스크린·상영 횟수, 국내 개봉일",
+      "url": "https://www.kobis.or.kr/kobis/business/stat/boxs/findDailyBoxOfficeList.do",
+      "sourceLabel": "KOBIS 박스오피스 확인하기",
+      "note": "국내 유일의 공식 전수 집계. 국내 개봉일 확인도 여기서 한다.",
+      "series": "archived",
+      "seriesNote": "날짜를 지정해 과거 일별·주간 집계를 그대로 다시 받는다. 오픈API도 같은 값을 낸다. 추세선을 그려도 되는 출처다.",
+      "api": "https://www.kobis.or.kr/kobisopenapi/webservice/rest/boxoffice/searchWeeklyBoxOfficeList.json (무료 키 · KOBIS_API_KEY)"
+    },
+    {
+      "host": "kofic.or.kr",
+      "name": "영화진흥위원회",
+      "tier": "primary",
+      "market": "KR",
+      "domains": [
+        "movie"
+      ],
+      "reads": "영화 산업 통계, 배급·상영 자료",
+      "series": "archived"
+    },
+    {
+      "host": "cgv.co.kr",
+      "name": "CGV",
+      "tier": "secondary",
+      "market": "KR",
+      "domains": [
+        "movie"
+      ],
+      "reads": "특별관 회차 매진 여부, 관람평 (정황용)",
+      "series": "none"
+    },
+    {
+      "host": "lottecinema.co.kr",
+      "name": "롯데시네마",
+      "tier": "secondary",
+      "market": "KR",
+      "domains": [
+        "movie"
+      ],
+      "reads": "예매 현황, 관람평 (정황용)",
+      "series": "none"
+    },
+    {
+      "host": "megabox.co.kr",
+      "name": "메가박스",
+      "tier": "secondary",
+      "market": "KR",
+      "domains": [
+        "movie"
+      ],
+      "reads": "예매 현황, 관람평 (정황용)",
+      "series": "none"
+    },
+    {
+      "host": "youtube.com",
+      "name": "유튜브",
+      "tier": "evidence_only",
+      "market": "KR",
+      "domains": [
+        "youtube",
+        "music"
+      ],
+      "reads": "영상 게시일, 조회수 (계기 측 증거 전용)",
+      "note": "조회수는 '봤다'의 증거이지 '샀다'의 증거가 아니다. 결과 측 sourceUrl로 절대 사용 불가. domains/youtube.md §2 참조.",
+      "series": "none",
+      "seriesNote": "2025년 7월 21일 Trending 페이지와 Trending Now 목록이 폐지됐다. 후속인 YouTube Charts는 카테고리별 차트를 보여주지만 과거 주차 내보내기가 없고 목록이 전부 클라이언트 렌더다. 유튜브발 소비를 다루더라도 결과 측 수치는 파는 쪽에서 가져온다."
+    },
+    {
+      "host": "datalab.naver.com",
+      "name": "네이버 데이터랩",
+      "tier": "secondary",
+      "market": "KR",
+      "domains": [
+        "youtube",
+        "book",
+        "music",
+        "movie"
+      ],
+      "reads": "쇼핑인사이트 카테고리 검색·클릭 추이",
+      "note": "검색·클릭이지 판매가 아니다. 결과 측 보조 근거로만.",
+      "series": "archived"
+    },
+    {
+      "host": "oliveyoung.co.kr",
+      "name": "올리브영",
+      "tier": "secondary",
+      "market": "KR",
+      "domains": [
+        "youtube"
+      ],
+      "reads": "랭킹, 품절 표기",
+      "note": "공식 보도자료에 수치가 명시된 경우에만 primary로 승격 가능.",
+      "series": "snapshot"
+    },
+    {
+      "host": "daiso.co.kr",
+      "name": "다이소",
+      "tier": "secondary",
+      "market": "KR",
+      "domains": [
+        "youtube"
+      ],
+      "reads": "상품 페이지, 품절 표기",
+      "series": "none"
+    },
+    {
+      "host": "kostat.go.kr",
+      "name": "통계청",
+      "tier": "primary",
+      "market": "KR",
+      "domains": [
+        "*"
+      ],
+      "reads": "소매판매액, 소비 통계",
+      "series": "archived"
+    },
+    {
+      "host": "korea.kr",
+      "name": "대한민국 정책브리핑",
+      "tier": "primary",
+      "market": "KR",
+      "domains": [
+        "*"
+      ],
+      "reads": "부처 공식 발표·보도자료",
+      "series": "none"
+    },
+    {
+      "host": "yna.co.kr",
+      "name": "연합뉴스",
+      "tier": "conditional",
+      "market": "KR",
+      "domains": [
+        "*"
+      ],
+      "note": "기사 안에 수치의 출처 기관이 명시된 경우에만 sourceUrl 허용. 가능하면 원 기관 페이지를 직접 쓴다.",
+      "series": "none"
+    },
+    {
+      "host": "news1.kr",
+      "name": "뉴스1",
+      "tier": "conditional",
+      "market": "KR",
+      "domains": [
+        "*"
+      ],
+      "series": "none"
+    },
+    {
+      "host": "asiae.co.kr",
+      "name": "아시아경제",
+      "tier": "conditional",
+      "market": "KR",
+      "domains": [
+        "*"
+      ],
+      "note": "2026-w31-youtube가 이 출처를 사용했다. 결과 측 단독 근거로는 부족하다.",
+      "series": "none"
+    },
+    {
+      "host": "mk.co.kr",
+      "name": "매일경제",
+      "tier": "conditional",
+      "market": "KR",
+      "domains": [
+        "*"
+      ],
+      "series": "none"
+    },
+    {
+      "host": "hankyung.com",
+      "name": "한국경제",
+      "tier": "conditional",
+      "market": "KR",
+      "domains": [
+        "*"
+      ],
+      "series": "none"
+    },
+    {
+      "host": "edaily.co.kr",
+      "name": "이데일리",
+      "tier": "conditional",
+      "market": "KR",
+      "domains": [
+        "*"
+      ],
+      "series": "none",
+      "note": "2026-w32 등록. 예스24 주간 베스트셀러를 수치와 함께 정기 보도한다. conditional 조건(수치의 출처 기관이 기사 안에 명시)을 충족하는 것을 확인했다 — '30일 예스24에 따르면 … 금주 판매량은 전주 대비 326.5% 급증했다'. 예스24가 series=snapshot이라 지난 주 수치를 사후에 확인할 유일한 경로다.",
+      "seriesNote": "기사는 한 시점의 발표다. 여러 기사를 이어 붙여 추세선을 만들지 않는다."
+    },
+    {
+      "host": "boxofficemojo.com",
+      "name": "Box Office Mojo",
+      "tier": "primary",
+      "market": "OVERSEAS",
+      "domains": [
+        "movie"
+      ],
+      "reads": "북미·글로벌 박스오피스",
+      "note": "⚠️ 해외 시장. 국내 서사에 섞지 않는다. market-scope.md §6의 세 조건 충족 시에만.",
+      "series": "archived"
+    },
+    {
+      "host": "the-numbers.com",
+      "name": "The Numbers",
+      "tier": "primary",
+      "market": "OVERSEAS",
+      "domains": [
+        "movie"
+      ],
+      "note": "⚠️ 해외 시장.",
+      "series": "archived"
+    },
+    {
+      "host": "billboard.com",
+      "name": "Billboard",
+      "tier": "primary",
+      "market": "OVERSEAS",
+      "domains": [
+        "music"
+      ],
+      "note": "⚠️ 해외 시장. 빌보드 순위로 국내 음원 소비를 설명하지 않는다.",
+      "series": "archived"
+    },
+    {
+      "host": "charts.spotify.com",
+      "name": "Spotify Charts",
+      "tier": "primary",
+      "market": "OVERSEAS",
+      "domains": [
+        "music"
+      ],
+      "note": "⚠️ 글로벌/국가별 구분 주의. 글로벌 차트를 국내 인기로 쓰지 않는다.",
+      "series": "archived"
+    },
+    {
+      "host": "kopis.or.kr",
+      "name": "KOPIS 공연예술통합전산망",
+      "tier": "primary",
+      "market": "KR",
+      "domains": [
+        "stage"
+      ],
+      "reads": "공연별 예매 관객수·매출액·상연 횟수, 장르별 통계, 개막일",
+      "url": "https://kopis.or.kr/por/boxoffice/boxoffice.do?menuId=MNU_00024",
+      "sourceLabel": "KOPIS 공연 통계 확인하기",
+      "note": "예술경영지원센터가 운영하는 정부 전수 집계. 오픈API 제공. KOBIS와 같은 급이다.",
+      "series": "archived",
+      "seriesNote": "정부 전수 집계이고 오픈API가 기간 지정 조회를 지원한다. 2026-w32 확인 시점에 포털이 전면 개편돼 pblprfrList.do·rankBoxOfficeList.do가 404가 됐고 화면도 전부 클라이언트 렌더다. 현재 박스오피스 경로는 /por/boxoffice/boxoffice.do이지만 수치는 오픈API로 받는다 — 서비스키를 발급해 KOPIS_API_KEY에 넣으면 tools/collect.mjs가 뜬다.",
+      "api": "https://kopis.or.kr/openApi/restful/boxoffice (서비스키 필요 · KOPIS_API_KEY)"
+    },
+    {
+      "host": "sac.or.kr",
+      "name": "예술의전당",
+      "tier": "secondary",
+      "market": "KR",
+      "domains": [
+        "stage"
+      ],
+      "reads": "공연 일정·회차 매진 여부 (정황용)",
+      "series": "none"
+    },
+    {
+      "host": "interpark.com",
+      "name": "인터파크 티켓",
+      "tier": "secondary",
+      "market": "KR",
+      "domains": [
+        "stage"
+      ],
+      "reads": "예매 순위 (플랫폼 편향 확인용). 집계 기준 비공개.",
+      "series": "snapshot"
+    },
+    {
+      "host": "namu.wiki",
+      "name": "나무위키",
+      "tier": "blocked",
+      "reason": "익명 편집 위키. 2차 가공 정보이며 시점에 따라 내용이 바뀐다."
+    },
+    {
+      "host": "wikipedia.org",
+      "name": "위키백과",
+      "tier": "blocked",
+      "reason": "위키. 각주의 원 출처를 직접 찾아 쓴다."
+    },
+    {
+      "host": "blog.naver.com",
+      "name": "네이버 블로그",
+      "tier": "blocked",
+      "reason": "개인 게시물."
+    },
+    {
+      "host": "tistory.com",
+      "name": "티스토리",
+      "tier": "blocked",
+      "reason": "개인 게시물."
+    },
+    {
+      "host": "brunch.co.kr",
+      "name": "브런치",
+      "tier": "blocked",
+      "reason": "개인 게시물."
+    },
+    {
+      "host": "dcinside.com",
+      "name": "디시인사이드",
+      "tier": "blocked",
+      "reason": "커뮤니티."
+    },
+    {
+      "host": "fmkorea.com",
+      "name": "에펨코리아",
+      "tier": "blocked",
+      "reason": "커뮤니티."
+    },
+    {
+      "host": "theqoo.net",
+      "name": "더쿠",
+      "tier": "blocked",
+      "reason": "커뮤니티."
+    },
+    {
+      "host": "reddit.com",
+      "name": "Reddit",
+      "tier": "blocked",
+      "reason": "커뮤니티."
+    },
+    {
+      "host": "instagram.com",
+      "name": "인스타그램",
+      "tier": "blocked",
+      "reason": "개인 게시물. 공식 계정의 공지는 보도자료 원문을 찾아 쓴다."
+    },
+    {
+      "host": "x.com",
+      "name": "X (트위터)",
+      "tier": "blocked",
+      "reason": "개인 게시물."
+    },
+    {
+      "host": "xn--o39an51b2re.com",
+      "name": "가이섬 (차트 아카이브)",
+      "tier": "conditional",
+      "market": "KR",
+      "domains": [
+        "music"
+      ],
+      "reads": "멜론·지니·플로·벅스·바이브·써클·유튜브 주간/일간 차트의 과거 주차 (2012년~)",
+      "url": "https://xn--o39an51b2re.com/chart/melon/weekly/2026/31",
+      "series": "archived",
+      "note": "집계 주체가 아니라 멜론·써클 등의 순위를 옮겨 보관하는 제3자 아카이브다. 2026-w32에 conditional로 올렸다 — 화면에 'Melon 주간 차트'로 출처가 명시되고, 원 출처인 멜론이 primary이며, 멜론 자신은 지난 주를 사후에 열어주지 않아 이 경로 말고는 검증할 방법이 없기 때문이다. 본문에는 반드시 '멜론 주간 차트'라고 원 집계 주체를 밝힌다. 가이섬을 집계 주체로 쓰지 않는다.",
+      "seriesNote": "2012년 33주차부터 /chart/melon/weekly/YYYY/WW가 서버 렌더로 열린다. 매주 100행이 순위 1~100 연속으로 나오는 것을 2025-w01~2026-w31 83주에 대해 확인했다. 2차 가공이라 원본과 어긋날 위험이 있으므로 tools/collect.mjs의 guyso 어댑터로 매주 떠서 runs/raw/에 남긴다 — 사이트가 사라져도 우리 아카이브는 남는다.",
+      "sourceLabel": "멜론 주간 차트 (가이섬 아카이브) 확인하기",
+      "risk": "2차 가공. 원본과 어긋날 수 있고 사이트가 사라지면 링크가 죽는다. 그래서 매주 수집본을 커밋한다."
+    },
+    {
+      "host": "data.go.kr",
+      "name": "공공데이터포털",
+      "tier": "primary",
+      "market": "KR",
+      "domains": [
+        "*"
+      ],
+      "series": "archived",
+      "reads": "여러 부처가 공개하는 원본 데이터셋(영화·도서·공연 등 다수 포함)",
+      "url": "https://www.data.go.kr",
+      "sourceLabel": "공공데이터포털 확인하기",
+      "note": "포털 자체는 허브다. 실제로는 그 안의 구체적 데이터셋 URL을 sourceUrl로 써야 한다 — 포털 검색 결과 페이지는 blockedPatterns의 /search에 걸린다. (2026-08-07 사용자 제공 화이트리스트로 등록)"
+    },
+    {
+      "host": "kinolights.com",
+      "name": "키노라이츠",
+      "tier": "secondary",
+      "market": "KR",
+      "domains": [
+        "movie"
+      ],
+      "series": "snapshot",
+      "reads": "실시간 예매율·평점·박스오피스 랭킹",
+      "url": "https://www.kinolights.com/rank",
+      "sourceLabel": "키노라이츠 랭킹 확인하기",
+      "note": "KOBIS 실측을 재가공한 3차 집계라 sourceUrl로는 못 쓴다 — 교차 확인용. (2026-08-07 사용자 제공 화이트리스트로 등록)"
+    },
+    {
+      "host": "flixpatrol.com",
+      "name": "FlixPatrol",
+      "tier": "secondary",
+      "market": "OVERSEAS",
+      "domains": [
+        "movie"
+      ],
+      "series": "snapshot",
+      "reads": "국가별 OTT·박스오피스 순위 추정치",
+      "url": "https://flixpatrol.com/",
+      "sourceLabel": "FlixPatrol 확인하기",
+      "note": "자체 추정 집계라 공식 수치가 아니다. 해외 출처이므로 국내 서사에는 못 쓴다(market-scope.md). (2026-08-07 사용자 제공 화이트리스트로 등록)"
+    },
+    {
+      "host": "bnk.kpipa.or.kr",
+      "name": "출판유통정보시스템",
+      "tier": "primary",
+      "market": "KR",
+      "domains": [
+        "book"
+      ],
+      "series": "archived",
+      "reads": "출판사·서점 유통 실 판매 데이터",
+      "url": "https://bnk.kpipa.or.kr",
+      "sourceLabel": "출판유통정보시스템 확인하기",
+      "note": "기존 kpipa.or.kr(출판진흥원 공지 페이지)과는 다른, 실 유통 통계를 내는 하위 시스템이다. (2026-08-07 사용자 제공 화이트리스트로 등록)"
+    },
+    {
+      "host": "data4library.kr",
+      "name": "도서관정보나루",
+      "tier": "primary",
+      "market": "KR",
+      "domains": [
+        "book"
+      ],
+      "series": "archived",
+      "reads": "전국 공공도서관 대출 순위·통계",
+      "url": "https://www.data4library.kr",
+      "sourceLabel": "도서관정보나루 확인하기",
+      "note": "대출은 구매가 아니다. 판매 지표(예스24 등)와 병행하는 교차 확인용으로 쓴다 — 단독으로 '팔렸다'의 근거는 못 된다. (2026-08-07 사용자 제공 화이트리스트로 등록)"
+    },
+    {
+      "host": "kobic.net",
+      "name": "한국출판정보센터(KOBIC)",
+      "tier": "primary",
+      "market": "KR",
+      "domains": [
+        "book"
+      ],
+      "series": "archived",
+      "reads": "출판 통계·서지 정보",
+      "url": "https://www.kobic.net",
+      "sourceLabel": "KOBIC 확인하기",
+      "note": "2026-08-07 사용자 제공 화이트리스트(Whitelist.xlsx)로 등록."
+    },
+    {
+      "host": "nl.go.kr",
+      "name": "국립중앙도서관",
+      "tier": "primary",
+      "market": "KR",
+      "domains": [
+        "book"
+      ],
+      "series": "archived",
+      "reads": "국가 서지 데이터·이용 통계",
+      "url": "https://www.nl.go.kr",
+      "sourceLabel": "국립중앙도서관 확인하기",
+      "note": "2026-08-07 사용자 제공 화이트리스트(Whitelist.xlsx)로 등록."
+    },
+    {
+      "host": "ridibooks.com",
+      "name": "리디",
+      "tier": "secondary",
+      "market": "KR",
+      "domains": [
+        "book"
+      ],
+      "series": "snapshot",
+      "reads": "전자책 베스트셀러 순위",
+      "url": "https://ridibooks.com/",
+      "sourceLabel": "리디 베스트셀러 확인하기",
+      "note": "2026-08-07 사용자 제공 화이트리스트(Whitelist.xlsx)로 등록."
+    },
+    {
+      "host": "books.google.com",
+      "name": "Google Books Ngram",
+      "tier": "secondary",
+      "market": "OVERSEAS",
+      "domains": [
+        "book"
+      ],
+      "series": "none",
+      "reads": "출간 도서 텍스트 내 단어 빈도 추이",
+      "url": "https://books.google.com/ngrams",
+      "sourceLabel": "Google Books Ngram 확인하기",
+      "note": "판매 데이터가 아니라 텍스트 빈도 코퍼스다. '팔렸다'의 근거로 쓸 수 없다 — 맥락 참고용. (2026-08-07 사용자 제공 화이트리스트로 등록)"
+    },
+    {
+      "host": "developers.google.com",
+      "name": "YouTube Data API",
+      "tier": "primary",
+      "market": "KR",
+      "domains": [
+        "youtube"
+      ],
+      "series": "archived",
+      "reads": "채널·영상 통계(조회수·구독자 등) 공식 API",
+      "url": "https://developers.google.com/youtube/v3",
+      "sourceLabel": "YouTube Data API 문서",
+      "note": "공식 데이터지만 API 키·코드가 필요해 tools/collect.mjs에 아직 자동 어댑터가 없다. 붙기 전까지는 사람이 콘솔에서 직접 조회해 값을 남긴다. 조회수는 evidence_only 취급과 같다 — '샀다'의 증거는 아니다. (2026-08-07 사용자 제공 화이트리스트로 등록)"
+    },
+    {
+      "host": "playboard.co",
+      "name": "플레이보드",
+      "tier": "secondary",
+      "market": "KR",
+      "domains": [
+        "youtube"
+      ],
+      "series": "snapshot",
+      "reads": "실시간 인기·급상승 영상 랭킹(3rd-party 추정)",
+      "url": "https://playboard.co/",
+      "sourceLabel": "플레이보드 확인하기",
+      "note": "2026-08-07 사용자 제공 화이트리스트(Whitelist.xlsx)로 등록."
+    },
+    {
+      "host": "kr.noxinfluencer.com",
+      "name": "녹스인플루언서",
+      "tier": "secondary",
+      "market": "KR",
+      "domains": [
+        "youtube"
+      ],
+      "series": "snapshot",
+      "reads": "채널 랭킹·영향력 추정 지수",
+      "url": "https://kr.noxinfluencer.com/",
+      "sourceLabel": "녹스인플루언서 확인하기",
+      "note": "2026-08-07 사용자 제공 화이트리스트(Whitelist.xlsx)로 등록."
+    },
+    {
+      "host": "socialblade.com",
+      "name": "Social Blade",
+      "tier": "secondary",
+      "market": "OVERSEAS",
+      "domains": [
+        "youtube"
+      ],
+      "series": "snapshot",
+      "reads": "채널 통계·순위 추정",
+      "url": "https://socialblade.com/",
+      "sourceLabel": "Social Blade 확인하기",
+      "note": "2026-08-07 사용자 제공 화이트리스트(Whitelist.xlsx)로 등록."
+    },
+    {
+      "host": "vling.net",
+      "name": "블링",
+      "tier": "secondary",
+      "market": "KR",
+      "domains": [
+        "youtube"
+      ],
+      "series": "snapshot",
+      "reads": "크리에이터·인플루언서 랭킹",
+      "url": "https://vling.net/",
+      "sourceLabel": "블링 확인하기",
+      "note": "2026-08-07 사용자 제공 화이트리스트(Whitelist.xlsx)로 등록."
+    },
+    {
+      "host": "vidiq.com",
+      "name": "vidIQ",
+      "tier": "secondary",
+      "market": "OVERSEAS",
+      "domains": [
+        "youtube"
+      ],
+      "series": "snapshot",
+      "reads": "채널 SEO·성장 지표 추정",
+      "url": "https://vidiq.com/",
+      "sourceLabel": "vidIQ 확인하기",
+      "note": "2026-08-07 사용자 제공 화이트리스트(Whitelist.xlsx)로 등록."
+    },
+    {
+      "host": "hanteochart.com",
+      "name": "한터차트",
+      "tier": "primary",
+      "market": "KR",
+      "domains": [
+        "music"
+      ],
+      "series": "archived",
+      "reads": "음반 실물 판매량 집계 — 케이팝 실 구매의 핵심 지표",
+      "url": "http://www.hanteochart.com/",
+      "sourceLabel": "한터차트 확인하기",
+      "note": "2026-08-07 사용자 제공 화이트리스트(Whitelist.xlsx)로 등록."
+    },
+    {
+      "host": "geniemusic.co.kr",
+      "name": "지니뮤직",
+      "tier": "secondary",
+      "market": "KR",
+      "domains": [
+        "music"
+      ],
+      "series": "snapshot",
+      "reads": "실시간·일간·주간 음원 차트",
+      "url": "https://www.geniemusic.co.kr/chart",
+      "sourceLabel": "지니뮤직 차트 확인하기",
+      "note": "기존 genie.co.kr과 같은 서비스의 다른 표기 도메인. (2026-08-07 사용자 제공 화이트리스트로 등록)"
+    },
+    {
+      "host": "artists.spotify.com",
+      "name": "Spotify for Artists",
+      "tier": "secondary",
+      "market": "OVERSEAS",
+      "domains": [
+        "music"
+      ],
+      "series": "none",
+      "reads": "아티스트 전용 스트리밍 통계 대시보드",
+      "url": "https://artists.spotify.com/",
+      "sourceLabel": "Spotify for Artists",
+      "note": "아티스트 로그인 전용이라 독자가 직접 열어 확인할 수 없다 — sourceUrl로 못 쓴다. (2026-08-07 사용자 제공 화이트리스트로 등록)"
+    },
+    {
+      "host": "guyso.me",
+      "name": "가이섬(guyso.me)",
+      "tier": "conditional",
+      "market": "KR",
+      "domains": [
+        "music"
+      ],
+      "series": "archived",
+      "reads": "멜론 주간 차트 아카이브",
+      "url": "https://guyso.me/",
+      "sourceLabel": "가이섬 확인하기",
+      "note": "기존 등록된 가이섬(xn--o39an51b2re.com)과 같은 서비스로 보인다. conditional 4조건(sources/README.md §3.5)을 그대로 적용 — 본문에는 반드시 '멜론 주간 차트'로 원 집계 주체를 밝힌다. (2026-08-07 사용자 제공 화이트리스트로 등록)"
+    },
+    {
+      "host": "koscap.or.kr",
+      "name": "한국음악저작권협회",
+      "tier": "primary",
+      "market": "KR",
+      "domains": [
+        "music"
+      ],
+      "series": "archived",
+      "reads": "저작권 사용료 통계 — 실 소비 프록시",
+      "url": "https://www.koscap.or.kr",
+      "sourceLabel": "한국음악저작권협회 확인하기",
+      "note": "2026-08-07 사용자 제공 화이트리스트(Whitelist.xlsx)로 등록."
+    }
+  ],
+  "blockedPatterns": [
+    {
+      "pattern": "/search",
+      "reason": "검색 결과 페이지. 시점에 따라 내용이 바뀌어 검증 불가."
+    },
+    {
+      "pattern": "google.com",
+      "reason": "검색 엔진."
+    },
+    {
+      "pattern": "search.naver.com",
+      "reason": "검색 결과 페이지."
+    },
+    {
+      "pattern": "search.daum.net",
+      "reason": "검색 결과 페이지."
+    }
+  ],
+  "seriesKinds": {
+    "archived": {
+      "label": "주차 아카이브",
+      "trend": true,
+      "desc": "과거 주차의 같은 수치를 지금 다시 읽을 수 있다. 추세선(stat.trend)을 그려도 된다."
+    },
+    "snapshot": {
+      "label": "현재 주 스냅숏",
+      "trend": false,
+      "desc": "조회 시점의 순위·지수만 보여준다. 지난 주 값은 사후에 재현되지 않으므로 추세선을 그리면 아무도 검증할 수 없는 선이 된다."
+    },
+    "none": {
+      "label": "시계열 없음",
+      "trend": false,
+      "desc": "연속된 주간 수치를 내지 않는다. 기사·단발 발표가 여기 해당한다."
+    }
+  }
+}

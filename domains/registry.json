@@ -1,0 +1,210 @@
+{
+  "$schema": "https://answerzine.kr/schema/registry-1.json",
+  "version": "2026-w32h",
+  "updated": "2026-08-11",
+  "note": "도메인 단일 소스. build/lib/*.mjs, tools/zine-builder.html, tools/qa.mjs가 모두 이 파일을 참조한다. 색상은 여기서만 정의한다. status가 active가 아닌 도메인은 홈 카테고리 카드·결번 계산에서 빠진다. nameEn은 2026-08-10 도입 — 홈 상단 고정 내비게이션(영문 카테고리 라벨)이 쓴다. cardColor는 2026-08-11 도입 — 홈 카테고리 카드의 풀블리드 배경 전용 색이다(사용자 지정 파스텔). colorPaper와 별개다 — colorPaper는 흰 배경 위 텍스트/보더용으로 어둡게 골랐고(흰 글자를 못 올린다), cardColor는 카드 배경용으로 밝게 골랐다(검은 글자만 올린다, 전 도메인 8:1 이상 — test/theme.test.mjs가 검증). 없는 도메인은 카드에서 colorPaper+흰 글자로 되돌아간다. nameCard는 2026-08-11 열 번째 라운드 도입 — 카테고리 카드 우측 상단 라벨 전용 영문(사용자 지정: Movies·Music·Books·YouTube). nameEn과 다르다(nameEn은 단수형, 마스트헤드 내비 전용) — 그 전엔 이 라벨이 name(한글)을 썼다. 2026-08-11 사용자 요청으로 OTT·뉴스·여행 도메인을 완전히 삭제했다(편집 결정, 데이터 문제 아님) — 활성 도메인이 movie·music·youtube·book 4개 + 휴면 stage 1개로 줄었다. domains/ott.md·news.md·travel.md도 삭제했고, 세 도메인만 쓰던 sources/whitelist.json 출처(netflix.com·bigkinds.or.kr·kpf.or.kr·datalab.visitkorea.or.kr·knto.or.kr)도 함께 뺐다. 되돌리려면 이 diff를 역으로 적용한다 — git 히스토리에 원본이 남아 있다.",
+  "colorRules": {
+    "background": "#16150F",
+    "backgroundPaper": "#F4F1E7",
+    "minContrast": 4.5,
+    "minHueDistance": 35,
+    "openHueWindows": [],
+    "note": "신규 도메인은 minContrast와 minHueDistance를 모두 충족해야 한다. design.md §6.2 참조.",
+    "noteThemes": "color는 Night 테마(#16150F)용, colorPaper는 Paper 테마(#F4F1E7)용이다. 둘 다 4.5:1을 넘겨야 하고 hue는 서로 같아야 한다. 배경이 #222222에서 #16150F로 바뀌면서 movie/youtube의 기존 AA 미달(4.36:1)이 5.01:1로 해소됐다.",
+    "noteExpansion": "도메인 8개로 확장하면서 minHueDistance를 40°에서 35°로 낮췄다. 8개를 색상환에 배치하면 이론적 최대 간격이 45°이고, 기존 4개(35·135·210·349°)가 불균등해 실제 확보 가능한 최소 간격은 37°다. 현재 최소 간격은 135↔172의 37°다. 9번째 도메인은 이 규칙으로 불가능하다 — 색 이외의 구분 수단이 필요하다.",
+    "recommendedNext": null
+  },
+  "domains": [
+    {
+      "key": "movie",
+      "name": "영화",
+      "nameEn": "Movie",
+      "nameCard": "Movies",
+      "cardColor": "#F890CD",
+      "color": "#0A84FF",
+      "colorName": "Apple systemBlue (Night)",
+      "colorPaper": "#006BD7",
+      "colorPaperName": "systemBlue 명도 보정 (Paper)",
+      "hue": 210,
+      "contrast": 5.01,
+      "contrastPaper": 4.55,
+      "contrastPass": true,
+      "doc": "domains/movie.md",
+      "status": "active",
+      "order": 1,
+      "anchorType": "국내 개봉일",
+      "primarySources": [
+        "kobis.or.kr",
+        "kofic.or.kr"
+      ],
+      "api": "tools/collect.mjs (kobis 어댑터 · 무료 공개 키 내장)",
+      "note": "KOBIS 오픈API가 주간 집계(weekGb=0)를 날짜 지정으로 그대로 내준다. 화면의 표는 클라이언트 렌더라 사람이 눈으로 읽을 수 없으니 반드시 API로 대조한다 — L-015."
+    },
+    {
+      "key": "music",
+      "name": "음악",
+      "nameEn": "Music",
+      "nameCard": "Music",
+      "cardColor": "#E9E9E9",
+      "color": "#FF9500",
+      "colorName": "Apple systemOrange (Night)",
+      "colorPaper": "#A15E00",
+      "colorPaperName": "systemOrange 명도 보정 (Paper)",
+      "hue": 35,
+      "contrast": 8.32,
+      "contrastPaper": 4.51,
+      "contrastPass": true,
+      "doc": "domains/music.md",
+      "status": "active",
+      "order": 2,
+      "anchorType": "국내 음원 발매일 또는 계기 발생일",
+      "primarySources": [
+        "melon.com",
+        "circlechart.kr"
+      ],
+      "warning": "멜론·써클차트 모두 자기 사이트에서는 지난 주를 사후에 열어주지 않거나(멜론) 목록이 클라이언트 렌더다(써클차트). 그래서 주간 순위는 가이섬 아카이브(conditional)를 통해 확인하고, 본문에는 반드시 '멜론 주간 차트'라고 원 집계 주체를 밝힌다. 순위는 작을수록 좋은 값이므로 추세선에는 stat.trendInvert를 켠다.",
+      "api": "tools/collect.mjs (guyso 어댑터 · 멜론 주간차트 아카이브)"
+    },
+    {
+      "key": "youtube",
+      "name": "유튜브",
+      "nameEn": "YouTube",
+      "nameCard": "YouTube",
+      "cardColor": "#60C1A9",
+      "color": "#FF2D55",
+      "colorName": "Apple systemPink (Night)",
+      "colorPaper": "#DD002A",
+      "colorPaperName": "systemPink 명도 보정 (Paper)",
+      "hue": 349,
+      "contrast": 5.01,
+      "contrastPaper": 4.52,
+      "contrastPass": true,
+      "doc": "domains/youtube.md",
+      "status": "active",
+      "order": 3,
+      "anchorType": "영상 게시일 (KST)",
+      "primarySources": [],
+      "warning": "결과 측 1차 출처가 없다. 2025-07-21 유튜브 Trending 페이지가 폐지됐고 후속인 YouTube Charts는 과거 주차 아카이브가 없다(series=none). 이 도메인은 유튜브의 1위를 가져오지 않는다 — 파는 쪽이 집계한 1위를 가져오고 유튜브는 계기 측 증거로만 쓴다. domains/youtube.md §2 참조."
+    },
+    {
+      "key": "book",
+      "name": "도서",
+      "nameEn": "Book",
+      "nameCard": "Books",
+      "cardColor": "#C1D746",
+      "color": "#34C759",
+      "colorName": "Apple systemGreen (Night)",
+      "colorPaper": "#217E38",
+      "colorPaperName": "systemGreen 명도 보정 (Paper)",
+      "hue": 135,
+      "contrast": 8.24,
+      "contrastPaper": 4.53,
+      "contrastPass": true,
+      "doc": "domains/book.md",
+      "status": "active",
+      "order": 4,
+      "anchorType": "국내 출간일 또는 사건 발생일",
+      "primarySources": [
+        "yes24.com",
+        "kyobobook.co.kr",
+        "kpipa.or.kr"
+      ],
+      "warning": "예스24·교보문고 모두 series=snapshot이다. 과거 주차가 열리지 않으므로 이 도메인에서는 stat.trend를 그릴 수 없다 — 그 주에 본 것을 그 주에 기록한다."
+    },
+    {
+      "key": "stage",
+      "name": "공연",
+      "nameEn": "Stage",
+      "color": "#0C907E",
+      "colorName": "틸 (Night)",
+      "colorPaper": "#0A7B6C",
+      "colorPaperName": "틸 명도 보정 (Paper)",
+      "hue": 172,
+      "contrast": 4.62,
+      "contrastPaper": 4.57,
+      "contrastPass": true,
+      "doc": "domains/stage.md",
+      "status": "dormant",
+      "order": 5,
+      "anchorType": "국내 첫 공연일 (개막일)",
+      "primarySources": [
+        "kopis.or.kr"
+      ],
+      "warning": "휴면. 2026-w32 확인 시점에 KOPIS 포털이 전면 개편돼 등록 URL이 모두 404였고 화면에 서버 렌더 데이터가 없다. 오픈API 서비스키(KOPIS_API_KEY)를 발급해 tools/collect.mjs의 kopis 어댑터가 실제로 값을 받아오는 것을 확인한 뒤 active로 되돌린다. 읽을 수 없는 도메인을 활성으로 두면 매주 결번만 쌓인다.",
+      "api": "tools/collect.mjs (kopis 어댑터 · KOPIS_API_KEY 필요)"
+    }
+  ],
+  "budget": {
+    "note": "design.md §4.1 — Chromium 헤드리스 실측으로 도출. [권장, 절대상한]",
+    "kicker": [
+      22,
+      26
+    ],
+    "headline": [
+      24,
+      32
+    ],
+    "teaser": [
+      78,
+      104
+    ],
+    "text": [
+      180,
+      240
+    ],
+    "quote": [
+      40,
+      48
+    ],
+    "concept": [
+      30,
+      34
+    ],
+    "note_": [
+      125,
+      140
+    ],
+    "statLabel": [
+      22,
+      26
+    ],
+    "statValue": [
+      18,
+      22
+    ],
+    "axisCaption": [
+      52,
+      60
+    ],
+    "basis": [
+      52,
+      60
+    ],
+    "trendPoints": [
+      4,
+      5
+    ],
+    "a4UsedPx": [
+      940,
+      1050
+    ],
+    "issueInsightWeb": [
+      20,
+      34
+    ],
+    "issueInsightPrint": [
+      18,
+      30
+    ],
+    "issueInsightNote": [
+      150,
+      220
+    ]
+  },
+  "zineLayout": {
+    "leadSlots": 1,
+    "miniSlots": 3,
+    "selection": "score",
+    "note": "2026-08-10부터 리드 1 + 미니 3 위계가 없다 — 그 주 통과분 전원을 동등한 행으로 낸다(build/lib/render-zine.mjs). leadSlots/miniSlots 숫자 자체는 tools/qa.mjs의 죽은 분기(selection이 항상 'score'라 조건이 늘 false)에만 남아 있다 — 실제 지면 편수 제한으로는 안 쓰인다. 도메인을 8개로 늘린 이유는 결번이 나도 편수를 확보하기 위해서다."
+  }
+}

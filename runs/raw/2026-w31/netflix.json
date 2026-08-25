@@ -1,0 +1,215 @@
+{
+  "source": "netflix",
+  "week": "2026-w31",
+  "range": "2026.07.27 – 08.02",
+  "collectedAt": "2026-08-07T00:00:35.041Z",
+  "domains": [
+    "ott"
+  ],
+  "method": "tsv",
+  "url": "https://www.netflix.com/tudum/top10/data/all-weeks-countries.tsv",
+  "note": "넷플릭스 주는 월~일이고 라벨이 일요일이다. week=2026-08-02.",
+  "rowCount": 20,
+  "rows": [
+    {
+      "country_name": "South Korea",
+      "country_iso2": "KR",
+      "week": "2026-08-02",
+      "category": "Films",
+      "weekly_rank": "1",
+      "show_title": "Demon Slayer: Kimetsu no Yaiba Infinity Castle I",
+      "season_title": "N/A",
+      "cumulative_weeks_in_top_10": "1"
+    },
+    {
+      "country_name": "South Korea",
+      "country_iso2": "KR",
+      "week": "2026-08-02",
+      "category": "Films",
+      "weekly_rank": "2",
+      "show_title": "Wild Sing",
+      "season_title": "N/A",
+      "cumulative_weeks_in_top_10": "1"
+    },
+    {
+      "country_name": "South Korea",
+      "country_iso2": "KR",
+      "week": "2026-08-02",
+      "category": "Films",
+      "weekly_rank": "3",
+      "show_title": "The Debt Collector",
+      "season_title": "N/A",
+      "cumulative_weeks_in_top_10": "2"
+    },
+    {
+      "country_name": "South Korea",
+      "country_iso2": "KR",
+      "week": "2026-08-02",
+      "category": "Films",
+      "weekly_rank": "4",
+      "show_title": "Spider-Man: Homecoming",
+      "season_title": "N/A",
+      "cumulative_weeks_in_top_10": "4"
+    },
+    {
+      "country_name": "South Korea",
+      "country_iso2": "KR",
+      "week": "2026-08-02",
+      "category": "Films",
+      "weekly_rank": "5",
+      "show_title": "Hindsight",
+      "season_title": "N/A",
+      "cumulative_weeks_in_top_10": "1"
+    },
+    {
+      "country_name": "South Korea",
+      "country_iso2": "KR",
+      "week": "2026-08-02",
+      "category": "Films",
+      "weekly_rank": "6",
+      "show_title": "The Beekeeper",
+      "season_title": "N/A",
+      "cumulative_weeks_in_top_10": "4"
+    },
+    {
+      "country_name": "South Korea",
+      "country_iso2": "KR",
+      "week": "2026-08-02",
+      "category": "Films",
+      "weekly_rank": "7",
+      "show_title": "Spider-Man: Far from Home",
+      "season_title": "N/A",
+      "cumulative_weeks_in_top_10": "5"
+    },
+    {
+      "country_name": "South Korea",
+      "country_iso2": "KR",
+      "week": "2026-08-02",
+      "category": "Films",
+      "weekly_rank": "8",
+      "show_title": "Elize: Shadows of a Woman",
+      "season_title": "N/A",
+      "cumulative_weeks_in_top_10": "2"
+    },
+    {
+      "country_name": "South Korea",
+      "country_iso2": "KR",
+      "week": "2026-08-02",
+      "category": "Films",
+      "weekly_rank": "9",
+      "show_title": "Roofman",
+      "season_title": "N/A",
+      "cumulative_weeks_in_top_10": "1"
+    },
+    {
+      "country_name": "South Korea",
+      "country_iso2": "KR",
+      "week": "2026-08-02",
+      "category": "Films",
+      "weekly_rank": "10",
+      "show_title": "Husbands in Action",
+      "season_title": "N/A",
+      "cumulative_weeks_in_top_10": "7"
+    },
+    {
+      "country_name": "South Korea",
+      "country_iso2": "KR",
+      "week": "2026-08-02",
+      "category": "TV",
+      "weekly_rank": "1",
+      "show_title": "The East Palace",
+      "season_title": "The East Palace: Limited Series",
+      "cumulative_weeks_in_top_10": "3"
+    },
+    {
+      "country_name": "South Korea",
+      "country_iso2": "KR",
+      "week": "2026-08-02",
+      "category": "TV",
+      "weekly_rank": "2",
+      "show_title": "Agent Kim Reactivated",
+      "season_title": "Agent Kim Reactivated: Limited Series",
+      "cumulative_weeks_in_top_10": "6"
+    },
+    {
+      "country_name": "South Korea",
+      "country_iso2": "KR",
+      "week": "2026-08-02",
+      "category": "TV",
+      "weekly_rank": "3",
+      "show_title": "Spooky in Love",
+      "season_title": "Spooky in Love: Limited Series",
+      "cumulative_weeks_in_top_10": "3"
+    },
+    {
+      "country_name": "South Korea",
+      "country_iso2": "KR",
+      "week": "2026-08-02",
+      "category": "TV",
+      "weekly_rank": "4",
+      "show_title": "The Apartment Job",
+      "season_title": "The Apartment Job: Limited Series",
+      "cumulative_weeks_in_top_10": "4"
+    },
+    {
+      "country_name": "South Korea",
+      "country_iso2": "KR",
+      "week": "2026-08-02",
+      "category": "TV",
+      "weekly_rank": "5",
+      "show_title": "Better Late Than Single: After Service",
+      "season_title": "Better Late Than Single: After Service: Season 1",
+      "cumulative_weeks_in_top_10": "1"
+    },
+    {
+      "country_name": "South Korea",
+      "country_iso2": "KR",
+      "week": "2026-08-02",
+      "category": "TV",
+      "weekly_rank": "6",
+      "show_title": "Better Late Than Single",
+      "season_title": "Better Late Than Single: Season 2",
+      "cumulative_weeks_in_top_10": "4"
+    },
+    {
+      "country_name": "South Korea",
+      "country_iso2": "KR",
+      "week": "2026-08-02",
+      "category": "TV",
+      "weekly_rank": "7",
+      "show_title": "Agent Kim Reactivated – the Universe",
+      "season_title": "Agent Kim Reactivated – the Universe 2026",
+      "cumulative_weeks_in_top_10": "1"
+    },
+    {
+      "country_name": "South Korea",
+      "country_iso2": "KR",
+      "week": "2026-08-02",
+      "category": "TV",
+      "weekly_rank": "8",
+      "show_title": "Teach You a Lesson",
+      "season_title": "Teach You a Lesson: Limited Series",
+      "cumulative_weeks_in_top_10": "9"
+    },
+    {
+      "country_name": "South Korea",
+      "country_iso2": "KR",
+      "week": "2026-08-02",
+      "category": "TV",
+      "weekly_rank": "9",
+      "show_title": "The Psychopath I Met",
+      "season_title": "The Psychopath I Met: Season 1",
+      "cumulative_weeks_in_top_10": "3"
+    },
+    {
+      "country_name": "South Korea",
+      "country_iso2": "KR",
+      "week": "2026-08-02",
+      "category": "TV",
+      "weekly_rank": "10",
+      "show_title": "Smoking Behind the Supermarket With You",
+      "season_title": "Smoking Behind the Supermarket With You: Season 1",
+      "cumulative_weeks_in_top_10": "2"
+    }
+  ]
+}

@@ -1,0 +1,615 @@
+{
+  "source": "guyso",
+  "week": "2026-w29",
+  "range": "2026.07.13 – 07.19",
+  "collectedAt": "2026-08-07T01:48:24.415Z",
+  "domains": [
+    "music"
+  ],
+  "method": "fetch",
+  "url": "https://xn--o39an51b2re.com/chart/melon/weekly/2026/29",
+  "note": "멜론 주간 TOP100. 집계 기간 확인 실패. 가이섬은 집계 주체가 아니라 아카이브다 — 본문에는 '멜론 주간 차트'라고 원 출처를 밝힌다.",
+  "rowCount": 100,
+  "rows": [
+    {
+      "rank": 1,
+      "change": "2",
+      "title": "LOVE ATTACK",
+      "artist": "RESCENE (리센느)"
+    },
+    {
+      "rank": 2,
+      "change": "1",
+      "title": "갑자기",
+      "artist": "아이오아이 (I.O.I)"
+    },
+    {
+      "rank": 3,
+      "change": "1",
+      "title": "REDRED",
+      "artist": "CORTIS (코르티스)"
+    },
+    {
+      "rank": 4,
+      "change": "1",
+      "title": "LEMONADE",
+      "artist": "aespa"
+    },
+    {
+      "rank": 5,
+      "change": "1",
+      "title": "It′s Me",
+      "artist": "아일릿(ILLIT)"
+    },
+    {
+      "rank": 6,
+      "change": "20",
+      "title": "Pretty Girl",
+      "artist": "RESCENE (리센느)"
+    },
+    {
+      "rank": 7,
+      "change": "1",
+      "title": "소문의 낙원",
+      "artist": "AKMU (악뮤)"
+    },
+    {
+      "rank": 8,
+      "change": "1",
+      "title": "캐치 캐치",
+      "artist": "YENA (최예나)"
+    },
+    {
+      "rank": 9,
+      "change": "1",
+      "title": "Drowning",
+      "artist": "WOODZ"
+    },
+    {
+      "rank": 10,
+      "change": "1",
+      "title": "RUDE!",
+      "artist": "Hearts2Hearts (하츠투하츠)"
+    },
+    {
+      "rank": 11,
+      "change": "-",
+      "title": "사랑하게 될 거야",
+      "artist": "한로로"
+    },
+    {
+      "rank": 12,
+      "change": "4",
+      "title": "기쁨, 슬픔, 아름다운 마음",
+      "artist": "AKMU (악뮤)"
+    },
+    {
+      "rank": 13,
+      "change": "1",
+      "title": "0+0",
+      "artist": "한로로"
+    },
+    {
+      "rank": 14,
+      "change": "1",
+      "title": "Good Goodbye",
+      "artist": "화사 (HWASA)"
+    },
+    {
+      "rank": 15,
+      "change": "3",
+      "title": "만찬가",
+      "artist": "태연 (TAEYEON)"
+    },
+    {
+      "rank": 16,
+      "change": "4",
+      "title": "Lemon Tang",
+      "artist": "Hearts2Hearts (하츠투하츠)"
+    },
+    {
+      "rank": 17,
+      "change": "3",
+      "title": "Heavy Serenade",
+      "artist": "NMIXX"
+    },
+    {
+      "rank": 18,
+      "change": "3",
+      "title": "타임캡슐",
+      "artist": "다비치"
+    },
+    {
+      "rank": 19,
+      "change": "3",
+      "title": "404 (New Era)",
+      "artist": "KiiiKiii (키키)"
+    },
+    {
+      "rank": 20,
+      "change": "3",
+      "title": "BANG BANG",
+      "artist": "IVE (아이브)"
+    },
+    {
+      "rank": 21,
+      "change": "2",
+      "title": "Popcorn",
+      "artist": "도경수(D.O.)"
+    },
+    {
+      "rank": 22,
+      "change": "1",
+      "title": "어떻게 이별까지 사랑하겠어, 널 사랑하는 거지",
+      "artist": "AKMU (악뮤)"
+    },
+    {
+      "rank": 23,
+      "change": "53",
+      "title": "Deja Vu",
+      "artist": "RESCENE (리센느)"
+    },
+    {
+      "rank": 24,
+      "change": "1",
+      "title": "Blue Valentine",
+      "artist": "NMIXX"
+    },
+    {
+      "rank": 25,
+      "change": "1",
+      "title": "어제보다 슬픈 오늘",
+      "artist": "우디 (Woody)"
+    },
+    {
+      "rank": 26,
+      "change": "4",
+      "title": "너에게 닿기를",
+      "artist": "10CM"
+    },
+    {
+      "rank": 27,
+      "change": "2",
+      "title": "Golden",
+      "artist": "HUNTR/X, EJAE, AUDREY NUNA, REI AMI, KPop Demon Hunters Cast"
+    },
+    {
+      "rank": 28,
+      "change": "-",
+      "title": "뛰어(JUMP)",
+      "artist": "BLACKPINK"
+    },
+    {
+      "rank": 29,
+      "change": "2",
+      "title": "너의 모든 순간",
+      "artist": "성시경"
+    },
+    {
+      "rank": 30,
+      "change": "1",
+      "title": "멸종위기사랑",
+      "artist": "이찬혁"
+    },
+    {
+      "rank": 31,
+      "change": "1",
+      "title": "모르시나요(PROD.로코베리)",
+      "artist": "조째즈"
+    },
+    {
+      "rank": 32,
+      "change": "1",
+      "title": "소나기",
+      "artist": "이클립스 (ECLIPSE)"
+    },
+    {
+      "rank": 33,
+      "change": "46",
+      "title": "BAD",
+      "artist": "ATEEZ(에이티즈)"
+    },
+    {
+      "rank": 34,
+      "change": "-",
+      "title": "Whiplash",
+      "artist": "aespa"
+    },
+    {
+      "rank": 35,
+      "change": "2",
+      "title": "내게 사랑이 뭐냐고 물어본다면",
+      "artist": "로이킴"
+    },
+    {
+      "rank": 36,
+      "change": "1",
+      "title": "toxic till the end",
+      "artist": "로제 (ROSÉ)"
+    },
+    {
+      "rank": 37,
+      "change": "5",
+      "title": "WDA (Whole Different Animal) (Feat. G-DRAGON)",
+      "artist": "aespa"
+    },
+    {
+      "rank": 38,
+      "change": "1",
+      "title": "한 페이지가 될 수 있게",
+      "artist": "DAY6 (데이식스)"
+    },
+    {
+      "rank": 39,
+      "change": "15",
+      "title": "생각을 멈추다 보면",
+      "artist": "최유리"
+    },
+    {
+      "rank": 40,
+      "change": "4",
+      "title": "천상연",
+      "artist": "이창섭"
+    },
+    {
+      "rank": 41,
+      "change": "3",
+      "title": "그대 작은 나의 세상이 되어",
+      "artist": "카더가든"
+    },
+    {
+      "rank": 42,
+      "change": "2",
+      "title": "HOME SWEET HOME (feat. 태양, 대성)",
+      "artist": "G-DRAGON"
+    },
+    {
+      "rank": 43,
+      "change": "2",
+      "title": "그대만 있다면 (여름날 우리 X 너드커넥션 (Nerd Connection))",
+      "artist": "너드커넥션 (Nerd Connection)"
+    },
+    {
+      "rank": 44,
+      "change": "5",
+      "title": "SWIM",
+      "artist": "방탄소년단"
+    },
+    {
+      "rank": 45,
+      "change": "3",
+      "title": "청춘만화",
+      "artist": "이무진"
+    },
+    {
+      "rank": 46,
+      "change": "3",
+      "title": "봄 내음보다 너를",
+      "artist": "김나영"
+    },
+    {
+      "rank": 47,
+      "change": "3",
+      "title": "like JENNIE",
+      "artist": "제니 (JENNIE)"
+    },
+    {
+      "rank": 48,
+      "change": "2",
+      "title": "모든 날, 모든 순간 (Every day, Every Moment)",
+      "artist": "폴킴"
+    },
+    {
+      "rank": 49,
+      "change": "4",
+      "title": "HAPPY",
+      "artist": "DAY6 (데이식스)"
+    },
+    {
+      "rank": 50,
+      "change": "3",
+      "title": "주저하는 연인들을 위해",
+      "artist": "잔나비"
+    },
+    {
+      "rank": 51,
+      "change": "3",
+      "title": "STYLE",
+      "artist": "Hearts2Hearts (하츠투하츠)"
+    },
+    {
+      "rank": 52,
+      "change": "38",
+      "title": "Runaway",
+      "artist": "RESCENE (리센느)"
+    },
+    {
+      "rank": 53,
+      "change": "2",
+      "title": "입춘",
+      "artist": "한로로"
+    },
+    {
+      "rank": 54,
+      "change": "1",
+      "title": "APT.",
+      "artist": "로제 (ROSÉ), Bruno Mars"
+    },
+    {
+      "rank": 55,
+      "change": "3",
+      "title": "첫 만남은 계획대로 되지 않아",
+      "artist": "TWS (투어스)"
+    },
+    {
+      "rank": 56,
+      "change": "7",
+      "title": "나는 반딧불",
+      "artist": "황가람"
+    },
+    {
+      "rank": 57,
+      "change": "7",
+      "title": "예뻤어",
+      "artist": "DAY6 (데이식스)"
+    },
+    {
+      "rank": 58,
+      "change": "3",
+      "title": "사랑인가 봐",
+      "artist": "멜로망스"
+    },
+    {
+      "rank": 59,
+      "change": "3",
+      "title": "FAMOUS",
+      "artist": "ALLDAY PROJECT"
+    },
+    {
+      "rank": 60,
+      "change": "3",
+      "title": "오늘만 I LOVE YOU",
+      "artist": "BOYNEXTDOOR"
+    },
+    {
+      "rank": 61,
+      "change": "2",
+      "title": "Seven (feat. Latto) - Clean Ver.",
+      "artist": "정국"
+    },
+    {
+      "rank": 62,
+      "change": "4",
+      "title": "Welcome to the Show",
+      "artist": "DAY6 (데이식스)"
+    },
+    {
+      "rank": 63,
+      "change": "3",
+      "title": "BOOMPALA",
+      "artist": "LE SSERAFIM (르세라핌)"
+    },
+    {
+      "rank": 64,
+      "change": "1",
+      "title": "Hype Boy",
+      "artist": "NewJeans"
+    },
+    {
+      "rank": 65,
+      "change": "3",
+      "title": "Love Love Love (Feat. Yoong Jin Of Casker)",
+      "artist": "에픽하이 (EPIK HIGH)"
+    },
+    {
+      "rank": 66,
+      "change": "5",
+      "title": "청혼하지 않을 이유를 못 찾았어",
+      "artist": "이무진"
+    },
+    {
+      "rank": 67,
+      "change": "4",
+      "title": "REBEL HEART",
+      "artist": "IVE (아이브)"
+    },
+    {
+      "rank": 68,
+      "change": "1",
+      "title": "Magnetic",
+      "artist": "아일릿(ILLIT)"
+    },
+    {
+      "rank": 69,
+      "change": "3",
+      "title": "다정히 내 이름을 부르면",
+      "artist": "경서예지, 전건호"
+    },
+    {
+      "rank": 70,
+      "change": "2",
+      "title": "SPAGHETTI (feat. j-hope of BTS)",
+      "artist": "LE SSERAFIM (르세라핌), j-hope"
+    },
+    {
+      "rank": 71,
+      "change": "7",
+      "title": "사랑은 봄비처럼...이별은 겨울비처럼...",
+      "artist": "임현정"
+    },
+    {
+      "rank": 72,
+      "change": "-",
+      "title": "Die With A Smile",
+      "artist": "Lady Gaga, Bruno Mars"
+    },
+    {
+      "rank": 73,
+      "change": "4",
+      "title": "시작의 아이 ❍",
+      "artist": "박다혜, 마크툽 (MAKTUB)"
+    },
+    {
+      "rank": 74,
+      "change": "3",
+      "title": "Flower",
+      "artist": "오반(OVAN)"
+    },
+    {
+      "rank": 75,
+      "change": "2",
+      "title": "헤어지자 말해요",
+      "artist": "박재정"
+    },
+    {
+      "rank": 76,
+      "change": "6",
+      "title": "달리 표현할 수 없어요",
+      "artist": "로이킴"
+    },
+    {
+      "rank": 77,
+      "change": "2",
+      "title": "Love wins all",
+      "artist": "아이유"
+    },
+    {
+      "rank": 78,
+      "change": "4",
+      "title": "눈을 감아도(2026)",
+      "artist": "순순희(지환)"
+    },
+    {
+      "rank": 79,
+      "change": "2",
+      "title": "ONE MORE TIME",
+      "artist": "ALLDAY PROJECT"
+    },
+    {
+      "rank": 80,
+      "change": "2",
+      "title": "에피소드",
+      "artist": "이무진"
+    },
+    {
+      "rank": 81,
+      "change": "1",
+      "title": "사랑은 늘 도망가",
+      "artist": "임영웅"
+    },
+    {
+      "rank": 82,
+      "change": "1",
+      "title": "FOCUS",
+      "artist": "Hearts2Hearts (하츠투하츠)"
+    },
+    {
+      "rank": 83,
+      "change": "-",
+      "title": "BLACKHOLE",
+      "artist": "IVE (아이브)"
+    },
+    {
+      "rank": 84,
+      "change": "-",
+      "title": "봄날",
+      "artist": "방탄소년단"
+    },
+    {
+      "rank": 85,
+      "change": "2",
+      "title": "Soda Pop",
+      "artist": "KPop Demon Hunters Cast, Danny Chung, Saja Boys, Andrew Choi, Neckwav, Kevin Woo, samUIL Lee"
+    },
+    {
+      "rank": 86,
+      "change": "3",
+      "title": "Dynamite",
+      "artist": "방탄소년단"
+    },
+    {
+      "rank": 87,
+      "change": "1",
+      "title": "I AM",
+      "artist": "IVE (아이브)"
+    },
+    {
+      "rank": 88,
+      "change": "8",
+      "title": "Body to Body",
+      "artist": "방탄소년단"
+    },
+    {
+      "rank": 89,
+      "change": "3",
+      "title": "OVERDRIVE",
+      "artist": "TWS (투어스)"
+    },
+    {
+      "rank": 90,
+      "change": "5",
+      "title": "VIRAL",
+      "artist": "BOYNEXTDOOR"
+    },
+    {
+      "rank": 91,
+      "change": "-",
+      "title": "Flashback",
+      "artist": "엔플라잉 (N.Flying)"
+    },
+    {
+      "rank": 92,
+      "change": "2",
+      "title": "LIVE FAST DIE SLOW",
+      "artist": "태양"
+    },
+    {
+      "rank": 93,
+      "change": "-",
+      "title": "TICK TOCK (Feat. ZICO) (Prod. by ZICO, Crush)",
+      "artist": "김하온 (HAON), Nosun, Raf Sandou, Marv, 정준혁"
+    },
+    {
+      "rank": 94,
+      "change": "2",
+      "title": "Do your dance",
+      "artist": "RIIZE"
+    },
+    {
+      "rank": 95,
+      "change": "-",
+      "title": "이 밤을 빌려 말해요",
+      "artist": "PLAVE"
+    },
+    {
+      "rank": 96,
+      "change": "-",
+      "title": "Hooligan",
+      "artist": "방탄소년단"
+    },
+    {
+      "rank": 97,
+      "change": "-",
+      "title": "2.0",
+      "artist": "방탄소년단"
+    },
+    {
+      "rank": 98,
+      "change": "-",
+      "title": "Never Ending Story",
+      "artist": "아이유"
+    },
+    {
+      "rank": 99,
+      "change": "1",
+      "title": "순간을 영원처럼",
+      "artist": "임영웅"
+    },
+    {
+      "rank": 100,
+      "change": "1",
+      "title": "FYA",
+      "artist": "방탄소년단"
+    }
+  ]
+}

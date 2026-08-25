@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ANSWER ZINE 제작기 (프로토타입)</title>
+<style>
+  :root {
+    --ink:#F5F5F5; --secondary:#A1A1A6; --tertiary:#8E8E93;
+    --divider:#3A3A3C; --bg:#222222; --surface:#2C2C2E; --accent:#409CFF; --seg-bg:#1A1A1A;
+    --ok:#34C759; --warn:#FF9500; --err:#FF453A;
+  }
+  * { box-sizing:border-box; }
+  body {
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Helvetica Neue",sans-serif;
+    -webkit-font-smoothing:antialiased; font-size:14px;
+  }
+  header {
+    display:flex; align-items:center; justify-content:space-between; gap:16px;
+    padding:14px 20px; border-bottom:1px solid var(--divider); background:var(--seg-bg);
+    position:sticky; top:0; z-index:20; flex-wrap:wrap;
+  }
+  header h1 { font-size:15px; font-weight:700; margin:0; letter-spacing:-0.01em; }
+  header .sub { font-size:11px; color:var(--tertiary); font-weight:400; margin-left:8px; }
+  .layout { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:0; align-items:start; }
+  @media (max-width:960px){ .layout{ grid-template-columns:1fr; } }
+  .pane { padding:20px; }
+  .pane.right { border-left:1px solid var(--divider); position:sticky; top:57px; max-height:calc(100vh - 57px); overflow-y:auto; }
+  @media (max-width:960px){ .pane.right{ position:static; max-height:none; border-left:none; border-top:1px solid var(--divider);} }
+
+  fieldset { border:1px solid var(--divider); border-radius:12px; padding:14px 16px 16px; margin:0 0 16px; }
+  legend { font-size:12px; font-weight:700; color:var(--accent); padding:0 6px; letter-spacing:0.02em; }
+  label { display:block; font-size:11px; color:var(--secondary); font-weight:500; margin:10px 0 4px; }
+  label:first-of-type { margin-top:0; }
+  input[type=text], input[type=date], textarea, select {
+    width:100%; background:var(--surface); color:var(--ink); border:1px solid var(--divider);
+    border-radius:8px; padding:8px 10px; font-family:inherit; font-size:13px; line-height:1.5;
+  }
+  textarea { resize:vertical; min-height:64px; }
+  input:focus, textarea:focus, select:focus { outline:2px solid var(--accent); outline-offset:-1px; }
+  .row2 { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .row3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; }
+  .counter { float:right; font-variant-numeric:tabular-nums; font-weight:600; }
+  .c-ok{color:var(--ok)} .c-warn{color:var(--warn)} .c-err{color:var(--err)}
+
+  button {
+    background:var(--surface); color:var(--ink); border:1px solid var(--divider);
+    border-radius:8px; padding:8px 14px; font-family:inherit; font-size:13px; font-weight:600; cursor:pointer;
+  }
+  button:hover{ background:#3A3A3C; }
+  button.primary { background:var(--accent); border-color:var(--accent); color:#fff; }
+  button.primary:hover{ opacity:.85; }
+  button.danger { color:var(--err); }
+
+  .domtabs { display:flex; gap:4px; padding:4px; background:var(--seg-bg); border-radius:10px; margin-bottom:16px; overflow-x:auto; }
+  .domtabs button { border:none; background:transparent; color:rgba(245,245,245,.45); font-weight:500; white-space:nowrap; border-radius:7px; padding:7px 12px; }
+  .domtabs button.active { background:var(--surface); color:var(--ink); }
+  .domtabs button .badge { display:inline-block; width:6px; height:6px; border-radius:99px; margin-right:6px; vertical-align:1px; }
+
+  .tabs { display:flex; gap:4px; padding:4px; background:var(--seg-bg); border-radius:10px; margin-bottom:16px; }
+  .tabs button { flex:1; border:none; background:transparent; color:rgba(245,245,245,.45); font-weight:500; border-radius:7px; padding:7px 10px; }
+  .tabs button.active { background:var(--surface); color:var(--ink); }
+
+  .check { display:flex; gap:9px; align-items:flex-start; padding:9px 11px; border-radius:9px; margin-bottom:6px; background:var(--surface); font-size:12.5px; line-height:1.5; }
+  .check .ic { flex-shrink:0; font-weight:800; width:15px; }
+  .check.pass{ color:var(--secondary); } .check.pass .ic{ color:var(--ok); }
+  .check.warn{ color:#FFCF8A; background:rgba(255,149,0,.09); } .check.warn .ic{ color:var(--warn); }
+  .check.fail{ color:#FFB3AD; background:rgba(255,69,58,.11); } .check.fail .ic{ color:var(--err); }
+  .check b { color:var(--ink); font-weight:700; }
+
+  .verdict { border-radius:12px; padding:14px 16px; margin-bottom:16px; font-weight:700; font-size:14px; }
+  .verdict.go { background:rgba(52,199,89,.14); color:#7DE29A; border:1px solid rgba(52,199,89,.35); }
+  .verdict.hold { background:rgba(255,149,0,.14); color:#FFCF8A; border:1px solid rgba(255,149,0,.35); }
+  .verdict.stop { background:rgba(255,69,58,.15); color:#FFB3AD; border:1px solid rgba(255,69,58,.4); }
+  .verdict small { display:block; font-weight:400; font-size:12px; margin-top:5px; opacity:.85; }
+
+  .score { display:flex; gap:8px; align-items:center; margin-bottom:8px; }
+  .score span:first-child { flex:1; font-size:12px; color:var(--secondary); }
+  .score select { width:auto; padding:5px 8px; font-size:12px; }
+
+  pre { background:var(--seg-bg); border:1px solid var(--divider); border-radius:10px;
+        padding:14px; overflow:auto; font-size:11.5px; line-height:1.6; max-height:520px;
+        font-family:ui-monospace,SFMono-Regular,Menlo,monospace; color:#C8E1FF; }
+
+  /* --- 웹 프리뷰 --- */
+  .pv { max-width:520px; }
+  .pv-kicker{ font-family:monospace; font-size:12px; font-weight:700; letter-spacing:.1em; margin-bottom:8px; }
+  .pv-headline{ font-size:28px; font-weight:800; line-height:1.2; letter-spacing:-.015em; margin:0 0 12px; }
+  .pv-teaser{ font-size:16px; color:var(--secondary); line-height:1.6; margin:0 0 24px; }
+  .pv p { font-size:15px; line-height:1.75; margin:0 0 18px; }
+  .pv-stat{ display:block; padding:18px 20px; background:var(--surface); border-radius:16px; border:1px solid var(--divider); margin:22px 0; }
+  .pv-stat .top{ display:flex; align-items:center; justify-content:space-between; gap:16px; }
+  .pv-stat .lb{ font-size:12px; color:var(--secondary); font-weight:500; margin-bottom:4px; }
+  .pv-stat .vl{ font-size:24px; font-weight:700; letter-spacing:-.01em; font-variant-numeric:tabular-nums; }
+  .pv-stat .ax{ font-size:11px; color:var(--tertiary); margin-top:10px; padding-top:10px; border-top:1px dashed var(--divider); }
+  .pv-stat .src{ font-size:11px; color:var(--accent); font-weight:500; margin-top:9px; }
+  .pv-quote{ margin:28px 0; padding:4px 0 4px 18px; font-size:18px; font-weight:600; line-height:1.5; letter-spacing:-.01em; }
+  .pv-insight{ margin-top:10px; padding:12px 14px; background:#000; border-radius:12px; font-size:12.5px; font-weight:400; line-height:1.6; color:#fff; }
+  .pv-insight b{ display:block; font-size:11px; letter-spacing:.03em; color:#FFCC00; margin-bottom:5px; text-transform:uppercase; }
+
+  /* --- 진 프리뷰 (A4 축소) --- */
+  .a4wrap{ width:100%; overflow:auto; }
+  .a4 { width:794px; height:1123px; transform-origin:top left; background:#F4F1E7; color:#1D1D1F;
+        padding:30px 38px; font-family:inherit; }
+  .a4 .mast{ text-align:center; }
+  .a4 .logo{ font-size:26px; font-weight:900; letter-spacing:.16em; }
+  .a4 .rule{ border-top:3px solid #1D1D1F; border-bottom:1px solid #1D1D1F; height:5px; margin:8px 0; }
+  .a4 .dateline{ font-size:10px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; }
+  .a4 .k{ font-size:10.5px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:#6E6E73; }
+  .a4 .h1{ font-size:44px; font-weight:900; line-height:1.1; letter-spacing:-.01em; margin:8px 0 4px; }
+  .a4 .by{ font-size:10px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:#6E6E73; margin:4px 0 11px; }
+  .a4 .photo{ float:left; width:38%; margin:0 19px 11px 0; }
+  .a4 .ph{ aspect-ratio:4/3; border:2px solid #1D1D1F; transform:rotate(-1.1deg);
+           background:repeating-linear-gradient(45deg,#DBD7C9 0,#DBD7C9 2px,#EDE9DC 2px,#EDE9DC 5px);
+           display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; color:#6E6E73;
+           clip-path:polygon(0% 2%,3% 0%,97% 1%,100% 4%,99% 97%,96% 100%,2% 99%,0% 96%); }
+  .a4 .sticker{ display:inline-block; margin-top:9px; padding:5px 11px; border:2px solid #1D1D1F; background:#fff;
+                font-weight:900; font-size:12px; transform:rotate(-3deg); }
+  .a4 .tz{ font-size:14px; font-weight:700; line-height:1.45; margin:0 0 11px; }
+  .a4 .bd{ font-size:11.5px; line-height:1.65; margin:0 0 11px; }
+  .a4 .clear::after{ content:""; display:block; clear:both; }
+  .a4 .srule{ border-top:1px solid #1D1D1F; margin:15px 0; }
+  .a4 .minis{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:23px; }
+  .a4 .mh{ font-size:19px; font-weight:900; line-height:1.15; margin:6px 0 7px; }
+  .a4 .mt{ font-size:11px; line-height:1.55; }
+  .a4 .foot{ margin-top:19px; background:#1D1D1F; color:#fff; padding:15px 19px; display:flex; justify-content:center; gap:11px; align-items:center; }
+  .a4 .qr{ width:60px; height:60px; background:#fff; color:#1D1D1F; display:flex; align-items:center; justify-content:center; font-size:9px; font-weight:700; }
+  .a4 .fc{ font-size:9.5px; line-height:1.5; } .a4 .fc b{ display:block; font-weight:900; }
+  .a4 .empty{ color:#8E8E93; font-style:italic; }
+  .fillbar{ height:5px; background:var(--seg-bg); border-radius:99px; overflow:hidden; margin:8px 0 14px; }
+  .fillbar i{ display:block; height:100%; background:var(--ok); }
+  .hint{ font-size:11px; color:var(--tertiary); line-height:1.55; margin:6px 0 0; }
+  .hidden{ display:none !important; }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>ANSWER ZINE 제작기<span class="sub">순위 말고, 팔린 이유.</span></h1>
+    <div id="datasrc" style="font-size:10.5px;color:var(--tertiary);margin-top:3px;">데이터 확인 중…</div>
+  </div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;">
+    <button id="btn-load">JSON 불러오기</button>
+    <button id="btn-sample">오류 예제 넣기</button>
+    <button class="primary" id="btn-save">이 스토리 저장</button>
+  </div>
+</header>
+
+<div class="layout">
+  <!-- ============ 좌: 입력 ============ -->
+  <div class="pane">
+    <div class="domtabs" id="domtabs"></div>
+
+    <fieldset>
+      <legend>1. 회차 · 시장 기준</legend>
+      <div class="row2">
+        <div>
+          <label>집계 시작일 (월요일 권장)</label>
+          <input type="date" id="f-start" value="2026-07-28" />
+        </div>
+        <div>
+          <label>회차 번호 (자동)</label>
+          <input type="text" id="f-week" readonly />
+        </div>
+      </div>
+      <label>집계 기간 (자동 생성)</label>
+      <input type="text" id="f-range" readonly />
+
+      <div class="row2" style="margin-top:10px;">
+        <div>
+          <label>시장 기준</label>
+          <select id="f-market">
+            <option value="KR">국내 (KR)</option>
+            <option value="OVERSEAS">해외 (OVERSEAS)</option>
+          </select>
+        </div>
+        <div>
+          <label>기준일 — 계기가 <b>국내에서</b> 발생한 날</label>
+          <input type="date" id="f-anchor" />
+        </div>
+      </div>
+      <label>기준일 확인 출처 URL</label>
+      <input type="text" id="f-anchorsrc" placeholder="https://www.kobis.or.kr/..." />
+      <p class="hint">개봉일·발매일·출간일·영상 게시일·부고일 중 이 스토리의 계기가 된 날. <b>최초 발표가 아니라 최종 확정일</b>을 쓴다. — market-scope.md §4</p>
+    </fieldset>
+
+    <fieldset>
+      <legend>2. 3조건 채점</legend>
+      <div class="score"><span>이례성 — 평소 범위를 벗어났는가</span>
+        <select id="s-anomaly"><option value="0">0 · 통상</option><option value="1">1 · 경계선</option><option value="2" selected>2 · 명백</option></select></div>
+      <div class="score"><span>인과 — 특정 가능한 계기가 있는가</span>
+        <select id="s-cause"><option value="0">0 · 없음</option><option value="1">1 · 추정</option><option value="2" selected>2 · 시점까지</option></select></div>
+      <div class="score"><span>검증가능성 — 양쪽 다 공개 출처인가</span>
+        <select id="s-verify"><option value="0">0 · 불가</option><option value="1">1 · 한쪽만</option><option value="2" selected>2 · 양쪽</option></select></div>
+      <p class="hint">합계 4점 미만이면 결번이다. 0점이 하나라도 있으면 즉시 탈락. — CLAUDE.md §4.2</p>
+    </fieldset>
+
+    <fieldset>
+      <legend>3. 헤드</legend>
+      <label>킥커 (영문 대문자) <span class="counter" id="c-kicker"></span></label>
+      <input type="text" id="f-kicker" placeholder="IN MEMORIAM" />
+      <label>헤드라인 — 한 문장, 마침표로 끝냄 <span class="counter" id="c-headline"></span></label>
+      <input type="text" id="f-headline" placeholder="부고 다음날, 서점이 붐볐다." />
+      <label>티저 — 숫자 포함 권장 <span class="counter" id="c-teaser"></span></label>
+      <textarea id="f-teaser" rows="2"></textarea>
+    </fieldset>
+
+    <fieldset>
+      <legend>4. 본문 5블록 (고정)</legend>
+      <label>[0] text — 현상 제시: 언제, 무슨 일이 <span class="counter" id="c-b0"></span></label>
+      <textarea id="f-b0" rows="4"></textarea>
+
+      <div style="margin:16px 0 4px;font-size:11px;font-weight:700;color:var(--accent);">[1] stat — 숫자 한 방</div>
+      <div class="row2">
+        <div><label>label <span class="counter" id="c-slabel"></span></label><input type="text" id="f-slabel" placeholder="주간 판매량 지수" /></div>
+        <div><label>value <span class="counter" id="c-svalue"></span></label><input type="text" id="f-svalue" placeholder="+326.5%" /></div>
+      </div>
+      <label>trend — 쉼표로 구분, 4~5개 권장</label>
+      <input type="text" id="f-strend" placeholder="98, 101, 100, 426" />
+      <label>axisCaption <span class="counter" id="c-saxis"></span></label>
+      <input type="text" id="f-saxis" placeholder="X축: 최근 4주 · Y축: 전주 대비 판매 지수 (전주=100)" />
+      <label>sourceUrl — 1차 출처만</label>
+      <input type="text" id="f-ssrc" placeholder="https://www.yes24.com/24/category/bestseller" />
+      <label>sourceLabel</label>
+      <input type="text" id="f-slabeltext" placeholder="예스24 베스트셀러 확인하기" />
+
+      <label style="margin-top:16px;">[2] text — 누가 샀나 / 왜 이례적인가 <span class="counter" id="c-b2"></span></label>
+      <textarea id="f-b2" rows="4"></textarea>
+
+      <div style="margin:16px 0 4px;font-size:11px;font-weight:700;color:var(--accent);">[3] quote — 한 줄 해석</div>
+      <label>quote.text — 26~40자, 대비 구조 <span class="counter" id="c-quote"></span></label>
+      <textarea id="f-quote" rows="2"></textarea>
+      <label>insight.concept <span class="counter" id="c-concept"></span></label>
+      <input type="text" id="f-concept" placeholder="사후 관심 효과 (사망 후 재조명 현상)" />
+      <label>insight.note — 110~125자 <span class="counter" id="c-note"></span></label>
+      <textarea id="f-note" rows="4"></textarea>
+
+      <label style="margin-top:16px;">[4] text — 마무리 한 문장 <span class="counter" id="c-b4"></span></label>
+      <textarea id="f-b4" rows="3"></textarea>
+    </fieldset>
+  </div>
+
+  <!-- ============ 우: 검증·프리뷰 ============ -->
+  <div class="pane right">
+    <div class="tabs" id="tabs">
+      <button class="active" data-t="check">검증</button>
+      <button data-t="web">웹 프리뷰</button>
+      <button data-t="zine">진 프리뷰</button>
+      <button data-t="json">JSON</button>
+    </div>
+
+    <div id="t-check">
+      <div class="verdict" id="verdict"></div>
+      <div id="checks"></div>
+    </div>
+
+    <div id="t-web" class="hidden"><div class="pv" id="pv"></div></div>
+
+    <div id="t-zine" class="hidden">
+      <p class="hint" style="margin-bottom:6px;">A4 794×1123px를 화면 폭에 맞춰 축소. 사용 높이 <b id="a4used">–</b> / 1123px (권장 ≤940, 상한 ≤1050)</p>
+      <div class="fillbar"><i id="a4bar" style="width:0%"></i></div>
+      <div class="a4wrap"><div class="a4" id="a4"></div></div>
+    </div>
+
+    <div id="t-json" class="hidden">
+      <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;">
+        <button id="btn-copy">클립보드 복사</button>
+        <button id="btn-dl">.json 다운로드</button>
+        <button class="danger" id="btn-clear">회차 비우기</button>
+      </div>
+      <pre id="json"></pre>
+    </div>
+  </div>
+</div>
+
+<script>
+/* =========================================================================
+   ANSWER ZINE 제작기 — 프로토타입
+   근거 문서: CLAUDE.md / design.md / market-scope.md / sources/whitelist.json
+   ========================================================================= */
+
+/* =========================================================================
+   설정 — 데이터를 어디서 읽을지
+   ---------------------------------------------------------------------
+   dataBase가 ""이면 같은 저장소의 상대 경로에서 읽는다 (GitHub Pages 배포 시).
+   로컬 파일(file://)로 열면 브라우저가 fetch를 막으므로 아래 내장값으로 폴백한다.
+   저장소를 다른 도메인에서 읽으려면 raw URL을 넣는다:
+     dataBase: "https://raw.githubusercontent.com/<owner>/<repo>/main/"
+   ========================================================================= */
+const CONFIG = { dataBase: "" };
+
+/* ---------- 도메인 레지스트리 (domains/registry.json 폴백) ---------- */
+let DOMAINS = [
+  { key:"movie",   name:"영화",   color:"#0A84FF" },
+  { key:"music",   name:"음악",   color:"#FF9500" },
+  { key:"youtube", name:"유튜브", color:"#FF2D55" },
+  { key:"book",    name:"도서",   color:"#34C759" },
+];
+
+/* ---------- 분량 예산 (design.md §4.1 — 실측 도출) ---------- */
+let BUDGET = {
+  kicker:[22,26], headline:[24,32], teaser:[78,104],
+  b0:[180,240], b2:[180,240], b4:[180,240],
+  quote:[40,48], concept:[30,34], note:[125,140],
+  slabel:[22,26], svalue:[18,22], saxis:[52,60],
+};
+let TREND_PTS = [4,5];
+
+/* ---------- 화이트리스트 (sources/whitelist.json 폴백) ---------- */
+let WL = {
+  sources:[
+    {host:"yes24.com",name:"예스24",tier:"primary",market:"KR"},
+    {host:"kyobobook.co.kr",name:"교보문고",tier:"secondary",market:"KR"},
+    {host:"aladin.co.kr",name:"알라딘",tier:"secondary",market:"KR"},
+    {host:"kpipa.or.kr",name:"출판문화산업진흥원",tier:"primary",market:"KR"},
+    {host:"melon.com",name:"멜론",tier:"primary",market:"KR"},
+    {host:"circlechart.kr",name:"써클차트",tier:"primary",market:"KR"},
+    {host:"genie.co.kr",name:"지니뮤직",tier:"secondary",market:"KR"},
+    {host:"bugs.co.kr",name:"벅스",tier:"secondary",market:"KR"},
+    {host:"kobis.or.kr",name:"KOBIS",tier:"primary",market:"KR"},
+    {host:"kofic.or.kr",name:"영화진흥위원회",tier:"primary",market:"KR"},
+    {host:"cgv.co.kr",name:"CGV",tier:"secondary",market:"KR"},
+    {host:"lottecinema.co.kr",name:"롯데시네마",tier:"secondary",market:"KR"},
+    {host:"megabox.co.kr",name:"메가박스",tier:"secondary",market:"KR"},
+    {host:"youtube.com",name:"유튜브",tier:"evidence_only",market:"KR"},
+    {host:"datalab.naver.com",name:"네이버 데이터랩",tier:"secondary",market:"KR"},
+    {host:"oliveyoung.co.kr",name:"올리브영",tier:"secondary",market:"KR"},
+    {host:"daiso.co.kr",name:"다이소",tier:"secondary",market:"KR"},
+    {host:"kostat.go.kr",name:"통계청",tier:"primary",market:"KR"},
+    {host:"korea.kr",name:"정책브리핑",tier:"primary",market:"KR"},
+    {host:"yna.co.kr",name:"연합뉴스",tier:"conditional",market:"KR"},
+    {host:"news1.kr",name:"뉴스1",tier:"conditional",market:"KR"},
+    {host:"asiae.co.kr",name:"아시아경제",tier:"conditional",market:"KR"},
+    {host:"mk.co.kr",name:"매일경제",tier:"conditional",market:"KR"},
+    {host:"hankyung.com",name:"한국경제",tier:"conditional",market:"KR"},
+    {host:"boxofficemojo.com",name:"Box Office Mojo",tier:"primary",market:"OVERSEAS"},
+    {host:"the-numbers.com",name:"The Numbers",tier:"primary",market:"OVERSEAS"},
+    {host:"billboard.com",name:"Billboard",tier:"primary",market:"OVERSEAS"},
+    {host:"charts.spotify.com",name:"Spotify Charts",tier:"primary",market:"OVERSEAS"},
+    {host:"namu.wiki",name:"나무위키",tier:"blocked",market:"-"},
+    {host:"wikipedia.org",name:"위키백과",tier:"blocked",market:"-"},
+    {host:"blog.naver.com",name:"네이버 블로그",tier:"blocked",market:"-"},
+    {host:"tistory.com",name:"티스토리",tier:"blocked",market:"-"},
+    {host:"brunch.co.kr",name:"브런치",tier:"blocked",market:"-"},
+    {host:"dcinside.com",name:"디시인사이드",tier:"blocked",market:"-"},
+    {host:"fmkorea.com",name:"에펨코리아",tier:"blocked",market:"-"},
+    {host:"theqoo.net",name:"더쿠",tier:"blocked",market:"-"},
+    {host:"reddit.com",name:"Reddit",tier:"blocked",market:"-"},
+    {host:"instagram.com",name:"인스타그램",tier:"blocked",market:"-"},
+    {host:"x.com",name:"X",tier:"blocked",market:"-"},
+  ],
+  blockedPatterns:["/search","google.com","search.naver.com","search.daum.net"],
+};
+const TIER_URL_OK = { primary:true, conditional:true, secondary:false, evidence_only:false, blocked:false };
+
+/* ---------- 저장소에서 데이터 읽기 ---------- */
+let DATA_SOURCE = "내장 기본값";
+async function loadData(){
+  const base = CONFIG.dataBase || "../";
+  const grab = async path => {
+    const r = await fetch(base + path, { cache:"no-store" });
+    if(!r.ok) throw new Error(`${path} → HTTP ${r.status}`);
+    return r.json();
+  };
+  try {
+    const [reg, wl] = await Promise.all([grab("domains/registry.json"), grab("sources/whitelist.json")]);
+    DOMAINS = reg.domains.filter(d => d.status === "active")
+                         .sort((a,b) => (a.order??99)-(b.order??99))
+                         .map(d => ({ key:d.key, name:d.name, color:d.color, anchorType:d.anchorType }));
+    const b = reg.budget;
+    BUDGET = { kicker:b.kicker, headline:b.headline, teaser:b.teaser,
+               b0:b.text, b2:b.text, b4:b.text, quote:b.quote, concept:b.concept, note:b.note_,
+               slabel:b.statLabel, svalue:b.statValue, saxis:b.axisCaption };
+    TREND_PTS = b.trendPoints;
+    WL = { sources: wl.sources, blockedPatterns: wl.blockedPatterns.map(p => p.pattern ?? p) };
+    DATA_SOURCE = `저장소 (${reg.version} / ${wl.version})`;
+    return true;
+  } catch(e){
+    DATA_SOURCE = `내장 기본값 — 저장소 읽기 실패 (${e.message})`;
+    return false;
+  }
+}
+
+function lookupSource(url){
+  if(!url || !url.trim()) return {status:"empty"};
+  let host;
+  try { host = new URL(url).hostname.replace(/^www\./,""); }
+  catch(e){ return {status:"invalid"}; }
+  for(const p of WL.blockedPatterns){
+    if(url.includes(p)) return {status:"blocked", host, reason:`차단 패턴 "${p}"`};
+  }
+  const hit = WL.sources.find(s => host === s.host || host.endsWith("."+s.host));
+  if(!hit) return {status:"unlisted", host};
+  return {status:hit.tier, host, name:hit.name, market:hit.market, urlOk:TIER_URL_OK[hit.tier]};
+}
+
+/* ---------- 상태 ---------- */
+let currentDomain = "book";
+const issue = {};          // { domainKey: storyObject }
+
+const $ = id => document.getElementById(id);
+const val = id => ($(id) ? $(id).value.trim() : "");
+const len = s => (s||"").length;
+
+/* ---------- 날짜 유틸 ---------- */
+function isoWeek(d){
+  const t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+  const dayNum = t.getUTCDay() || 7;
+  t.setUTCDate(t.getUTCDate() + 4 - dayNum);
+  const yearStart = new Date(Date.UTC(t.getUTCFullYear(),0,1));
+  return { year:t.getUTCFullYear(), week:Math.ceil(((t - yearStart)/86400000 + 1)/7) };
+}
+const pad = n => String(n).padStart(2,"0");
+function parseDate(s){ if(!s) return null; const [y,m,d]=s.split("-").map(Number); return new Date(y,m-1,d); }
+function fmtRange(startStr){
+  const s = parseDate(startStr); if(!s) return "";
+  const e = new Date(s.getTime() + 6*86400000);
+  return `${s.getFullYear()}.${pad(s.getMonth()+1)}.${pad(s.getDate())} – ${pad(e.getMonth()+1)}.${pad(e.getDate())}`;
+}
+const daysBetween = (a,b) => Math.round((b - a)/86400000);
+
+/* ---------- 폼 → 스토리 객체 ---------- */
+function buildStory(){
+  const start = val("f-start");
+  const w = start ? isoWeek(parseDate(start)) : {year:"YYYY",week:0};
+  const id = `${w.year}-w${pad(w.week)}-${currentDomain}`;
+  const trend = val("f-strend").split(",").map(x=>parseFloat(x.trim())).filter(x=>!isNaN(x));
+  return {
+    id, range: fmtRange(start),
+    domain: (DOMAINS.find(d=>d.key===currentDomain)||{}).name,
+    kicker: val("f-kicker"),
+    headline: val("f-headline"),
+    teaser: val("f-teaser"),
+    blocks: [
+      { type:"text", text: val("f-b0") },
+      { type:"stat", label:val("f-slabel"), value:val("f-svalue"), trend,
+        axisCaption:val("f-saxis"), sourceUrl:val("f-ssrc"), sourceLabel:val("f-slabeltext") },
+      { type:"text", text: val("f-b2") },
+      { type:"quote", text: val("f-quote"),
+        insight:{ concept: val("f-concept"), note: val("f-note") } },
+      { type:"text", text: val("f-b4") },
+    ],
+    _meta: {
+      market: val("f-market"),
+      anchorDate: val("f-anchor"),
+      anchorSourceUrl: val("f-anchorsrc"),
+      score: { anomaly:+val("s-anomaly"), cause:+val("s-cause"), verify:+val("s-verify") },
+    },
+  };
+}
+
+/* ---------- 검증 엔진 ---------- */
+function validate(st){
+  const out = [];
+  const add = (level, msg) => out.push({level, msg});
+  const m = st._meta;
+
+  /* --- 시장 정합성 (market-scope.md §5) --- */
+  const anchor = parseDate(m.anchorDate);
+  const start  = parseDate(val("f-start"));
+
+  if(!anchor){
+    add("fail","<b>기준일이 비어 있다.</b> 계기가 발생한 날을 특정하지 않으면 인과를 검증할 수 없다.");
+  } else if(start){
+    const d = daysBetween(anchor, start);
+    if(d < 0){
+      add("fail",`<b>기준일이 집계 기간보다 늦다.</b> 계기(${m.anchorDate})가 집계 시작일(${val("f-start")})보다 ${-d}일 뒤다. 그 주에 사건이 아직 일어나지 않았다 — 논리적으로 불가능한 인용이다. 〈오디세이〉 사고와 동일 유형.`);
+    } else {
+      const wk = Math.floor(d/7)+1;
+      add("pass",`시간 순서 정상. 계기 이후 <b>${d}일</b> 경과 = <b>${wk}주 차</b>. 본문의 주차 표기와 일치하는지 확인할 것.`);
+    }
+  }
+
+  const asrc = lookupSource(m.anchorSourceUrl);
+  if(asrc.status === "empty")        add("fail","<b>기준일 출처가 비어 있다.</b> 날짜도 검증 대상이다.");
+  else if(asrc.status === "invalid") add("fail","기준일 출처 URL 형식이 잘못됐다.");
+  else if(asrc.status === "blocked" || asrc.status === "unlisted")
+    add("fail",`기준일 출처 <b>${asrc.host}</b>가 화이트리스트에 없거나 차단됐다.`);
+  else if(asrc.market === "OVERSEAS" && m.market === "KR")
+    add("fail",`<b>국내 스토리인데 기준일을 해외 출처(${asrc.name})에서 가져왔다.</b> 국내 개봉일·발매일은 국내 출처로 확인한다.`);
+  else add("pass",`기준일 출처 <b>${asrc.name}</b> (${asrc.market}) 확인.`);
+
+  /* --- stat 출처 --- */
+  const s = lookupSource(st.blocks[1].sourceUrl);
+  if(s.status === "empty")        add("fail","<b>sourceUrl이 비어 있다.</b> 수치에는 반드시 출처가 붙는다.");
+  else if(s.status === "invalid") add("fail","sourceUrl 형식이 잘못됐다.");
+  else if(s.status === "blocked") add("fail",`<b>차단된 출처</b> — ${s.host} (${s.reason||"blocked"}). 1차 출처만 쓴다.`);
+  else if(s.status === "unlisted")add("fail",`<b>미등록 출처</b> — ${s.host}. sources/whitelist.json에 먼저 등록한다.`);
+  else if(!s.urlOk)               add("fail",`<b>${s.name}</b>은 <b>${s.status}</b> 등급이라 sourceUrl로 쓸 수 없다. 맥락 확인용이다.`);
+  else {
+    if(s.status === "conditional") add("warn",`<b>${s.name}</b>은 조건부 출처다. 기사 안에 수치의 출처 기관이 명시돼 있는지 확인했는가.`);
+    else add("pass",`출처 <b>${s.name}</b> — ${s.status} 등급, sourceUrl 사용 가능.`);
+    if(s.market === "OVERSEAS" && m.market === "KR")
+      add("fail",`<b>시장 불일치.</b> 국내 스토리인데 집계 출처가 해외(${s.name})다. 지표와 서사가 다른 시장을 가리킨다.`);
+    if(s.market === "KR" && m.market === "OVERSEAS")
+      add("fail",`<b>시장 불일치.</b> 해외 스토리로 선언했는데 출처가 국내(${s.name})다.`);
+  }
+  if(m.market === "OVERSEAS")
+    add("warn","해외 시장 스토리다. kicker 또는 stat.label에 해외 시장임을 <b>명시</b>했는지 확인 — market-scope.md §6.");
+
+  /* --- 3조건 --- */
+  const sc = m.score, total = sc.anomaly + sc.cause + sc.verify;
+  if(sc.anomaly===0||sc.cause===0||sc.verify===0)
+    add("fail",`<b>3조건 중 0점 항목이 있다 → 즉시 탈락.</b> (이례성 ${sc.anomaly} / 인과 ${sc.cause} / 검증 ${sc.verify})`);
+  else if(total < 4)
+    add("fail",`<b>3조건 합계 ${total}점 — 4점 미만이므로 이번 주 결번.</b>`);
+  else
+    add("pass",`3조건 합계 <b>${total}점</b> (이례성 ${sc.anomaly} / 인과 ${sc.cause} / 검증 ${sc.verify}).`);
+
+  /* --- 분량 예산 --- */
+  const fields = [
+    ["kicker","킥커",st.kicker],["headline","헤드라인",st.headline],["teaser","티저",st.teaser],
+    ["b0","[0] text",st.blocks[0].text],["b2","[2] text",st.blocks[2].text],["b4","[4] text",st.blocks[4].text],
+    ["quote","쿼트",st.blocks[3].text],["concept","concept",st.blocks[3].insight.concept],
+    ["note","note",st.blocks[3].insight.note],["slabel","stat.label",st.blocks[1].label],
+    ["svalue","stat.value",st.blocks[1].value],["saxis","axisCaption",st.blocks[1].axisCaption],
+  ];
+  const over = fields.filter(([k,,v]) => len(v) > BUDGET[k][1]);
+  const warn = fields.filter(([k,,v]) => len(v) > BUDGET[k][0] && len(v) <= BUDGET[k][1]);
+  if(over.length) add("fail",`<b>분량 절대 상한 초과</b> — ${over.map(([k,n,v])=>`${n} ${len(v)}/${BUDGET[k][1]}자`).join(", ")}. A4 1페이지가 깨진다.`);
+  if(warn.length) add("warn",`권장 예산 초과 (상한 내) — ${warn.map(([k,n,v])=>`${n} ${len(v)}/${BUDGET[k][0]}자`).join(", ")}.`);
+  if(!over.length && !warn.length) add("pass","모든 슬롯이 권장 분량 예산 안에 있다.");
+
+  /* --- 필수 입력 --- */
+  const missing = [];
+  if(!st.headline) missing.push("헤드라인");
+  if(!st.teaser) missing.push("티저");
+  [0,2,4].forEach(i => { if(!st.blocks[i].text) missing.push(`[${i}] text`); });
+  if(!st.blocks[1].value) missing.push("stat.value");
+  if(!st.blocks[3].text) missing.push("쿼트");
+  if(!st.blocks[3].insight.concept) missing.push("insight.concept");
+  if(!st.blocks[3].insight.note) missing.push("insight.note");
+  if(missing.length) add("fail",`<b>미입력</b> — ${missing.join(", ")}`);
+
+  /* --- 문장 규칙 (CLAUDE.md §6) --- */
+  if(st.headline){
+    if(!st.headline.endsWith(".")) add("warn","헤드라인이 마침표로 끝나지 않는다.");
+    if(/[?!…]|\.\.\./.test(st.headline)) add("fail","헤드라인에 물음표·느낌표·말줄임표를 쓰지 않는다.");
+    if(/\p{Extended_Pictographic}/u.test(st.headline)) add("fail","헤드라인에 이모지를 쓰지 않는다.");
+  }
+  const allText = [st.blocks[0].text, st.blocks[2].text, st.blocks[4].text, st.teaser].join(" ");
+  if(/<[A-Za-z]/.test(allText))
+    add("fail","본문에 <b>&lt;영문&gt; 형태의 꺾쇠</b>가 있다. HTML 태그로 파싱되어 화면에서 사라진다. 〈 〉(U+3008/3009)를 쓴다.");
+  if(/놀랍게도|무려|충격적/.test(allText))
+    add("warn","금지 수식어(놀랍게도 / 무려 / 충격적)가 있다. 숫자가 스스로 말하게 둔다.");
+
+  /* --- trend --- */
+  const t = st.blocks[1].trend;
+  if(t.length < 2) add("fail","trend 값이 2개 미만이다. 스파크라인을 그릴 수 없다.");
+  else if(t.length < TREND_PTS[0] || t.length > TREND_PTS[1])
+    add("warn",`trend ${t.length}점 — ${TREND_PTS.join("~")}점을 권장한다. 너무 적으면 직선이 된다.`);
+  else add("pass",`trend ${t.length}점 정상.`);
+
+  return out;
+}
+
+/* ---------- 렌더 ---------- */
+function esc(s){ return String(s??"").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+
+function renderDomTabs(){
+  $("domtabs").innerHTML = DOMAINS.map(d =>
+    `<button data-k="${d.key}" class="${d.key===currentDomain?"active":""}">
+       <span class="badge" style="background:${issue[d.key]?d.color:"#4A4A4C"}"></span>${d.name}${issue[d.key]?" ✓":""}
+     </button>`).join("");
+  $("domtabs").querySelectorAll("button").forEach(b =>
+    b.onclick = () => { saveDraft(); currentDomain = b.dataset.k; loadDraft(); renderDomTabs(); update(); });
+}
+
+function sparkline(points, color){
+  if(points.length < 2) return "";
+  const w=160,h=56, max=Math.max(...points), min=Math.min(...points);
+  const norm = v => h-6-((v-min)/(max-min||1))*(h-12);
+  const step = w/(points.length-1);
+  const d = points.map((p,i)=>`${i===0?"M":"L"} ${i*step},${norm(p)}`).join(" ");
+  return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" style="flex-shrink:0">
+    <path d="${d}" fill="none" stroke="${color}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="${w}" cy="${norm(points[points.length-1])}" r="3.5" fill="${color}"/></svg>`;
+}
+
+function renderWebPreview(st){
+  const color = (DOMAINS.find(d=>d.key===currentDomain)||{}).color;
+  const b = st.blocks;
+  $("pv").innerHTML = `
+    ${st.kicker?`<div class="pv-kicker" style="color:${color}">${esc(st.kicker)}</div>`:""}
+    <h1 class="pv-headline">${esc(st.headline)||'<span style="color:#5A5A5C">헤드라인</span>'}</h1>
+    <p class="pv-teaser">${esc(st.teaser)}</p>
+    <p>${esc(b[0].text)}</p>
+    <div class="pv-stat">
+      <div class="top">
+        <div style="min-width:0">
+          <div class="lb">${esc(b[1].label)}</div>
+          <div class="vl">${esc(b[1].value)||"–"}</div>
+        </div>${sparkline(b[1].trend, color)}
+      </div>
+      <div class="ax">${esc(b[1].axisCaption)}</div>
+      <div class="src">${esc(b[1].sourceLabel)} ↗</div>
+    </div>
+    <p>${esc(b[2].text)}</p>
+    <div class="pv-quote" style="border-left:3px solid ${color}">${esc(b[3].text)}
+      ${b[3].insight.concept?`<div class="pv-insight"><b>행동경제학 · ${esc(b[3].insight.concept)}</b>${esc(b[3].insight.note)}</div>`:""}
+    </div>
+    <p>${esc(b[4].text)}</p>`;
+}
+
+function renderZinePreview(){
+  saveDraftSilently();
+  const keys = DOMAINS.map(d=>d.key).filter(k => issue[k]);
+  let lead = null, minis = [];
+  if(keys.length){
+    const scored = keys.map(k=>({k, s:issue[k]._meta.score.anomaly+issue[k]._meta.score.cause+issue[k]._meta.score.verify}));
+    scored.sort((a,b)=> b.s-a.s || a.k.localeCompare(b.k));
+    lead = issue[scored[0].k];
+    minis = scored.slice(1,4).map(x=>issue[x.k]);
+  }
+  const dl = lead ? lead.range : "–";
+  const wkm = lead ? lead.id.match(/(\d{4})-w(\d+)/) : null;
+  $("a4").innerHTML = `
+    <div class="mast">
+      <div class="logo">ANSWER ZINE</div>
+      <div class="rule"></div>
+      <div class="dateline">서울, 대한민국 — ${esc(dl)}</div>
+    </div>
+    ${lead ? `
+    <div style="margin-top:8px">
+      <div class="k">이번 주 · ${esc(lead.domain)} · ${esc(lead.kicker)}</div>
+      <h1 class="h1">${esc(lead.headline)}</h1>
+      <div class="by">BY ANSWER ZINE · ${esc(lead.blocks[1].sourceLabel||"")}</div>
+      <div class="clear">
+        <div class="photo">
+          <div class="ph">PHOTO</div>
+          <div class="sticker">${esc(lead.blocks[1].label)} ${esc(lead.blocks[1].value)}</div>
+        </div>
+        <p class="tz">${esc(lead.teaser)}</p>
+        <p class="bd">${esc(lead.blocks[0].text)}</p>
+        <p class="bd">${esc(lead.blocks[2].text)}</p>
+        <p class="bd">${esc(lead.blocks[4].text)}</p>
+      </div>
+    </div>` : `<p class="empty" style="margin-top:40px">저장된 스토리가 없다. 왼쪽에서 입력하고 "이 스토리 저장"을 누른다.</p>`}
+    <div class="srule"></div>
+    <div class="minis">
+      ${[0,1,2].map(i => minis[i] ? `
+        <div>
+          <div class="k">${esc(minis[i].kicker)} · ${esc(minis[i].domain)}</div>
+          <h3 class="mh">${esc(minis[i].headline)}</h3>
+          <p class="mt">${esc(minis[i].teaser)}</p>
+        </div>` : `<div class="empty" style="font-size:11px">미니 슬롯 ${i+1} — 결번</div>`).join("")}
+    </div>
+    <div class="foot">
+      <div class="qr">QR</div>
+      <div class="fc">전체 글 읽기 →<b>answerzine.kr/${wkm?`${wkm[1]}-w${wkm[2]}`:"YYYY-wNN"}</b></div>
+    </div>`;
+
+  // 스케일 + 사용 높이 측정
+  const wrap = $("a4").parentElement;
+  const scale = Math.min(1, (wrap.clientWidth-2)/794);
+  $("a4").style.transform = `scale(${scale})`;
+  wrap.style.height = (1123*scale)+"px";
+  requestAnimationFrame(()=>{
+    const foot = $("a4").querySelector(".foot");
+    if(!foot) return;
+    const used = Math.round((foot.getBoundingClientRect().bottom - $("a4").getBoundingClientRect().top)/scale);
+    $("a4used").textContent = used+"px";
+    const pct = Math.min(100, used/1123*100);
+    $("a4bar").style.width = pct+"%";
+    $("a4bar").style.background = used>1050 ? "var(--err)" : used>940 ? "var(--warn)" : "var(--ok)";
+  });
+}
+
+function buildIssueFile(){
+  saveDraftSilently();
+  const keys = DOMAINS.map(d=>d.key).filter(k=>issue[k]);
+  const scored = keys.map(k=>({k,s:issue[k]._meta.score.anomaly+issue[k]._meta.score.cause+issue[k]._meta.score.verify}));
+  scored.sort((a,b)=> b.s-a.s || a.k.localeCompare(b.k));   // 리드 = 최고점
+  const stories = scored.map(x => {
+    const {_meta, ...clean} = issue[x.k];
+    return { ...clean, market:_meta.market, anchorDate:_meta.anchorDate, anchorSourceUrl:_meta.anchorSourceUrl };
+  });
+  if(!stories.length) return null;
+  const wm = stories[0].id.match(/(\d{4})-w(\d+)/);
+  return { issue: wm ? `${wm[1]}-w${wm[2]}` : "unknown", status:"draft",
+           range: stories[0].range, notes:"", stories };
+}
+function renderJSON(){
+  const f = buildIssueFile();
+  $("json").textContent = f
+    ? `// issues/${f.issue}.json 으로 저장한다. 발행 전 status를 "ready"로 바꾼다.\n`
+      + `// 스토리는 3조건 점수 순(리드 → 미니)으로 정렬돼 있다.\n`
+      + JSON.stringify(f, null, 2)
+    : "// 저장된 스토리가 없다.";
+}
+
+function update(){
+  const st = buildStory();
+  $("f-range").value = st.range;
+  const wm = st.id.match(/(\d{4})-w(\d+)/);
+  $("f-week").value = wm ? `${wm[1]}-w${wm[2]}` : "";
+
+  // 글자 수 카운터
+  const cmap = {kicker:"f-kicker",headline:"f-headline",teaser:"f-teaser",b0:"f-b0",b2:"f-b2",b4:"f-b4",
+    quote:"f-quote",concept:"f-concept",note:"f-note",slabel:"f-slabel",svalue:"f-svalue",saxis:"f-saxis"};
+  for(const [k,fid] of Object.entries(cmap)){
+    const el = $("c-"+k); if(!el) continue;
+    const n = len(val(fid)), [rec,max] = BUDGET[k];
+    el.textContent = `${n} / ${rec}`;
+    el.className = "counter " + (n>max ? "c-err" : n>rec ? "c-warn" : "c-ok");
+  }
+
+  const res = validate(st);
+  const fails = res.filter(r=>r.level==="fail").length;
+  const warns = res.filter(r=>r.level==="warn").length;
+  const v = $("verdict");
+  if(fails){ v.className="verdict stop"; v.innerHTML = `발행 불가 — 실패 ${fails}건<small>하나라도 실패하면 S8로 가지 않는다. CLAUDE.md §7</small>`; }
+  else if(warns){ v.className="verdict hold"; v.innerHTML = `조건부 통과 — 경고 ${warns}건<small>경고를 확인하고 판단한다.</small>`; }
+  else { v.className="verdict go"; v.innerHTML = `검증 통과<small>S6 빌드로 진행 가능.</small>`; }
+
+  $("checks").innerHTML = res.map(r =>
+    `<div class="check ${r.level==="fail"?"fail":r.level==="warn"?"warn":"pass"}">
+       <span class="ic">${r.level==="fail"?"✕":r.level==="warn"?"!":"✓"}</span><span>${r.msg}</span>
+     </div>`).join("");
+
+  renderWebPreview(st);
+  if(!$("t-zine").classList.contains("hidden")) renderZinePreview();
+  if(!$("t-json").classList.contains("hidden")) renderJSON();
+}
+
+/* ---------- 초안 저장/복원 ---------- */
+const FIELDS = ["f-kicker","f-headline","f-teaser","f-b0","f-slabel","f-svalue","f-strend","f-saxis",
+  "f-ssrc","f-slabeltext","f-b2","f-quote","f-concept","f-note","f-b4","f-market","f-anchor","f-anchorsrc",
+  "s-anomaly","s-cause","s-verify"];
+const drafts = {};
+function saveDraftSilently(){ const d={}; FIELDS.forEach(f=>d[f]=$(f).value); drafts[currentDomain]=d;
+  const st=buildStory(); if(st.headline||st.blocks[1].value) issue[currentDomain]=st; }
+function saveDraft(){ saveDraftSilently(); }
+function loadDraft(){
+  const d = drafts[currentDomain];
+  FIELDS.forEach(f => { $(f).value = d ? (d[f]??"") : ($(f).tagName==="SELECT" ? $(f).options[$(f).selectedIndex>=0?$(f).selectedIndex:0].value : ""); });
+  if(!d){ FIELDS.filter(f=>f.startsWith("f-")).forEach(f=>{ if($(f).type!=="date"||f!=="f-start") $(f).value=""; });
+          $("f-market").value="KR"; $("s-anomaly").value="2"; $("s-cause").value="2"; $("s-verify").value="2"; }
+}
+
+/* ---------- 이벤트 ---------- */
+document.querySelectorAll("input,textarea,select").forEach(el => {
+  el.addEventListener("input", update); el.addEventListener("change", update);
+});
+$("tabs").querySelectorAll("button").forEach(b => b.onclick = () => {
+  $("tabs").querySelectorAll("button").forEach(x=>x.classList.remove("active"));
+  b.classList.add("active");
+  ["check","web","zine","json"].forEach(t => $("t-"+t).classList.toggle("hidden", t!==b.dataset.t));
+  if(b.dataset.t==="zine") renderZinePreview();
+  if(b.dataset.t==="json") renderJSON();
+});
+$("btn-save").onclick = () => {
+  const st = buildStory();
+  if(!st.headline){ alert("헤드라인을 입력해야 저장된다."); return; }
+  saveDraftSilently(); issue[currentDomain] = st; renderDomTabs();
+  alert(`[${st.domain}] 저장됨 — ${st.id}\n\n회차에 저장된 스토리: ${Object.keys(issue).length}편`);
+};
+$("btn-clear").onclick = () => {
+  if(!confirm("이 회차에 저장된 스토리를 전부 비운다.")) return;
+  Object.keys(issue).forEach(k=>delete issue[k]);
+  Object.keys(drafts).forEach(k=>delete drafts[k]);
+  loadDraft(); renderDomTabs(); update(); renderJSON();
+};
+$("btn-copy").onclick = async () => {
+  try { await navigator.clipboard.writeText($("json").textContent); alert("복사됨."); }
+  catch(e){ alert("복사 실패. 텍스트를 직접 선택해 복사한다."); }
+};
+$("btn-dl").onclick = () => {
+  const f = buildIssueFile(); if(!f){ alert("저장된 스토리가 없다."); return; }
+  const body = JSON.stringify(f, null, 2);
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([body], {type:"application/json"}));
+  a.download = `${f.issue}.json`;
+  a.click(); URL.revokeObjectURL(a.href);
+};
+$("btn-load").onclick = () => {
+  const t = prompt("issues/*.json 내용을 붙여넣는다 (주석 줄은 제외).");
+  if(!t) return;
+  try {
+    const parsed = JSON.parse(t);
+    const arr = Array.isArray(parsed) ? parsed : parsed.stories;
+    if(!Array.isArray(arr)) throw new Error("stories 배열을 찾을 수 없다.");
+    arr.forEach(s => {
+      const d = DOMAINS.find(x=>x.name===s.domain); if(!d) return;
+      const {market, anchorDate, anchorSourceUrl, ...clean} = s;
+      issue[d.key] = {...clean, _meta:{ market:market??"KR", anchorDate:anchorDate??"",
+        anchorSourceUrl:anchorSourceUrl??"", score:{anomaly:2,cause:2,verify:2} }};
+      drafts[d.key] = {
+        "f-kicker":s.kicker??"", "f-headline":s.headline??"", "f-teaser":s.teaser??"",
+        "f-b0":s.blocks?.[0]?.text??"", "f-slabel":s.blocks?.[1]?.label??"",
+        "f-svalue":s.blocks?.[1]?.value??"", "f-strend":(s.blocks?.[1]?.trend??[]).join(", "),
+        "f-saxis":s.blocks?.[1]?.axisCaption??"", "f-ssrc":s.blocks?.[1]?.sourceUrl??"",
+        "f-slabeltext":s.blocks?.[1]?.sourceLabel??"", "f-b2":s.blocks?.[2]?.text??"",
+        "f-quote":s.blocks?.[3]?.text??"", "f-concept":s.blocks?.[3]?.insight?.concept??"",
+        "f-note":s.blocks?.[3]?.insight?.note??"", "f-b4":s.blocks?.[4]?.text??"",
+        "f-market":market??"KR", "f-anchor":anchorDate??"", "f-anchorsrc":anchorSourceUrl??"",
+        "s-anomaly":"2","s-cause":"2","s-verify":"2",
+      };
+    });
+    loadDraft(); renderDomTabs(); update();
+    alert(`${arr.length}편 불러옴. 3조건 점수는 다시 채점해야 한다.`);
+  } catch(e){ alert("JSON 파싱 실패: "+e.message); }
+};
+
+/* ---------- 오류 예제: 실제로 있었던 〈오디세이〉 사고 ---------- */
+$("btn-sample").onclick = () => {
+  currentDomain = "movie"; renderDomTabs();
+  $("f-start").value = "2026-07-28";
+  $("f-market").value = "KR";
+  $("f-anchor").value = "2026-08-05";                       // 실제 한국 개봉일
+  $("f-anchorsrc").value = "https://www.news1.kr/entertain/movie/6124047";
+  $("f-kicker").value = "SOLD OUT, AGAIN";
+  $("f-headline").value = "매진, 또 매진.";
+  $("f-teaser").value = "개봉 4주 차, 오디세이의 IMAX 특별관은 여전히 예매 오픈과 동시에 마감된다.";
+  $("f-b0").value = "정상적인 흥행 곡선이라면 지금쯤 상영관이 줄어야 한다. 그런데 크리스토퍼 놀란의 〈오디세이〉는 7월 15일 개봉 이후 4주 차에 접어든 지금도, 서울 시내 IMAX 특별관 주말 회차가 예매 오픈과 동시에 마감되고 있다.";
+  $("f-slabel").value = "4주 차 감소율";
+  $("f-svalue").value = "-14% (업계 평균 -35%)";
+  $("f-strend").value = "210, 158, 127, 109";
+  $("f-saxis").value = "X축: 개봉 후 경과 주차 · Y축: 일평균 관객수 (천 명)";
+  $("f-ssrc").value = "https://www.kobis.or.kr/kobis/business/stat/boxs/findDailyBoxOfficeList.do";
+  $("f-slabeltext").value = "KOBIS 박스오피스 확인하기";
+  $("f-b2").value = "이 영화는 전편을 IMAX 필름 카메라로 찍은 최초의 작품이다. 극장에서 봐야 하는 영화라는 말을 실제로 증명한 건 광고가 아니라 이미 한 번 보고 온 관객들이었다.";
+  $("f-quote").value = "이건 마케팅이 데운 게 아니라, 본 사람들이 다시 데웠다.";
+  $("f-concept").value = "사회적 증거 (Social Proof)";
+  $("f-note").value = "마케팅이 만든 화제성은 개봉 직후 다 소진된다. 본 사람이 보라고 해서 봤다는 후기가 쌓이면 광고보다 힘이 세다. 뒤늦게 붙는 입소문이 4주 차에도 새 관객을 끌어들이는 구조다.";
+  $("f-b4").value = "숫자로만 보면 선전하고 있다로 끝날 얘기인데, 후기 날짜를 하나씩 찍어보니 그 선전의 원인은 광고가 아니라 관객 자신이었다.";
+  update();
+  alert("실제 2026-w31-movie 회차를 그대로 넣었다.\n\n기준일에는 '최종 확정된 한국 개봉일 8월 5일'을 넣었다.\n검증 탭에서 무엇이 걸리는지 확인한다.");
+};
+
+/* ---------- 초기화 ---------- */
+(async () => {
+  const live = await loadData();
+  if(DOMAINS.length && !DOMAINS.find(d=>d.key===currentDomain)) currentDomain = DOMAINS[0].key;
+  const el = $("datasrc");
+  el.textContent = (live ? "● " : "○ ") + DATA_SOURCE;
+  el.style.color = live ? "var(--ok)" : "var(--warn)";
+  el.title = live ? "저장소의 registry.json / whitelist.json을 읽었다."
+                  : "로컬 파일로 열면 브라우저가 fetch를 막는다. GitHub Pages에 올리면 저장소 값을 읽는다.";
+  renderDomTabs();
+  update();
+})();
+window.addEventListener("resize", () => { if(!$("t-zine").classList.contains("hidden")) renderZinePreview(); });
+</script>
+</body>
+</html>

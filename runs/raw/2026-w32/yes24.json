@@ -1,0 +1,610 @@
+{
+  "source": "yes24",
+  "week": "2026-w32",
+  "range": "2026.08.03 – 08.09",
+  "collectedAt": "2026-08-07T00:03:49.681Z",
+  "domains": [
+    "book"
+  ],
+  "method": "fetch",
+  "url": "https://www.yes24.com/product/category/bestseller?categoryNumber=001&pageNumber=1&pageSize=120&type=WEEKLY",
+  "note": "판매지수는 절대값이다. 전주 대비를 쓰려면 지난 주 스냅숏과 직접 비교한다. ⚠️ 순위는 판매지수 순이 아니다 — 예스24는 최근 판매 추이를 함께 반영한다. 실제로 이 주에 1위(302,604)보다 5위(389,754)의 판매지수가 높았다. '판매지수 1위'라고 쓰지 않는다.",
+  "rowCount": 119,
+  "rows": [
+    {
+      "rank": 1,
+      "title": "세네카, 오늘을 빼앗기고 있는 당신에게",
+      "salesIndex": 302604
+    },
+    {
+      "rank": 2,
+      "title": "투명한 나선",
+      "salesIndex": 177297
+    },
+    {
+      "rank": 3,
+      "title": "오디세이아",
+      "salesIndex": 73287
+    },
+    {
+      "rank": 4,
+      "title": "독서의 기술",
+      "salesIndex": 170379
+    },
+    {
+      "rank": 5,
+      "title": "니체의 초월자",
+      "salesIndex": 389754
+    },
+    {
+      "rank": 6,
+      "title": "싯다르타",
+      "salesIndex": 329817
+    },
+    {
+      "rank": 7,
+      "title": "테오",
+      "salesIndex": 53574
+    },
+    {
+      "rank": 8,
+      "title": "ETS 토익 정기시험 기출문제집 1000 Vol. 5 RC",
+      "salesIndex": 351060
+    },
+    {
+      "rank": 9,
+      "title": "유럽 도시 기행 3",
+      "salesIndex": 227895
+    },
+    {
+      "rank": 10,
+      "title": "나는 왜 네 말이 힘들까",
+      "salesIndex": 68928
+    },
+    {
+      "rank": 11,
+      "title": "수족관",
+      "salesIndex": 181872
+    },
+    {
+      "rank": 12,
+      "title": "ETS 토익 정기시험 기출문제집 1000 Vol. 5 LC",
+      "salesIndex": 326694
+    },
+    {
+      "rank": 13,
+      "title": "나의 첫 번째 부동산 교과서",
+      "salesIndex": 172017
+    },
+    {
+      "rank": 14,
+      "title": "공부가 결국 너를 지켜줄 거야",
+      "salesIndex": 97182
+    },
+    {
+      "rank": 15,
+      "title": "클래식 각본집",
+      "salesIndex": 24195
+    },
+    {
+      "rank": 16,
+      "title": "2027 공단기 소방단기 써니 행정법총론 핵심집약",
+      "salesIndex": 79926
+    },
+    {
+      "rank": 17,
+      "title": "명탐정 코난 108 일반판",
+      "salesIndex": 40350
+    },
+    {
+      "rank": 18,
+      "title": "내면 근력",
+      "salesIndex": 243801
+    },
+    {
+      "rank": 19,
+      "title": "2027 공단기 소방단기 써니 행정법총론 기본서",
+      "salesIndex": 201366
+    },
+    {
+      "rank": 20,
+      "title": "너는 원래 괜찮은 사람이야",
+      "salesIndex": 36261
+    },
+    {
+      "rank": 21,
+      "title": "독하게 돈 공부",
+      "salesIndex": 88887
+    },
+    {
+      "rank": 22,
+      "title": "2026 큰별쌤 최태성의 별별한국사 기출 500제 한국사능력검정시험 심화(1,2,3급)",
+      "salesIndex": 403131
+    },
+    {
+      "rank": 23,
+      "title": "2027 유휘운 행정법총론 요약노트+기출문제 (요.플.)",
+      "salesIndex": 215475
+    },
+    {
+      "rank": 24,
+      "title": "모순",
+      "salesIndex": 409818
+    },
+    {
+      "rank": 25,
+      "title": "2026 큰별쌤 최태성의 별별한국사 한국사능력검정시험 심화(1,2,3급) 상",
+      "salesIndex": 543201
+    },
+    {
+      "rank": 26,
+      "title": "오디세이아",
+      "salesIndex": 22506
+    },
+    {
+      "rank": 27,
+      "title": "만화로 보는 5분 한국사",
+      "salesIndex": 128238
+    },
+    {
+      "rank": 28,
+      "title": "2026 큰별쌤 최태성의 별별한국사 한국사능력검정시험 심화(1,2,3급) 하",
+      "salesIndex": 508077
+    },
+    {
+      "rank": 29,
+      "title": "지금 세계사 1",
+      "salesIndex": 38439
+    },
+    {
+      "rank": 30,
+      "title": "빵충 사육 준수 사항",
+      "salesIndex": 44274
+    },
+    {
+      "rank": 31,
+      "title": "어떻게 살아낼 것인가",
+      "salesIndex": 74706
+    },
+    {
+      "rank": 32,
+      "title": "무진기행",
+      "salesIndex": 41850
+    },
+    {
+      "rank": 33,
+      "title": "오뒷세이아",
+      "salesIndex": 24666
+    },
+    {
+      "rank": 34,
+      "title": "프로젝트 헤일메리",
+      "salesIndex": 529818
+    },
+    {
+      "rank": 36,
+      "title": "명탐정 코난 108 특장판",
+      "salesIndex": 29160
+    },
+    {
+      "rank": 37,
+      "title": "일리아스",
+      "salesIndex": 17406
+    },
+    {
+      "rank": 38,
+      "title": "데미안",
+      "salesIndex": 185352
+    },
+    {
+      "rank": 39,
+      "title": "안녕이라 그랬어 (집 에디션)",
+      "salesIndex": 434586
+    },
+    {
+      "rank": 40,
+      "title": "용의자 X의 헌신",
+      "salesIndex": 73566
+    },
+    {
+      "rank": 41,
+      "title": "나미야 잡화점의 기적",
+      "salesIndex": 69099
+    },
+    {
+      "rank": 42,
+      "title": "코스모스",
+      "salesIndex": 273141
+    },
+    {
+      "rank": 43,
+      "title": "저주받은 고양이 펠리스",
+      "salesIndex": 9600
+    },
+    {
+      "rank": 44,
+      "title": "무례한 세상에서 나를 지키는 법",
+      "salesIndex": 148851
+    },
+    {
+      "rank": 45,
+      "title": "해커스 토익 기출 VOCA (보카)",
+      "salesIndex": 287004
+    },
+    {
+      "rank": 46,
+      "title": "흔한남매 이무기 4",
+      "salesIndex": 26307
+    },
+    {
+      "rank": 47,
+      "title": "악의",
+      "salesIndex": 47988
+    },
+    {
+      "rank": 48,
+      "title": "돈, 뜨겁게 사랑하고 차갑게 다루어라",
+      "salesIndex": 80517
+    },
+    {
+      "rank": 49,
+      "title": "태양 아래 올리브",
+      "salesIndex": 32523
+    },
+    {
+      "rank": 50,
+      "title": "지푸라기 왕관을 쓴 여자",
+      "salesIndex": 45462
+    },
+    {
+      "rank": 51,
+      "title": "브람스를 좋아하세요...",
+      "salesIndex": 134163
+    },
+    {
+      "rank": 52,
+      "title": "일리아스&amp;오디세이아 세트 (고대 그리스어 완역본)",
+      "salesIndex": 26706
+    },
+    {
+      "rank": 53,
+      "title": "그리스인 조르바",
+      "salesIndex": 31764
+    },
+    {
+      "rank": 54,
+      "title": "코스모스 : 100만 부 기념판",
+      "salesIndex": 65637
+    },
+    {
+      "rank": 55,
+      "title": "백앤아&#215;고고프렌즈 국어별동대 1 : 시작",
+      "salesIndex": 113586
+    },
+    {
+      "rank": 56,
+      "title": "설득",
+      "salesIndex": 15420
+    },
+    {
+      "rank": 57,
+      "title": "SKY 합격 생기부 공식",
+      "salesIndex": 29913
+    },
+    {
+      "rank": 58,
+      "title": "원소 원정대: 118개 캐릭터로 마스터하는 주기율표 공략집",
+      "salesIndex": 38268
+    },
+    {
+      "rank": 59,
+      "title": "지금 근현대사",
+      "salesIndex": 40644
+    },
+    {
+      "rank": 60,
+      "title": "미국 성장주 처음 투자",
+      "salesIndex": 21357
+    },
+    {
+      "rank": 61,
+      "title": "세종의 나라 1",
+      "salesIndex": 97617
+    },
+    {
+      "rank": 62,
+      "title": "매거진 조이 Vol.3 : 가비지타임",
+      "salesIndex": 44832
+    },
+    {
+      "rank": 63,
+      "title": "박곰희 연금 부자 수업",
+      "salesIndex": 503901
+    },
+    {
+      "rank": 64,
+      "title": "품격 있는 대화를 위한 지식 브리핑",
+      "salesIndex": 177021
+    },
+    {
+      "rank": 65,
+      "title": "푸른 사자 와니니 10",
+      "salesIndex": 57885
+    },
+    {
+      "rank": 66,
+      "title": "세종의 나라 2",
+      "salesIndex": 92937
+    },
+    {
+      "rank": 67,
+      "title": "부의 갈림길",
+      "salesIndex": 162102
+    },
+    {
+      "rank": 68,
+      "title": "2026 한 권으로 끝내는 시나공 컴활 2급 필기+실기 (컴퓨터활용능력 2급)",
+      "salesIndex": 131742
+    },
+    {
+      "rank": 69,
+      "title": "돈의 심리학 (50만 부 기념 뉴 에디션)",
+      "salesIndex": 145533
+    },
+    {
+      "rank": 70,
+      "title": "괴테는 모든 것을 말했다 (여름 에디션)",
+      "salesIndex": 418641
+    },
+    {
+      "rank": 71,
+      "title": "사춘기 엄마의 오장육부",
+      "salesIndex": 154989
+    },
+    {
+      "rank": 72,
+      "title": "문해내공",
+      "salesIndex": 23247
+    },
+    {
+      "rank": 73,
+      "title": "이향인",
+      "salesIndex": 106392
+    },
+    {
+      "rank": 74,
+      "title": "윗집 부부",
+      "salesIndex": 63414
+    },
+    {
+      "rank": 75,
+      "title": "100세까지 월 500만 원 받는 ETF 연금 수업",
+      "salesIndex": 62517
+    },
+    {
+      "rank": 76,
+      "title": "SQL 자격검정 실전문제",
+      "salesIndex": 99720
+    },
+    {
+      "rank": 77,
+      "title": "말하지 않고 말하기",
+      "salesIndex": 98247
+    },
+    {
+      "rank": 78,
+      "title": "급류",
+      "salesIndex": 190947
+    },
+    {
+      "rank": 79,
+      "title": "너를 아끼며 살아라",
+      "salesIndex": 303684
+    },
+    {
+      "rank": 80,
+      "title": "긴긴밤",
+      "salesIndex": 259785
+    },
+    {
+      "rank": 81,
+      "title": "자몽살구클럽",
+      "salesIndex": 329166
+    },
+    {
+      "rank": 82,
+      "title": "빅터 프랭클의 죽음의 수용소에서",
+      "salesIndex": 81672
+    },
+    {
+      "rank": 83,
+      "title": "이방인",
+      "salesIndex": 121152
+    },
+    {
+      "rank": 84,
+      "title": "2027 선재국어 시간 단축 독해 훈련 1일 3독",
+      "salesIndex": 14334
+    },
+    {
+      "rank": 85,
+      "title": "유럽 도시 기행 2",
+      "salesIndex": 59685
+    },
+    {
+      "rank": 86,
+      "title": "노력이 무기가 될 때",
+      "salesIndex": 50295
+    },
+    {
+      "rank": 87,
+      "title": "ETS 토익 단기공략 750+ (LC+RC)",
+      "salesIndex": 156633
+    },
+    {
+      "rank": 88,
+      "title": "결국 해내는 사람의 일의 공식",
+      "salesIndex": 9663
+    },
+    {
+      "rank": 89,
+      "title": "달러구트 꿈 백화점 0",
+      "salesIndex": 53883
+    },
+    {
+      "rank": 90,
+      "title": "주술회전 모듈로 1 더블특전판",
+      "salesIndex": 38352
+    },
+    {
+      "rank": 91,
+      "title": "흔한남매의 흔한 호기심 15",
+      "salesIndex": 50043
+    },
+    {
+      "rank": 92,
+      "title": "주와 연",
+      "salesIndex": 37698
+    },
+    {
+      "rank": 93,
+      "title": "아주 작은 습관의 힘 (50만 부 기념 스페셜 에디션)",
+      "salesIndex": 132012
+    },
+    {
+      "rank": 94,
+      "title": "엄마를 만나러 가는 길 3",
+      "salesIndex": 12030
+    },
+    {
+      "rank": 95,
+      "title": "흔한남매의 흔한 국어 1",
+      "salesIndex": 36963
+    },
+    {
+      "rank": 96,
+      "title": "2027 선재국어 독해야 산다 1일 1독",
+      "salesIndex": 59676
+    },
+    {
+      "rank": 97,
+      "title": "엄마를 만나러 가는 길 4",
+      "salesIndex": 11910
+    },
+    {
+      "rank": 98,
+      "title": "물리박사 김상욱의 수상한 연구실 0",
+      "salesIndex": 27669
+    },
+    {
+      "rank": 99,
+      "title": "복숭아와 애벌레",
+      "salesIndex": 66003
+    },
+    {
+      "rank": 100,
+      "title": "유럽 도시 기행 1",
+      "salesIndex": 55461
+    },
+    {
+      "rank": 101,
+      "title": "매스커레이드 라이프",
+      "salesIndex": 43656
+    },
+    {
+      "rank": 102,
+      "title": "읽으면 수학천재가 되는 만화책 1",
+      "salesIndex": 20628
+    },
+    {
+      "rank": 103,
+      "title": "싸모스 쌈벤저스 1",
+      "salesIndex": 24717
+    },
+    {
+      "rank": 104,
+      "title": "인생을 위한 최소한의 생각",
+      "salesIndex": 265554
+    },
+    {
+      "rank": 105,
+      "title": "행복할 거야 이래도 되나 싶을 정도로",
+      "salesIndex": 134367
+    },
+    {
+      "rank": 106,
+      "title": "인간 실격",
+      "salesIndex": 125079
+    },
+    {
+      "rank": 107,
+      "title": "아코디언",
+      "salesIndex": 70032
+    },
+    {
+      "rank": 108,
+      "title": "운명을 보는 기술",
+      "salesIndex": 142836
+    },
+    {
+      "rank": 109,
+      "title": "손자병법",
+      "salesIndex": 164019
+    },
+    {
+      "rank": 110,
+      "title": "오뒷세이아: 흔들리는 인간에 대하여",
+      "salesIndex": 13638
+    },
+    {
+      "rank": 111,
+      "title": "원피스 ONE PIECE 114",
+      "salesIndex": 70734
+    },
+    {
+      "rank": 112,
+      "title": "2027 공단기 심슨 보카",
+      "salesIndex": 46290
+    },
+    {
+      "rank": 113,
+      "title": "니체와 함께 지적 대화를",
+      "salesIndex": 42177
+    },
+    {
+      "rank": 114,
+      "title": "해커스 일본어 첫걸음 : 일본어 기초 20일 독학 완성!",
+      "salesIndex": 164625
+    },
+    {
+      "rank": 115,
+      "title": "생각에 관한 생각",
+      "salesIndex": 87036
+    },
+    {
+      "rank": 116,
+      "title": "투자에 대한 생각",
+      "salesIndex": 65349
+    },
+    {
+      "rank": 117,
+      "title": "한능검 한정판",
+      "salesIndex": 91059
+    },
+    {
+      "rank": 118,
+      "title": "누구에게나 가슴을 후벼파는 대사 한마디가 있다",
+      "salesIndex": 15876
+    },
+    {
+      "rank": 119,
+      "title": "이지패스 2026 ADsP 데이터분석 준전문가",
+      "salesIndex": 173307
+    },
+    {
+      "rank": 120,
+      "title": "류수영의 평생 레시피",
+      "salesIndex": 255951
+    }
+  ]
+}
