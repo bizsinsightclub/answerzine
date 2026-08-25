@@ -381,6 +381,22 @@
         "L-011",
         "L-018"
       ]
+    },
+    {
+      "stage": "S4+S5",
+      "agent": "az-write",
+      "domain": "book",
+      "status": "done",
+      "note": "az-verify가 timeOrder·anomalyRecheck fail 판정을 내린 \"호메로스 원작 고전 3종 — 오디세이 흥행\" 후보를, 사용자가 이 사실을 인지한 상태에서 명시적으로 오버라이드해 집필을 진행했다. 재검증하거나 다시 반려하지 않고 그대로 실었다 — 다음에 이 회차를 보는 사람이 헷갈리지 않도록 issues/2026-w33.json의 notes에도 같은 사실을 남겼다. 숫자(+389.8%/+360.9%/+166.1%, 개봉일 2026-08-05, 구매자 연령 분포)는 candidates[]·verdicts[]의 값을 그대로 옮겼고 바꾸지 않았다. 시점 문제 해결: story.range를 회차 명목 주차(w33, 08.10–08.16) 대신 실제 집계 구간(2026.08.06–08.12, 예스24 자체 \"개봉 2주 차\")으로 적었고, 본문에서 \"이번 주\" 대신 \"개봉 2주 차\" 같은 정확한 시점 표현을 썼다(L-001·L-005 재발 방지).",
+      "conceptUsed": "단순노출효과 (Mere Exposure Effect)",
+      "conceptRecentCheck": "최근 3주(issues/2026-w31.json·2026-w32.json) 사용 개념: 밴드왜건 효과, 목표 구배 효과, 사후 관심 효과, 사회적 증거, 희소성 효과, 언더독 효과 — 단순노출효과는 이 중 없어 중복 없음. domains/book.md §6 목록 중에서도 이번 회차에 처음 쓰는 개념이다.",
+      "budgetCheck": "headline 18/24자, teaser 70/78자, text 블록 152·93·61/180자, quote 33자(26~40 범위), stat.label 17/22자, stat.value 7/18자, stat.basis 39/52자, insight.concept 29/30자, insight.note 116자(110~125 범위) — 전부 예산 내.",
+      "lessonsApplied": [
+        "L-001",
+        "L-005",
+        "L-002",
+        "L-013"
+      ]
     }
   ],
   "lessonsApplied": [
