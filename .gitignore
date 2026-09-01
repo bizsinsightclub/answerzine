@@ -1,0 +1,10 @@
+.env
+data/raw/
+data/out/
+data/vocab/
+data/discover/
+runs/
+__pycache__/
+*.pyc
+.venv/
+venv/
