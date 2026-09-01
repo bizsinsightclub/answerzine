@@ -181,6 +181,41 @@ def build_column_user(pick: dict, lens: dict, run_id: str, cfg: dict) -> str:
     return "\n\n".join(parts)
 
 
+def build_brief_user(pick: dict, column: str, run_id: str, cfg: dict) -> str:
+    best = pick.get("best") or {}
+    issue_id = best.get("issue", "")
+    return (
+        f"# 다룬 이슈\n{issue_label(cfg).get(issue_id, issue_id)}\n\n"
+        f"## 무슨 일이 있었나\n{one_summary(run_id, issue_id) or '(요약 없음)'}\n\n"
+        f"# 이름\n{best.get('candidate', '')}\n"
+        f"{best.get('source_word', '')} × {best.get('active_word', '')}\n"
+        f"무엇이 무엇으로 바뀌었나: {pick.get('why', '')}\n\n"
+        f"# 사람들이 실제로 쓰는 말\n{one_vocab(run_id, issue_id) or '(없음)'}\n\n"
+        f"# 앞의 글\n{column}")
+
+
+def render_brief(brief: dict) -> list[str]:
+    if not brief:
+        return []
+    out = ["## 그래서 우리는", "", brief.get("shift", ""), ""]
+    sectors = brief.get("sectors") or []
+    if sectors:
+        out += ["**어디를 볼까**"]
+        out += [f"- **{s.get('name', '')}** — {s.get('why', '')}" for s in sectors]
+        out.append("")
+    target = brief.get("target") or {}
+    if target.get("who"):
+        out += ["**누구에게**", f"{target['who']} — {target.get('tension', '')}", ""]
+    angles = brief.get("angles") or []
+    if angles:
+        out += ["**어떻게 말 걸까**"]
+        out += [f"- **{a.get('line', '')}** — {a.get('how', '')}" for a in angles]
+        out.append("")
+    if brief.get("pitch"):
+        out += [f"> {brief['pitch']}", ""]
+    return out
+
+
 def render_md(pick: dict, lens: dict, column: str) -> str:
     best = pick.get("best") or {}
     reading = pick.get("reading") or {}
@@ -197,6 +232,7 @@ def render_md(pick: dict, lens: dict, column: str) -> str:
     if lens.get("person"):
         out += [f"<sub>이 글은 magilite의 {lens.get('field', '')} 렌즈로 썼습니다. "
                 f"맨 위 인용만 실제 발언이고 본문은 그 렌즈로 쓴 것입니다.</sub>", ""]
+    out += ["---", ""] + render_brief(pick.get("brief") or {})
     out += ["---", "", "## 왜 이것인가", pick.get("why", ""), ""]
     if reading:
         out += [f"처음엔 「{reading.get('first', '')}」, 알고 나면 「{reading.get('then', '')}」.", ""]
@@ -267,9 +303,17 @@ def main() -> None:
         if longer and len(longer) > len(column):
             column = longer
 
+    # 렌즈는 현상을 뜯었다. 여기서부터는 기획자의 목소리다.
+    log("제언을 뽑는 중…")
+    brief = call_json(cfg, with_korean(read_prompt("brief_planner.md"), korean),
+                      build_brief_user(pick, column, run_id, cfg), log, "제언", kind="dict")
+    if brief:
+        log(f"제언: {(brief.get('pitch') or '')[:60]}")
+
     out_dir = ROOT / "data" / "out" / run_id
     pick["lens"] = lens
     pick["column"] = column
+    pick["brief"] = brief or {}
     (out_dir / "pick.json").write_text(json.dumps(pick, ensure_ascii=False, indent=2), encoding="utf-8")
     (out_dir / "pick.md").write_text(render_md(pick, lens, column), encoding="utf-8")
     log(f"=== 끝. {len(column)}자 → data/out/{run_id}/pick.md ===")

@@ -463,6 +463,22 @@ function article(text) {
   }).join('')
 }
 
+function briefHTML(b) {
+  if (!b || !b.shift) return ''
+  const list = (items, key, sub) => (items || []).map((x) =>
+    `<li><b>${esc(x[key] || '')}</b><span>${esc(x[sub] || '')}</span></li>`).join('')
+  const t = b.target || {}
+  return `
+    <section class="brief">
+      <h2>그래서 우리는</h2>
+      <p class="brief-shift">${esc(b.shift)}</p>
+      ${(b.sectors || []).length ? `<h3>어디를 볼까</h3><ul class="brief-list">${list(b.sectors, 'name', 'why')}</ul>` : ''}
+      ${t.who ? `<h3>누구에게</h3><p class="brief-who"><b>${esc(t.who)}</b><span>${esc(t.tension || '')}</span></p>` : ''}
+      ${(b.angles || []).length ? `<h3>어떻게 말 걸까</h3><ul class="brief-list">${list(b.angles, 'line', 'how')}</ul>` : ''}
+      ${b.pitch ? `<p class="brief-pitch">${esc(b.pitch)}</p>` : ''}
+    </section>`
+}
+
 async function loadPick(runId) {
   const box = $('#pick')
   const data = await api('/api/pick' + (runId ? '?id=' + encodeURIComponent(runId) : ''))
@@ -486,6 +502,7 @@ async function loadPick(runId) {
       <div class="pick-column">${article(data.column)}</div>
       ${lens.person ? `<p class="pick-disclosure">이 글은 magilite의 ${esc(lens.field || '')} 렌즈로 썼습니다.
         맨 위 인용만 실제 발언이고, 본문은 그 렌즈로 쓴 것입니다.</p>` : ''}
+      ${briefHTML(data.brief)}
       <div class="pick-note">
         <h3>왜 이것인가</h3>
         ${article(data.why)}
