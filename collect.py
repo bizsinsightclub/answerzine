@@ -270,6 +270,21 @@ ORDER = ["음악", "영화", "넷플릭스", "유튜브 영상", "유튜브 검�
          "뮤지컬", "콘서트", "전시/행사", "도서", "네이버 웹툰", "무신사", "KREAM",
          "렉스몬드", "Jente", "구글 플레이 앱", "게임"]
 
+# 열별 출처 — xlsx 데이터(1~11행) 아래에 적는다. 보드는 2~11행만 읽으므로 무시된다.
+SOURCE_LABEL = {
+    "음악": "YouTube Charts (KR 주간)", "영화": "KOBIS 박스오피스", "넷플릭스": "Netflix Tudum",
+    "유튜브 영상": "Playboard (KR 주간)", "유튜브 검색": "Google Trends (RSS)",
+    "지상파 TV": "Nielsen Korea", "케이블 TV": "Nielsen Korea",
+    "뮤지컬": "NOL 인터파크", "콘서트": "NOL 인터파크", "전시/행사": "NOL 인터파크",
+    "도서": "교보문고", "네이버 웹툰": "네이버웹툰",
+    "무신사": "무신사(수동)", "KREAM": "KREAM(수동)", "렉스몬드": "렉스몬드(수동)", "Jente": "Jente(수동)",
+    "구글 플레이 앱": "MobileIndex 상승률", "게임": "게임메카",
+}
+
+# 결과 메일 — funtime 의 Gmail 자격증명을 그대로 빌려 쓴다(별도 키 안 만든다).
+FUNTIME_ENV = r"C:\pjt\funtime\.env"
+MAIL_TO = ["mk.kansas@gmail.com", "luc.kim@samsung.com"]
+
 # 자동 수집 카테고리 → 수집 함수
 def auto_collectors(target_dt):
     return {
@@ -311,7 +326,7 @@ def run(week, target_dt):
         else:
             cols[cat] = manual.get(cat, [])
 
-    ws_write(week, cols, target_dt)
+    out = ws_write(week, cols, target_dt)
     print("\n=== 수집 결과 ===")
     print("자동 성공:", ", ".join(ok) or "없음")
     if fail:
@@ -319,6 +334,7 @@ def run(week, target_dt):
         for f in fail:
             print("  -", f)
     print("수동 이관:", ", ".join(c for c in ORDER if c not in autos))
+    return out, ok, fail
 
 
 def ws_write(week, cols, target_dt):
@@ -328,11 +344,44 @@ def ws_write(week, cols, target_dt):
     ws.append(["순위"] + ORDER)
     for r in range(10):
         ws.append([r + 1] + [cols[c][r] if r < len(cols.get(c, [])) else "" for c in ORDER])
+    stamp = dt.datetime.now().strftime("%Y-%m-%d %H:%M")
+    # 데이터 아래(12행~)에 출처를 적는다 — 보드는 2~11행만 읽어 무시한다.
+    ws.append([])
+    ws.append(["출처"] + [SOURCE_LABEL.get(c, "") for c in ORDER])
+    ws.append([f"수집 {stamp} · WEEK {week} · KOBIS targetDt {target_dt}"])
     out = os.path.join(ROOT, "data", "weekly", f"week{week}.xlsx")
     os.makedirs(os.path.dirname(out), exist_ok=True)
     wb.save(out)
-    stamp = dt.datetime.now().strftime("%Y-%m-%d %H:%M")
     print(f"저장: {out}  (수집 시각 {stamp}, KOBIS targetDt {target_dt})")
+    return out
+
+
+def send_mail(xlsx_path, week, ok, fail):
+    # funtime/.env 의 GMAIL_USER·GMAIL_APP_PASSWORD 로 결과 xlsx 를 첨부해 보낸다.
+    import smtplib
+    from email.message import EmailMessage
+    creds = load_env(FUNTIME_ENV)
+    user, pw = creds.get("GMAIL_USER"), creds.get("GMAIL_APP_PASSWORD")
+    if not user or not pw:
+        print(f"[경고] {FUNTIME_ENV} 에 GMAIL_USER/GMAIL_APP_PASSWORD 가 없어 메일을 건너뛴다.")
+        return
+    msg = EmailMessage()
+    msg["From"] = user
+    msg["To"] = ", ".join(MAIL_TO)
+    msg["Subject"] = f"[트렌드 보드] WEEK {week} 랭킹"
+    body = (f"WEEK {week} 소비 트렌드 랭킹입니다. 첨부 xlsx 를 보드에 업로드하세요.\n\n"
+            f"자동 수집: {', '.join(ok) or '없음'}\n"
+            + (f"실패(사람이 채울 열): {', '.join(f.split(':')[0] for f in fail)}\n" if fail else "")
+            + "수동 유지: 무신사·KREAM·렉스몬드·Jente")
+    msg.set_content(body)
+    with open(xlsx_path, "rb") as f:
+        msg.add_attachment(f.read(), maintype="application",
+                           subtype="vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                           filename=os.path.basename(xlsx_path))
+    with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp:
+        smtp.login(user, pw)
+        smtp.send_message(msg)
+    print(f"메일 발송: {', '.join(MAIL_TO)} ← {os.path.basename(xlsx_path)}")
 
 
 def selftest():
@@ -354,6 +403,7 @@ def main():
     ap.add_argument("--target-dt", default=(dt.date.today() - dt.timedelta(days=7)).strftime("%Y%m%d"),
                     help="KOBIS 주간 박스오피스 기준일 YYYYMMDD (기본: 7일 전 = 지난 완료 주)")
     ap.add_argument("--selftest", action="store_true")
+    ap.add_argument("--email", action="store_true", help="수집 후 결과 xlsx 를 메일로 보낸다(funtime 자격증명)")
     args = ap.parse_args()
     if args.selftest:
         selftest()
@@ -362,7 +412,9 @@ def main():
         sys.exit("[중단] .env 에 FIRECRWAL_API 가 없다.")
     if not KOBIS_KEY:
         print("[경고] KOBIS_API_KEY 가 없어 영화는 건너뛴다.")
-    run(args.week, args.target_dt)
+    out, ok, fail = run(args.week, args.target_dt)
+    if args.email:
+        send_mail(out, args.week, ok, fail)
 
 
 if __name__ == "__main__":

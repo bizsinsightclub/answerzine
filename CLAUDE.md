@@ -55,9 +55,11 @@ issue-emergence/                 (폴더명은 옛 이름을 유지한다)
 ├── CLAUDE.md
 ├── lesson.md                    # 교훈·설계결정 로그
 ├── trendboard_week36.html       # 트렌드 보드 — 자체 완결형 Claude Artifact 한 파일
-├── collect.py                   # 주간 랭킹 수집기 (자동 카테고리 → 보드용 xlsx)
+├── collect.py                   # 주간 랭킹 수집기 (자동 카테고리 → 보드용 xlsx + 메일)
+├── run_collect.bat              # 스케줄러가 부르는 실행기 (collect.py --email + 로그)
 └── data/weekly/week{n}.xlsx     # 수집기 출력. 이 파일을 보드에 업로드한다
 ```
+※ 메일 자격증명은 이 저장소에 두지 않고 `C:\pjt\funtime\.env`(GMAIL_*)를 빌려 쓴다.
 
 - 보드는 **Claude Artifact로 발행해서** 쓴다. 발행해야 `window.claude`(`sample`·`downloads`) 런타임이 살아 **이유·토플라인 생성**과 **파일 저장**이 된다.
 - 로컬 파일로 그냥 열면 미리 채운 기본 차트(WEEK 36)만 보이고 분석 버튼은 죽어 있다.
@@ -142,6 +144,7 @@ python collect.py --selftest            # 네트워크 없이 HTML 파싱만 확
 - 매주 지정한 요일 **오전 10시 기준**으로 각 랭킹을 스냅샷한다(랭킹은 시점에 따라 흔들리므로 기준 시각을 못 박는다). 수집기는 실행 시점의 랭킹을 그대로 찍는다 — 10시 기준은 **언제 실행하느냐**의 문제이고 스케줄러가 맡는다.
 - 도구: **Firecrawl v2 `/scrape` + JSON 추출**(유튜브차트·교보·인터파크·넷플릭스·Nielsen·Playboard·네이버웹툰). 사이트마다 파서를 따로 짜지 않고 스키마 하나로 통일한다. **KOBIS는 공식 JSON API**, **유튜브 검색은 Google Trends RSS(XML)** 라 스크래핑이 아니라 `requests`+파싱으로 받는다. 키는 `.env`(`FIRECRWAL_API`·`KOBIS_API_KEY`).
 - 결과물: `data/weekly/week{n}.xlsx` — §4.1 엑셀 형식 그대로. **자동 열은 새로 긁고, 수동 열은 현재 보드 HTML 의 `DEMO_MATRIX` 를 그대로 옮겨 채운다**(보드 업로드는 매트릭스 전체를 갈아끼우므로, 한 파일에 전 카테고리가 다 있어야 수동 카테고리가 사라지지 않는다).
+- 데이터(1~11행) 아래 13행에 **열별 출처**, 14행에 수집 시각을 적는다(`SOURCE_LABEL`). 보드는 2~11행만 읽어 무시하므로 업로드에 지장 없다.
 - 실패한 출처는 **건너뛰고 로그에 남긴다.** 그 열은 사람이 수동으로 채운다. 개수를 맞추려 억지로 재시도하지 않는다(외부 호출은 3회까지만).
 - 스케줄: Windows 작업 스케줄러 또는 `/schedule`로 매주 그 요일 10:00 실행.
 
@@ -179,8 +182,13 @@ python collect.py --selftest            # 네트워크 없이 HTML 파싱만 확
 - **구글 플레이 앱·게임 = 출처 교체 후 해결.** 처음 시도한 `play.google.com/store/apps`(범용 목록)·`thelog.co.kr`(터널 오류)는 폐기하고, MobileIndex(상승률 탑10)·게임메카로 바꾸니 깨끗했다.
 - **네이버 웹툰·게임메카는 렌더 위젯에 따라 목록이 조금 달라질 수 있다** — 값은 다 실제 작품/게임이라 문제는 아니다.
 
-### 6.4 아직 사람이 정할 것
-- 실행 요일 고정(예: 매주 월 10:00) — 스케줄러 등록.
+### 6.4 결과 발송 (메일)
+- `python collect.py --email` 이면 완성한 xlsx 를 첨부해 메일로 보낸다.
+- 자격증명은 **funtime 것을 그대로 빌려 쓴다** — `C:\pjt\funtime\.env` 의 `GMAIL_USER`·`GMAIL_APP_PASSWORD`, `smtplib.SMTP_SSL("smtp.gmail.com", 465)`. 이 저장소에 메일 키를 따로 두지 않는다(값은 로그에 안 찍는다).
+- 받는 사람: `mk.kansas@gmail.com`, `luc.kim@samsung.com` (`MAIL_TO`).
+- 스케줄러(`run_collect.bat`)가 `--email` 로 돌아 **매주 월 10시 수집 직후 자동 발송**한다.
+
+### 6.5 아직 사람이 정할 것
 - (선택) 넷플릭스 한글 적중률 — 지금 방식의 천장은 회당 2~5개.
 
 ---
@@ -225,11 +233,11 @@ python collect.py --selftest            # 네트워크 없이 HTML 파싱만 확
 - `trendboard_week36.html`을 Claude Artifact로 발행한다 → `window.claude`가 활성화된다.
 - 켜면 이번 주 기본 차트가 이미 채워져 있다. "분석하기"를 누르면 빈 이유를 채우고, 묶음 추론·Client Connect로 내려간다.
 
-**주간 갱신**
-1. `python collect.py` → `data/weekly/week{n}.xlsx` 생성 (자동 열은 새로, 수동 열은 현재 보드 값으로)
-2. 음악(멜론)·넷플릭스 열을 사람이 확인·보정한다 (§6.3)
-3. 보드에 그 xlsx를 업로드한다 → 지난주와 자동 대조 → "분석하기"
-4. 필요하면 CSV/xlsx로 내보낸다
+**주간 갱신 (매주 월 10시 자동)**
+- Windows 작업 스케줄러 `IssueEmergence-TrendCollect` 가 `run_collect.bat` → `python collect.py --email` 을 돌린다.
+- `data/weekly/week{n}.xlsx` 생성(자동 14 / 수동 4, 아래에 출처) → `mk.kansas@gmail.com`·`luc.kim@samsung.com` 로 첨부 발송(§6.4). 로그는 `data/weekly/collect.log`.
+- 받은 사람이 xlsx 를 보드에 업로드 → 지난주와 자동 대조 → "분석하기". 넷플릭스 영어 잔여분만 필요하면 손본다.
+- 수동 실행: `python collect.py`(메일 없이) / `python collect.py --email`(메일까지) / `python collect.py --selftest`.
 
 ---
 

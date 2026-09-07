@@ -38,6 +38,8 @@
 - **Nielsen 표기 청소.** `채널장르(프로그램명)<본>` → `<...>` 지우고 끝의 `(제목)` 만 남긴다(`_clean_tv`). 채널·장르 접두어는 제목이 아니다.
 - **구글 플레이 앱·게임 — 출처 바꿔서 해결.** Play Store `store/apps`(범용 목록)·`thelog.co.kr`(터널 오류)를 버리고 **MobileIndex·게임메카**로 갈아탔다. 게임메카는 wait 를 8초로 늘리니 5개→10개로 다 떴다. 앱은 MobileIndex 주간 사용자 순위 200행을 받아 **상승률 내림차순 상위 10**을 코드에서 골랐다(순위 그대로가 아니라 사용자가 정한 기준) — 결과가 정부24·올리브영·하나은행 등 DEMO 결과 그대로였다. 최종 자동 14 / 수동 4.
 - **Excel 락.** `week{n}.xlsx` 를 엑셀에서 열어 두면 저장이 `PermissionError` 로 막힌다 — 수집기 돌리기 전 파일을 닫아야 한다.
+- **메일은 funtime 자격증명을 빌린다.** 새 Gmail 키를 만들지 않고 `C:\pjt\funtime\.env` 의 `GMAIL_USER`·`GMAIL_APP_PASSWORD` 를 재사용(`nara/report/notify.py` 와 같은 패턴, `SMTP_SSL smtp.gmail.com:465`, `EmailMessage.add_attachment`). `--email` 플래그로만 보내 수동 실행은 스팸이 안 되고, 스케줄러(`run_collect.bat`)만 `--email` 을 붙인다. 검증은 **로그인까지만**(제3자에게 테스트 메일을 쏘지 않으려고 send 는 생략).
+- **출처는 데이터 밑(13행)에.** 보드가 2~11행만 읽으니 12행 아래는 안전하다 — 열별 출처(`SOURCE_LABEL`)와 수집 시각을 거기 적는다.
 
 ## 트렌드 보드 HTML에 박혀 있는 설계 결정
 
