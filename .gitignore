@@ -1,9 +1,6 @@
 .env
-data/raw/
-data/out/
-data/vocab/
-data/discover/
-runs/
+data/weekly/
+.omc/
 __pycache__/
 *.pyc
 .venv/
