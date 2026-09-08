@@ -196,7 +196,7 @@ python collect.py --selftest            # 네트워크 없이 HTML 파싱만 확
 ### 6.4 결과 발송 (메일)
 - `python collect.py --email` 이면 완성한 xlsx 를 첨부해 메일로 보낸다.
 - 자격증명은 **funtime 것을 그대로 빌려 쓴다** — `C:\pjt\funtime\.env` 의 `GMAIL_USER`·`GMAIL_APP_PASSWORD`, `smtplib.SMTP_SSL("smtp.gmail.com", 465)`. 이 저장소에 메일 키를 따로 두지 않는다(값은 로그에 안 찍는다).
-- 받는 사람: `mk.kansas@gmail.com`, `luc.kim@samsung.com` (`MAIL_TO`).
+- 받는 사람: `.env` 의 `MAIL_TO`(쉼표 구분). 저장소에는 주소를 적지 않는다.
 - 스케줄러(`run_collect.bat`)가 `--email` 로 돌아 **매주 월 10시 수집 직후 자동 발송**한다.
 
 ### 6.5 아직 사람이 정할 것
@@ -255,7 +255,7 @@ python collect.py --selftest            # 네트워크 없이 HTML 파싱만 확
 
 **주간 갱신 (매주 월 10시 자동)**
 - Windows 작업 스케줄러 `IssueEmergence-TrendCollect` 가 `run_collect.bat` → `python collect.py --email` 을 돌린다.
-- `data/weekly/week{n}.xlsx` 생성(자동 14 / 수동 4, 아래에 출처) → `mk.kansas@gmail.com`·`luc.kim@samsung.com` 로 첨부 발송(§6.4). 로그는 `data/weekly/collect.log`.
+- `data/weekly/week{n}.xlsx` 생성(자동 14 / 수동 4, 아래에 출처) → `.env` 의 `MAIL_TO` 수신자에게 첨부 발송(§6.4). 로그는 `data/weekly/collect.log`.
 - xlsx 를 로컬 앱(`node server.mjs`)에 업로드 → 지난주와 자동 대조 → "분석하기"(구독제 claude -p). 넷플릭스 영어 잔여분만 필요하면 손본다.
 - 수동 실행: `python collect.py`(메일 없이) / `python collect.py --email`(메일까지) / `python collect.py --selftest`.
 

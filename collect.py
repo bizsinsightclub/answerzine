@@ -284,7 +284,15 @@ SOURCE_LABEL = {
 
 # 결과 메일 — funtime 의 Gmail 자격증명을 그대로 빌려 쓴다(별도 키 안 만든다).
 FUNTIME_ENV = r"C:\pjt\funtime\.env"
-MAIL_TO = ["mk.kansas@gmail.com", "luc.kim@samsung.com"]
+
+
+def mail_to():
+    # 수신자는 .env 의 MAIL_TO(쉼표 구분). 저장소에 주소를 두지 않는다 — 이 저장소 .env 먼저, 없으면 funtime .env.
+    for p in (os.path.join(ROOT, ".env"), FUNTIME_ENV):
+        v = load_env(p).get("MAIL_TO")
+        if v:
+            return [x.strip() for x in v.split(",") if x.strip()]
+    return []
 
 # 자동 수집 카테고리 → 수집 함수
 def auto_collectors(target_dt):
@@ -366,9 +374,13 @@ def send_mail(xlsx_path, week, ok, fail):
     if not user or not pw:
         print(f"[경고] {FUNTIME_ENV} 에 GMAIL_USER/GMAIL_APP_PASSWORD 가 없어 메일을 건너뛴다.")
         return
+    to = mail_to()
+    if not to:
+        print("[경고] .env 에 MAIL_TO 가 없어 메일을 건너뛴다.")
+        return
     msg = EmailMessage()
     msg["From"] = user
-    msg["To"] = ", ".join(MAIL_TO)
+    msg["To"] = ", ".join(to)
     msg["Subject"] = f"[트렌드 보드] WEEK {week} 랭킹"
     body = (f"WEEK {week} 소비 트렌드 랭킹입니다. 첨부 xlsx 를 보드에 업로드하세요.\n\n"
             f"자동 수집: {', '.join(ok) or '없음'}\n"
@@ -382,7 +394,7 @@ def send_mail(xlsx_path, week, ok, fail):
     with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp:
         smtp.login(user, pw)
         smtp.send_message(msg)
-    print(f"메일 발송: {', '.join(MAIL_TO)} ← {os.path.basename(xlsx_path)}")
+    print(f"메일 발송: {', '.join(to)} ← {os.path.basename(xlsx_path)}")
 
 
 def selftest():
