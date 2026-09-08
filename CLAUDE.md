@@ -8,6 +8,8 @@
 
 > 이 저장소는 한때 **이슈 창발 발산 엔진**(이슈 어휘를 충돌시켜 트렌드 워딩을 발산하는 파이썬 파이프라인)이었다.
 > 2026-09-07 방향을 전면 전환해 지금은 **주간 소비 트렌드 보드**다. 옛 코드는 삭제했다. 배경은 `lesson.md`.
+>
+> **2026-09-08 구조 전환:** 보드를 **Claude Artifact → 로컬 웹앱**(`app/`)으로 바꿨다. 단일파일·CDN·`window.claude` 제약을 걷어내 편집성을 확보하고, 이유 생성은 **구독제 `claude -p`**(헤드리스)로 돌린다(API 키·과금 안 씀). 발행/공유는 나중 호스팅 과제다. 옛 단일 HTML(`WEEK37…html`)은 `app/public/index.html` 의 소스다.
 
 ---
 
@@ -29,7 +31,7 @@
 
 ## 2. 핵심 원리
 
-보드 HTML(`trendboard_week36.html`)에 이미 녹아 있는 규칙이다. 새 코드·프롬프트도 이걸 지킨다.
+보드(`app/public/`)에 이미 녹아 있는 규칙이다. 새 코드·프롬프트도 이걸 지킨다.
 
 ### 2.1 순위는 옮기고, 해석만 생성한다
 출처가 매긴 순위·항목 텍스트를 손대지 않는다(오탈자·표기 포함). LLM은 "왜 떴나"만 쓴다.
@@ -54,16 +56,22 @@
 issue-emergence/                 (폴더명은 옛 이름을 유지한다)
 ├── CLAUDE.md
 ├── lesson.md                    # 교훈·설계결정 로그
-├── trendboard_week36.html       # 트렌드 보드 — 자체 완결형 Claude Artifact 한 파일
+├── app/                         # 로컬 웹앱 (보드)
+│   ├── server.mjs               #   Node 로컬 서버 — 의존성 0. 정적 서빙 + POST /api/sample
+│   └── public/
+│       ├── index.html           #   보드 셸 (React UMD · CDN)
+│       ├── css/board.css        #   스타일
+│       └── js/*.mjs             #   data · prompts · board (ES 모듈)
 ├── collect.py                   # 주간 랭킹 수집기 (자동 카테고리 → 보드용 xlsx + 메일)
 ├── run_collect.bat              # 스케줄러가 부르는 실행기 (collect.py --email + 로그)
 └── data/weekly/week{n}.xlsx     # 수집기 출력. 이 파일을 보드에 업로드한다
 ```
 ※ 메일 자격증명은 이 저장소에 두지 않고 `C:\pjt\funtime\.env`(GMAIL_*)를 빌려 쓴다.
 
-- 보드는 **Claude Artifact로 발행해서** 쓴다. 발행해야 `window.claude`(`sample`·`downloads`) 런타임이 살아 **이유·토플라인 생성**과 **파일 저장**이 된다.
-- 로컬 파일로 그냥 열면 미리 채운 기본 차트(WEEK 36)만 보이고 분석 버튼은 죽어 있다.
-- 빌드 단계 없음. HTML 한 파일이 곧 앱이다.
+- **실행:** `cd app && node server.mjs` → `http://localhost:5178`. 브라우저에서 열고 xlsx 를 업로드한다.
+- **이유 생성은 구독제 `claude -p`** 로 돈다. `server.mjs` 의 `POST /api/sample` 이 보드가 만든 프롬프트를 받아 헤드리스 claude 로 돌리고 파싱된 JSON 을 돌려준다(옛 `window.claude.use("sample")` 대체). API 키 안 씀.
+- `server.mjs` 는 **stdlib 만** 쓴다(의존성 0). React·XLSX 는 CDN 에서 로드(로컬이라 허용).
+- 옛 Artifact 제약(단일파일·CDN 금지·`window.claude`)은 이제 없다. 로컬 서빙이므로 ES 모듈·다분할이 자유롭다.
 
 ---
 
@@ -80,11 +88,12 @@ issue-emergence/                 (폴더명은 옛 이름을 유지한다)
 - 한 칸 = `"제목 - 아티스트"` 또는 그냥 `"제목"`. 하이픈이 있으면 `parseRawTitle`이 제목/아티스트로 쪼갠다.
 - 관련 함수: `handleFile` → `buildItemsFromMatrix` → `parseRawTitle`.
 
-### 4.2 처리 — LLM은 브라우저 안에서 돈다
-- 카테고리별로 `window.claude.use("sample")`를 **병렬** 호출해 항목마다 이유(`headline`/`summary`/`reasons`/`keywords`/`confidence`)를 받는다(`runCategory`).
+### 4.2 처리 — LLM은 로컬 서버를 거쳐 구독제 claude -p 로 돈다
+- 브라우저의 `sampleFn.json(prompt, opts)` → `POST /api/sample` → `server.mjs` 가 `claude -p`(구독제) 실행 → 파싱 JSON 반환. 모든 LLM 기능(이유·토플라인·묶음·Client Connect)이 이 **단일 seam** 을 지난다.
+- 카테고리별로 호출해 항목마다 이유(`headline`/`summary`/`reasons`/`keywords`/`confidence`)를 받는다(`runCategory`). 동시성은 서버가 게이트한다(`TREND_CONCURRENCY`, 기본 3).
 - 항목 이유가 4개 이상 모이면 주간 한 줄(`makeTopline`)을 한 번 뽑는다.
-- 그룹(상위 카테고리)별 종합 인사이트(`GROUP_INSIGHTS`)는 "무엇이 돈이 되나"를 광고대행사 시점으로 쓴다.
 - 이미 이유가 붙은 항목은 다시 부르지 않는다. 빈 카테고리만 부른다.
+- **claude -p 주의:** node spawn 시 `stdio:['ignore',...]`(stdin 대기 방지), 상위 **배열** `--json-schema` 는 거부되니 안 쓰고 `.result` 에서 JSON 파싱, `--system-prompt` 로 CC 기본 프롬프트를 대체해 웹검색·과한 턴을 없앤다.
 
 ### 4.3 순위 변동 — 뺄셈
 - `PREV_KEY` localStorage에 지난주 스냅샷을 남겨 두고 이번 주와 제목 기준으로 대조한다(`snapshotChart`/`loadPrevChart`).
@@ -94,7 +103,7 @@ issue-emergence/                 (폴더명은 옛 이름을 유지한다)
 - **묶음 추론(bundles)**: 카테고리를 가로지르는 패턴을 묶어 한 편의 글로 만든다.
 - **Client Connect**: 좋아요한 인사이트를 담당 광고주 과제와 엮어 매니페스토(기·승·전·결) + 실행안 3개를 만든다.
 - **취향 학습**: 묶음 카드의 좋아요/싫어요를 localStorage에만 쌓아 다음 프롬프트에 실어 준다. **서버로는 아무것도 안 간다.** 모델을 학습시키는 게 아니다.
-- **내보내기**: 화면에 있는 그대로 CSV/xlsx로 뽑는다(`buildChartCsv`, `window.claude.use("downloads")`).
+- **내보내기**: 화면에 있는 그대로 CSV로 뽑는다(`buildChartCsv` → 브라우저 Blob 다운로드).
 
 ### 4.5 STORAGE 키 규칙
 - 상태는 `STORAGE_KEY`, 지난주 스냅샷은 `PREV_KEY`에 저장한다.
@@ -193,8 +202,15 @@ python collect.py --selftest            # 네트워크 없이 HTML 파싱만 확
 
 ---
 
-## 7. 코드 규칙 (향후 수집기 대상)
+## 7. 코드 규칙
 
+**로컬 앱(`app/`)**
+- `server.mjs` 는 **stdlib 만** 쓴다(의존성 0). 새 npm 의존성을 함부로 늘리지 않는다 — 정 필요하면 이유를 남긴다.
+- 프런트는 ES 모듈로 관심사별 분할(`js/data.mjs`·`js/prompts.mjs`·`js/board.mjs`). React·XLSX 만 CDN.
+- 이유 생성은 **구독제 `claude -p`** 만 쓴다(API 키·Agent SDK·Batch = 과금, 금지). 프롬프트 빌더는 보드가 갖고 서버는 프록시만.
+- 주석·로그는 한글. 순위·항목 텍스트는 절대 손대지 않는다.
+
+**수집기(`collect.py`)**
 - Python 3.11 이상. 수집기 의존성은 `requests`, `openpyxl`(xlsx 쓰기), firecrawl/exa 클라이언트로 제한한다. 새 의존성을 함부로 늘리지 않는다.
 - 터미널에서 쓸 키는 `.env`에만 둔다. 커밋 금지.
 - **순위·항목 텍스트를 절대 손대지 않는다**(오탈자·표기·부제 포함). 정리·묶음은 보드가 한다. 수집기는 있는 그대로 옮긴다.
@@ -211,7 +227,7 @@ python collect.py --selftest            # 네트워크 없이 HTML 파싱만 확
 - **순위를 다시 매기지 않는다.** 출처의 순위를 그대로 옮긴다.
 - **순위 변동을 추정하지 않는다.** 지난주와의 뺄셈만 쓴다.
 - 항목 텍스트를 다듬거나 합치지 않는다. 같은 대상은 그룹으로만 묶는다.
-- 트렌드 보드 HTML을 로컬 서버로 감싸지 않는다. Artifact 런타임(`window.claude`)이 있어야 산다.
+- 이유 생성에 **API 키(과금)** 를 쓰지 않는다. 구독제 `claude -p` 만 쓴다(Agent SDK·Batch 는 API 키 전용이라 금지).
 - 광고주 제언(Client Connect)에서 죽음·재난·범죄·정치 이슈를 캠페인 소재로 제안하지 않는다.
 - 없는 시장 수치·점유율을 지어내지 않는다. 세대론으로 때우지 않는다. 광고 상투어(진정성·공감·소통·새로운 패러다임·고객 중심) 금지.
 - 이 CLAUDE.md 전체를 LLM 프롬프트에 넣지 않는다.
@@ -229,14 +245,14 @@ python collect.py --selftest            # 네트워크 없이 HTML 파싱만 확
 
 ## 10. 실행
 
-**보드 열기**
-- `trendboard_week36.html`을 Claude Artifact로 발행한다 → `window.claude`가 활성화된다.
-- 켜면 이번 주 기본 차트가 이미 채워져 있다. "분석하기"를 누르면 빈 이유를 채우고, 묶음 추론·Client Connect로 내려간다.
+**보드 열기 (로컬 앱)**
+- `cd app && node server.mjs` → 브라우저에서 `http://localhost:5178`. `claude login` 세션이 있어야 이유 생성이 된다(구독제).
+- 켜면 이번 주 기본 차트가 이미 채워져 있다. xlsx 를 업로드하고 "분석하기"를 누르면 빈 이유를 채우고, 묶음 추론·Client Connect로 내려간다.
 
 **주간 갱신 (매주 월 10시 자동)**
 - Windows 작업 스케줄러 `IssueEmergence-TrendCollect` 가 `run_collect.bat` → `python collect.py --email` 을 돌린다.
 - `data/weekly/week{n}.xlsx` 생성(자동 14 / 수동 4, 아래에 출처) → `mk.kansas@gmail.com`·`luc.kim@samsung.com` 로 첨부 발송(§6.4). 로그는 `data/weekly/collect.log`.
-- 받은 사람이 xlsx 를 보드에 업로드 → 지난주와 자동 대조 → "분석하기". 넷플릭스 영어 잔여분만 필요하면 손본다.
+- xlsx 를 로컬 앱(`node server.mjs`)에 업로드 → 지난주와 자동 대조 → "분석하기"(구독제 claude -p). 넷플릭스 영어 잔여분만 필요하면 손본다.
 - 수동 실행: `python collect.py`(메일 없이) / `python collect.py --email`(메일까지) / `python collect.py --selftest`.
 
 ---

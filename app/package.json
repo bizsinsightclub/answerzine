@@ -1,0 +1,8 @@
+{
+  "name": "trendboard-app",
+  "private": true,
+  "type": "module",
+  "version": "0.1.0",
+  "scripts": { "start": "node server.mjs" },
+  "description": "로컬 트렌드 보드: 정적 서빙 + claude -p(구독제) 프록시"
+}

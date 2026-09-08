@@ -5,3 +5,8 @@ __pycache__/
 *.pyc
 .venv/
 venv/
+.playwright-mcp/
+/editorial-light.png
+/editorial-dark.png
+/chart-wide.png
+app/trendboard-local.png

@@ -1,0 +1,17 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "layout-transition",
+        "value": "*",
+        "files": [
+          "app/public/js/board.mjs"
+        ],
+        "createdAt": "2026-09-08T07:17:58.177Z",
+        "reason": "model: 진행률 막대의 결정형 채움은 본질적 width 애니메이션(패턴 채움이라 scaleX 왜곡). board.mjs 의 유일한 layout transition."
+      }
+    ]
+  }
+}
