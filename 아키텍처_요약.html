@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>소비 트렌드 보드 — 전체 아키텍처</title>
+<style>
+  :root{
+    --bg:#F2EFE8; --card:#FBFAF5; --surface-2:#E8E3D8; --ink:#1A1613;
+    --ink-faint:#6A6152; --line:#D8D1C3; --accent:#B83A20; --accent-soft:#F0E3DB;
+  }
+  html,body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:"Malgun Gothic","Apple SD Gothic Neo","Noto Sans KR",sans-serif;}
+  .wrap{max-width:1000px;margin:0 auto;padding:24px 20px 48px;}
+  .bar{display:flex;gap:10px;align-items:center;margin:0 0 16px;flex-wrap:wrap;}
+  .bar h1{font-size:16px;margin:0 auto 0 0;font-weight:700;letter-spacing:.01em;}
+  button{font:inherit;font-weight:700;font-size:14px;cursor:pointer;
+    border:1px solid var(--ink);background:var(--ink);color:#FBFAF5;
+    border-radius:7px;padding:9px 16px;}
+  button.ghost{background:transparent;color:var(--ink);border-color:var(--line);}
+  button:active{transform:translateY(1px);}
+  /* 4:3 프레임 */
+  .frame{aspect-ratio:4/3;width:100%;border:1px solid var(--line);
+    border-radius:10px;overflow:hidden;box-shadow:0 10px 24px rgba(40,30,18,.10);background:var(--bg);}
+  .frame svg{display:block;width:100%;height:100%;}
+  .hint{margin:14px 2px 0;color:var(--ink-faint);font-size:12.5px;line-height:1.55;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="bar">
+    <h1>전체 아키텍처 — 대한민국 소비 트렌드 보드</h1>
+    <button onclick="exportPng()">PNG 내보내기</button>
+    <button class="ghost" onclick="exportSvg()">SVG 저장</button>
+  </div>
+
+  <div class="frame">
+    <!-- 4:3 · 1200×900 -->
+    <svg id="diagram" xmlns="http://www.w3.org/2000/svg" width="1200" height="900" viewBox="0 0 1200 900">
+      <style>
+        text{font-family:"Malgun Gothic","Apple SD Gothic Neo","Noto Sans KR",sans-serif;}
+        .kick{fill:#B83A20;font-size:13px;font-weight:700;letter-spacing:.22em;}
+        .title{fill:#1A1613;font-size:29px;font-weight:700;}
+        .lbl{fill:#B83A20;font-size:15px;font-weight:700;letter-spacing:.02em;}
+        .t{fill:#1A1613;font-size:17px;font-weight:700;}
+        .tm{fill:#1A1613;font-size:16px;font-weight:700;font-family:"Consolas","IBM Plex Mono",ui-monospace,monospace;}
+        .s{fill:#6A6152;font-size:12.5px;}
+        .chip{fill:#1A1613;font-size:15px;font-weight:700;}
+        .cap{fill:#6A6152;font-size:13px;}
+        .capA{fill:#B83A20;font-size:14px;font-weight:700;}
+        .foot{fill:#6A6152;font-size:12.5px;}
+        .box{fill:#FBFAF5;stroke:#D8D1C3;stroke-width:1.5;}
+        .llm{fill:#F0E3DB;stroke:#B83A20;stroke-width:1.6;}
+        .man{fill:#E8E3D8;stroke:#D8D1C3;stroke-width:1.5;}
+        .flow{stroke:#6A6152;stroke-width:2;fill:none;}
+        .flowA{stroke:#B83A20;stroke-width:2.4;fill:none;}
+      </style>
+      <defs>
+        <marker id="ah" markerWidth="9" markerHeight="9" refX="7" refY="3.2" orient="auto">
+          <path d="M0,0 L7,3.2 L0,6.4 Z" fill="#6A6152"/>
+        </marker>
+        <marker id="ahA" markerWidth="10" markerHeight="10" refX="7.5" refY="3.4" orient="auto">
+          <path d="M0,0 L7.5,3.4 L0,6.8 Z" fill="#B83A20"/>
+        </marker>
+      </defs>
+
+      <rect x="0" y="0" width="1200" height="900" fill="#F2EFE8"/>
+
+      <!-- 제목 -->
+      <text class="kick" x="40" y="42">WEEKLY CONSUMER TREND BOARD</text>
+      <text class="title" x="40" y="78">전체 아키텍처 요약</text>
+      <!-- 범례 -->
+      <rect class="box" x="905" y="30" width="16" height="16" rx="3"/>
+      <text class="s" x="928" y="42">자동 · 결정론</text>
+      <rect class="llm" x="1035" y="30" width="16" height="16" rx="3"/>
+      <text class="s" x="1058" y="42">LLM</text>
+      <line x1="40" y1="96" x2="1160" y2="96" stroke="#1A1613" stroke-width="2"/>
+
+      <!-- ① 수집 -->
+      <text class="lbl" x="40" y="128">① 데이터 수집 — 자동 · 결정론 (LLM 아님)</text>
+
+      <rect class="box" x="40"  y="142" width="232" height="96" rx="6"/>
+      <text class="t"  x="56" y="176">공개 출처 14개</text>
+      <text class="s"  x="56" y="200"><tspan>음악·영화·OTT·TV·공연·도서</tspan><tspan x="56" dy="17">웹툰·앱·게임 …</tspan></text>
+
+      <rect class="box" x="336" y="142" width="232" height="96" rx="6"/>
+      <text class="tm" x="352" y="176">collect.py</text>
+      <text class="s"  x="352" y="200"><tspan>Firecrawl · KOBIS</tspan><tspan x="352" dy="17">· Google Trends RSS</tspan></text>
+
+      <rect class="box" x="632" y="142" width="232" height="96" rx="6"/>
+      <text class="tm" x="648" y="176">week{n}.xlsx</text>
+      <text class="s"  x="648" y="200"><tspan>카테고리 × TOP10</tspan><tspan x="648" dy="17">자동 14 + 수동 4</tspan></text>
+
+      <rect class="box" x="928" y="142" width="232" height="96" rx="6"/>
+      <text class="t"  x="944" y="176">메일 발송</text>
+      <text class="s"  x="944" y="200"><tspan>매주 월 10시</tspan><tspan x="944" dy="17">2인 자동 수신</tspan></text>
+
+      <line class="flow" x1="272" y1="190" x2="332" y2="190" marker-end="url(#ah)"/>
+      <line class="flow" x1="568" y1="190" x2="628" y2="190" marker-end="url(#ah)"/>
+      <line class="flow" x1="864" y1="190" x2="924" y2="190" marker-end="url(#ah)"/>
+
+      <!-- 수동 4개 -->
+      <rect class="man" x="632" y="258" width="232" height="56" rx="6"/>
+      <text class="t"  x="648" y="284" font-size="15">수동 4개</text>
+      <text class="s"  x="648" y="303">무신사·KREAM·렉스몬드·Jente</text>
+      <line class="flow" x1="748" y1="258" x2="748" y2="240" marker-end="url(#ah)"/>
+
+      <!-- 사람 업로드 브릿지 -->
+      <line class="flowA" x1="600" y1="324" x2="600" y2="424" marker-end="url(#ahA)"/>
+      <text class="capA" x="620" y="366">사람이 xlsx 업로드</text>
+      <text class="cap"  x="620" y="386">— 판단은 사람이 한다</text>
+
+      <!-- ② 해석 -->
+      <text class="lbl" x="40" y="452">② 해석 — 구독제 claude -p (단일 seam · API 키·과금 없음)</text>
+
+      <rect class="box" x="40"  y="466" width="232" height="96" rx="6"/>
+      <text class="t"  x="56" y="500">보드 · React</text>
+      <text class="s"  x="56" y="524"><tspan>브라우저 · 프롬프트 생성</tspan></text>
+
+      <rect class="box" x="336" y="466" width="232" height="96" rx="6"/>
+      <text class="tm" x="352" y="500">server.mjs</text>
+      <text class="s"  x="352" y="524"><tspan>POST /api/sample</tspan><tspan x="352" dy="17">의존성 0 · 프록시</tspan></text>
+
+      <rect class="llm" x="632" y="466" width="232" height="96" rx="6"/>
+      <text class="t"  x="648" y="500">구독제 claude -p</text>
+      <text class="s"  x="648" y="524"><tspan>헤드리스 · API 키 없음</tspan><tspan x="648" dy="17">동시성 서버 게이트</tspan></text>
+
+      <rect class="box" x="928" y="466" width="232" height="96" rx="6"/>
+      <text class="t"  x="944" y="500">JSON 해석</text>
+      <text class="s"  x="944" y="524"><tspan>headline·summary·reasons</tspan><tspan x="944" dy="17">keywords·confidence</tspan></text>
+
+      <line class="flow" x1="272" y1="514" x2="332" y2="514" marker-end="url(#ah)"/>
+      <line class="flow" x1="568" y1="514" x2="628" y2="514" marker-end="url(#ah)"/>
+      <line class="flow" x1="864" y1="514" x2="924" y2="514" marker-end="url(#ah)"/>
+
+      <!-- 부가 입력 주석 -->
+      <text class="cap" x="40" y="596">· 지난주 스냅샷 뺄셈 → 순위 변동(▲▼·NEW)     · 취향 localStorage — 서버로 전송 안 함</text>
+
+      <!-- 출력 브릿지 -->
+      <line class="flowA" x1="600" y1="612" x2="600" y2="648" marker-end="url(#ahA)"/>
+
+      <!-- ③ 출력 -->
+      <text class="lbl" x="40" y="678">③ 출력 — 화면에 그대로, 최종 판단은 사람</text>
+
+      <g>
+        <rect class="box" x="40"  y="694" width="208" height="56" rx="6"/>
+        <text class="chip" x="144" y="728" text-anchor="middle">화면 카드</text>
+        <rect class="box" x="268" y="694" width="208" height="56" rx="6"/>
+        <text class="chip" x="372" y="728" text-anchor="middle">묶음</text>
+        <rect class="box" x="496" y="694" width="208" height="56" rx="6"/>
+        <text class="chip" x="600" y="728" text-anchor="middle">주간 토플라인</text>
+        <rect class="box" x="724" y="694" width="208" height="56" rx="6"/>
+        <text class="chip" x="828" y="728" text-anchor="middle">Client Connect</text>
+        <rect class="box" x="952" y="694" width="208" height="56" rx="6"/>
+        <text class="chip" x="1056" y="728" text-anchor="middle">CSV 내보내기</text>
+      </g>
+
+      <!-- 푸터 -->
+      <line x1="40" y1="800" x2="1160" y2="800" stroke="#D8D1C3" stroke-width="1.5"/>
+      <text class="foot" x="40" y="828">로컬 실행 · node server.mjs (의존성 0) · React·XLSX만 CDN</text>
+      <text class="foot" x="40" y="850">원칙 — 순위는 옮기고 해석만 생성 · 변동은 추정이 아니라 뺄셈 · 냉소의 과녁은 사람이 아니라 구조</text>
+    </svg>
+  </div>
+
+  <p class="hint">
+    · 4:3(1200×900) 비율. <b>PNG 내보내기</b>는 2배 해상도(2400×1800)로 저장합니다.<br>
+    · 브라우저에서 이 파일을 직접 열어야 내보내기가 동작합니다(더블클릭 또는 파일 열기).
+  </p>
+</div>
+
+<script>
+  function _svgString(){
+    const svg=document.getElementById('diagram').cloneNode(true);
+    svg.setAttribute('xmlns','http://www.w3.org/2000/svg');
+    return new XMLSerializer().serializeToString(svg);
+  }
+  function _download(url,name){
+    const a=document.createElement('a');
+    a.href=url; a.download=name; document.body.appendChild(a); a.click(); a.remove();
+  }
+  function exportPng(){
+    const scale=2, W=1200, H=900;
+    const url='data:image/svg+xml;base64,'+btoa(unescape(encodeURIComponent(_svgString())));
+    const img=new Image();
+    img.onload=function(){
+      const c=document.createElement('canvas');
+      c.width=W*scale; c.height=H*scale;
+      const ctx=c.getContext('2d');
+      ctx.fillStyle='#F2EFE8'; ctx.fillRect(0,0,c.width,c.height);
+      ctx.drawImage(img,0,0,c.width,c.height);
+      c.toBlob(function(b){
+        const u=URL.createObjectURL(b);
+        _download(u,'소비트렌드보드_아키텍처.png');
+        setTimeout(()=>URL.revokeObjectURL(u),1000);
+      },'image/png');
+    };
+    img.onerror=function(){alert('내보내기 실패 — 브라우저에서 파일을 직접 열어 주세요.');};
+    img.src=url;
+  }
+  function exportSvg(){
+    const u=URL.createObjectURL(new Blob([_svgString()],{type:'image/svg+xml'}));
+    _download(u,'소비트렌드보드_아키텍처.svg');
+    setTimeout(()=>URL.revokeObjectURL(u),1000);
+  }
+</script>
+</body>
+</html>

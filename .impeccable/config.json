@@ -11,6 +11,33 @@
         ],
         "createdAt": "2026-09-08T07:17:58.177Z",
         "reason": "model: 진행률 막대의 결정형 채움은 본질적 width 애니메이션(패턴 채움이라 scaleX 왜곡). board.mjs 의 유일한 layout transition."
+      },
+      {
+        "rule": "cream-palette",
+        "value": "*",
+        "files": [
+          "D:/issue-emergence/아키텍처_요약.html"
+        ],
+        "createdAt": "2026-09-08T09:00:00.723Z",
+        "reason": "제품 팔레트: board.css --bg:#F2EFE8 '신문지 바탕' 에디토리얼 아이덴티티를 그대로 재현(사용자가 보드 톤에 맞추라고 요청)"
+      },
+      {
+        "rule": "wide-tracking",
+        "value": "*",
+        "files": [
+          "D:/issue-emergence/아키텍처_요약.html"
+        ],
+        "createdAt": "2026-09-08T09:00:01.088Z",
+        "reason": "0.22em 트래킹은 짧은 대문자 라벨(WEEKLY CONSUMER TREND BOARD 키커)에만 적용 — 규칙이 허용하는 용법. 본문 트래킹은 0.02em 이하"
+      },
+      {
+        "rule": "cramped-padding",
+        "value": "*",
+        "files": [
+          "D:/issue-emergence/아키텍처_요약.html"
+        ],
+        "createdAt": "2026-09-08T09:00:01.382Z",
+        "reason": "거짓양성: 콘텐츠는 40px 내부 여백을 가진 인라인 SVG이며 박스 내부 패딩 16px. .frame은 풀블리드 SVG를 담는 의도된 프레임"
       }
     ]
   }

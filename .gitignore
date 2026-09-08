@@ -6,6 +6,7 @@ __pycache__/
 .venv/
 venv/
 .playwright-mcp/
+~$*
 /editorial-light.png
 /editorial-dark.png
 /chart-wide.png
