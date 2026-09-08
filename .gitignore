@@ -11,3 +11,6 @@ venv/
 /editorial-dark.png
 /chart-wide.png
 app/trendboard-local.png
+
+# 주간 해석 메모는 남긴다 (xlsx 만 무시)
+!data/weekly/*.md

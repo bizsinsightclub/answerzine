@@ -1,49 +1,12 @@
 // ==================================================================
 // 상태 · reducer · 저장소 (localStorage)
 // ==================================================================
-import { PREFILLED_VARIANTS, PREFILLED, SAMPLE_PREV_IDS, DEMO_MATRIX, PREFILLED_BUNDLES, WEEK, TOPLINE_SAMPLE } from "./data.mjs";
-import { csvCell, buildChartCsv, buildGroupPlan, parseRawTitle, buildItemsFromMatrix, normTitleKey, normalizeIdeas, groupByCategory, useSectionOpen, computePopupPos, uidSeq, uid, asText, hlText, normalizeReason, KEYWORD_LIMIT, isTouchDevice, sampleWithTimeout, describeSampleError } from "./util.mjs";
+import { DEMO_MATRIX, WEEK } from "./data.mjs";
+import { buildItemsFromMatrix, normTitleKey } from "./util.mjs";
 
-const { useState, useEffect, useRef, useReducer, useLayoutEffect, useCallback, useMemo } = React;
-
-export function attachPrefilled(items) {
-  const groupOf = {};
-  PREFILLED_VARIANTS.forEach((g) =>
-    g.forEach((id) => {
-      groupOf[id] = g;
-    }),
-  );
-  return items.map((it) => {
-    const p = PREFILLED[it.id];
-    if (!p) return it;
-    return {
-      ...it,
-      itemType: p[4] || "content",
-      status: "ready",
-      prefilled: true,
-      variantGroup: groupOf[it.id] || null,
-      reason: {
-        headline: p[0],
-        summary: p[1],
-        reasons: (p[2] || []).map((d) => ({ detail: d, anchorKeyword: "" })),
-        keywords: p[3] || [],
-        confidence: p[5] || "medium",
-      },
-    };
-  });
-}
-
-export const PREV_KEY = "trend-sensing:prev:v1";
-
-export function makeSamplePrev() {
-  // 지난주 스냅샷 데이터가 없으면 null — 없는 걸 NEW 로 속이지 않는다.
-  if (!Object.keys(SAMPLE_PREV_IDS).length) return null;
-  const map = {};
-  DEMO_MATRIX.categories.forEach((cat) => {
-    map[cat] = {};
-  });
-  return { map, ids: SAMPLE_PREV_IDS };
-}
+// v2: 키를 제목이 아니라 원문(raw)으로. "MONCLER - 26FW Bady…" 처럼 제목이 같고 부제만 다른
+// 항목들이 한 순위로 뭉개지던 것을 막는다.
+export const PREV_KEY = "trend-sensing:prev:v2";
 
 export function loadPrevChart() {
   try {
@@ -59,7 +22,7 @@ export function snapshotChart(items) {
   items.forEach((it) => {
     if (!it || !it.raw) return;
     if (!map[it.category]) map[it.category] = {};
-    map[it.category][normTitleKey(it.title)] = it.rank;
+    map[it.category][normTitleKey(it.raw)] = it.rank;
   });
   return { map };
 }
@@ -74,7 +37,7 @@ export function sameChart(a, b) {
   const flat = (items) =>
     items
       .filter((it) => it && it.raw)
-      .map((it) => it.category + "|" + it.rank + "|" + normTitleKey(it.title))
+      .map((it) => it.category + "|" + it.rank + "|" + normTitleKey(it.raw))
       .sort()
       .join("~");
   return flat(a) === flat(b);
@@ -113,18 +76,7 @@ export function upsertPref(prefs, rating, record) {
   return { liked: liked.slice(0, 12), disliked: disliked.slice(0, 8) };
 }
 
-export function makePrefilledBundles() {
-  return PREFILLED_BUNDLES.map((b, i) => ({
-    bundleId: `seed-${i + 1}`,
-    itemIds: b.itemIds.slice(),
-    title: b.title,
-    content: b.content,
-    keywords: (b.keywords || []).slice(),
-    auto: true,
-  }));
-}
-
-export const STORAGE_KEY = "trend-sensing:v20";
+export const STORAGE_KEY = "trend-sensing:v21";
 
 export function loadPersisted() {
   try {
@@ -144,49 +96,61 @@ export function loadPersisted() {
   }
 }
 
-export function makeInitialState() {
-  const persisted = loadPersisted();
-  if (persisted) {
-    const bundles = Array.isArray(persisted.bundles) ? persisted.bundles : [];
-    return {
-      week: persisted.week || WEEK,
-      categories: persisted.categories,
-      items: persisted.items,
-      isSample: false,
-      mode: "grid",
-      manualDraft: null,
-      selected: [],
-      bundles,
-      activeBundleId: bundles[0] ? bundles[0].bundleId : null,
-      autoStatus: bundles.length ? "done" : "idle",
-      analysisState: persisted.items.some(
-        (it) => it.raw && it.status !== "ready" && it.status !== "failed",
-      )
-        ? "idle"
-        : "done",
-      topline: persisted.topline && persisted.topline.headline ? persisted.topline : null,
-      toplineArchive: Array.isArray(persisted.toplineArchive) ? persisted.toplineArchive : [],
-      feedback:
-        persisted.feedback && typeof persisted.feedback === "object" ? persisted.feedback : {},
-      toast: null,
-    };
-  }
+// 새 업로드마다 새 기록 id — "WEEK37-202609081302"
+export const newRunId = (week) =>
+  String((week && week.label) || "week").replace(/[^A-Za-z0-9]/g, "") +
+  "-" +
+  new Date().toISOString().slice(0, 16).replace(/[-:T]/g, "");
+
+// 저장 스냅숏(localStorage 또는 서버 data/runs/*.json) → 상태. 둘 다 같은 모양이다.
+// runId 가 없는 옛 로컬 저장은 여기서 id 를 받아 서버 기록으로 올라간다.
+export function fromPersisted(persisted, runId) {
+  const bundles = Array.isArray(persisted.bundles) ? persisted.bundles : [];
+  const reads = Array.isArray(persisted.groupReads) ? persisted.groupReads : [];
   return {
-    week: WEEK,
-    categories: DEMO_MATRIX.categories,
-    items: attachPrefilled(buildItemsFromMatrix(DEMO_MATRIX.categories, DEMO_MATRIX.rows)),
-    isSample: true,
+    runId: runId || persisted.runId || newRunId(persisted.week),
+    week: persisted.week || WEEK,
+    categories: persisted.categories,
+    items: persisted.items,
+    isSample: false,
     mode: "grid",
-    // grid | manual-edit
     manualDraft: null,
     selected: [],
-    bundles: makePrefilledBundles(),
-    activeBundleId: "seed-1",
-    autoStatus: "done",
-    // idle | loading | done | error — 첫 화면부터 읽을 5편이 이미 붙어 있다
-    analysisState: "done",
-    // 사전 작성된 기본 분석이 이미 붙어 있으므로 완료 상태로 연다. AI 재분석은 "분석하기" CTA로만 시작한다.
-    topline: TOPLINE_SAMPLE,
+    bundles,
+    activeBundleId: bundles[0] ? bundles[0].bundleId : null,
+    autoStatus: bundles.length ? "done" : "idle",
+    groupReads: reads,
+    analysisState: reads.length ? "done" : "idle",
+    topline: persisted.topline && persisted.topline.headline ? persisted.topline : null,
+    toplineArchive: Array.isArray(persisted.toplineArchive) ? persisted.toplineArchive : [],
+    feedback:
+      persisted.feedback && typeof persisted.feedback === "object" ? persisted.feedback : {},
+    toast: null,
+  };
+}
+
+export function makeInitialState() {
+  // 내보낸 한 파일(HTML)은 기록을 안에 품고 있다 — 서버·localStorage 를 보지 않는다
+  if (typeof window !== "undefined" && window.__RUN__ && Array.isArray(window.__RUN__.items))
+    return fromPersisted(window.__RUN__);
+  const persisted = loadPersisted();
+  if (persisted) return fromPersisted(persisted);
+  // 아무 기록도 없으면 코드에 박힌 기본 차트(해석 없음)
+  return {
+    runId: null,
+    week: WEEK,
+    categories: DEMO_MATRIX.categories,
+    items: buildItemsFromMatrix(DEMO_MATRIX.categories, DEMO_MATRIX.rows),
+    isSample: true,
+    mode: "grid", // grid | manual-edit
+    manualDraft: null,
+    selected: [],
+    bundles: [],
+    activeBundleId: null,
+    autoStatus: "idle",
+    groupReads: [],
+    analysisState: "idle", // idle | running | done — 그룹 해석(분석하기) 진행 상태
+    topline: null,
     toplineArchive: [],
     feedback: {},
     toast: null,
@@ -195,9 +159,13 @@ export function makeInitialState() {
 
 export function reducer(state, action) {
   switch (action.type) {
+    // 서버 기록(data/runs) 하나를 통째로 연다
+    case "LOAD_RUN":
+      return fromPersisted(action.run, action.id);
     case "SET_DATA":
       return {
         ...state,
+        runId: action.runId || null,
         week: action.week || state.week,
         categories: action.categories,
         items: action.items,
@@ -209,8 +177,16 @@ export function reducer(state, action) {
         autoStatus: "idle",
         topline: null,
         toplineArchive: [],
+        groupReads: [],
         analysisState: "idle",
       };
+    // 그룹 해석 하나 도착 — 같은 그룹이 있으면 교체
+    case "GROUP_READ_APPLY": {
+      const rest = state.groupReads.filter((r) => r.group !== action.read.group);
+      return { ...state, groupReads: [...rest, action.read] };
+    }
+    case "ANALYSIS_DONE":
+      return { ...state, analysisState: "done" };
     case "SET_TOPLINE":
       return { ...state, topline: action.topline || null };
     // 새 인사이트를 찾으면 지금 것은 아카이브로 내려간다
@@ -221,16 +197,16 @@ export function reducer(state, action) {
         : state.toplineArchive || [];
       return { ...state, topline: action.topline, toplineArchive: archive.slice(0, 12) };
     }
+    // 그룹 해석·한 줄·묶음을 비운다.
     case "RESET_FOR_REANALYSIS":
       return {
         ...state,
-        items: state.items.map((it) =>
-          it.raw ? { ...it, status: "idle", reason: null, itemType: null, variantGroup: null } : it,
-        ),
         selected: [],
         bundles: [],
         activeBundleId: null,
         autoStatus: "idle",
+        groupReads: [],
+        topline: null,
         analysisState: "idle",
       };
     case "START_MANUAL_EDIT":
@@ -240,35 +216,7 @@ export function reducer(state, action) {
     case "UPDATE_MANUAL_DRAFT":
       return { ...state, manualDraft: action.draft };
     case "ANALYSIS_START":
-      return {
-        ...state,
-        analysisState: "running",
-        items: state.items.map((it) => (it.raw && !it.reason ? { ...it, status: "loading" } : it)),
-      };
-    // 요청 5: 분석 실패는 실패한 콘텐츠 개별 항목만 표시한다 — 배치 호출 중 일부만
-    // 잘못 와도 나머지 성공한 항목의 분석은 그대로 살리고, 그 카테고리(행) 전체를
-    // 멈추거나 실패로 되돌리지 않는다.
-    case "ITEMS_LOADING": {
-      const ids = new Set(action.ids);
-      const items = state.items.map((it) => (ids.has(it.id) ? { ...it, status: "loading" } : it));
-      return { ...state, items, analysisState: "running" };
-    }
-    case "CATEGORY_REASONS_READY": {
-      const map = new Map(action.updates.map((u) => [u.id, u]));
-      const items = state.items.map((it) =>
-        map.has(it.id) ? { ...it, ...map.get(it.id), status: "ready" } : it,
-      );
-      const stillLoading = items.some((it) => it.status === "loading");
-      return { ...state, items, analysisState: stillLoading ? "running" : "done" };
-    }
-    case "ITEMS_FAILED": {
-      const ids = new Set(action.ids);
-      const items = state.items.map((it) =>
-        ids.has(it.id) ? { ...it, status: "failed", errorReason: action.reason || null } : it,
-      );
-      const stillLoading = items.some((it) => it.status === "loading");
-      return { ...state, items, analysisState: stillLoading ? "running" : "done" };
-    }
+      return { ...state, analysisState: "running" };
     case "TOGGLE_SELECT": {
       const exists = state.selected.includes(action.id);
       if (exists) return { ...state, selected: state.selected.filter((id) => id !== action.id) };
@@ -284,16 +232,11 @@ export function reducer(state, action) {
         activeBundleId: action.bundle.bundleId,
         selected: [],
       };
-    case "RESTORE_BUNDLE": {
-      const b = state.bundles.find((x) => x.bundleId === action.id);
-      if (!b) return state;
-      return { ...state, activeBundleId: action.id, selected: b.itemIds };
-    }
     case "SET_ACTIVE_BUNDLE":
       return { ...state, activeBundleId: action.id };
     case "AUTO_LOADING":
       return { ...state, autoStatus: "loading" };
-    // 요청 6: 묶음 5개를 한 번에 발행한다(1개 노출 + 대기열로 하나씩 더 보여주는 방식 아님).
+    // 묶음 5개를 한 번에 발행한다.
     case "AUTO_READY": {
       const withIds = action.bundles.map((b, i) => ({
         ...b,

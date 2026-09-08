@@ -1,7 +1,7 @@
 // ==================================================================
 // React 컴포넌트 (ReasonPopup · Cell · ManualEditor · ErrorBoundary)
 // ==================================================================
-import { csvCell, buildChartCsv, buildGroupPlan, parseRawTitle, buildItemsFromMatrix, normTitleKey, normalizeIdeas, groupByCategory, useSectionOpen, computePopupPos, uidSeq, uid, asText, hlText, normalizeReason, KEYWORD_LIMIT, isTouchDevice, sampleWithTimeout, describeSampleError } from "./util.mjs";
+import { csvCell, buildChartCsv, buildGroupPlan, parseRawTitle, buildItemsFromMatrix, normTitleKey, normalizeIdeas, groupByCategory, useSectionOpen, computePopupPos, uidSeq, uid, asText, hlText, isTouchDevice, sampleWithTimeout, describeSampleError } from "./util.mjs";
 
 const { useState, useEffect, useRef, useReducer, useLayoutEffect, useCallback, useMemo } = React;
 
@@ -39,48 +39,17 @@ export class ErrorBoundary extends React.Component {
   }
 }
 
-export function ReasonPopup({ item, pos, open, onMouseEnter, onMouseLeave }) {
-  const ref = useRef(null);
-  const [visReasons, setVisReasons] = useState(9);
-  const [visKeywords, setVisKeywords] = useState(99);
-  const [showType, setShowType] = useState(true);
-  useEffect(() => {
-    if (item && item.reason) {
-      const nr = normalizeReason(item.reason);
-      setVisReasons(nr.reasons.length);
-      setVisKeywords(Math.min(nr.keywords.length, KEYWORD_LIMIT));
-      setShowType(true);
-    }
-  }, [item && item.id]);
-  useLayoutEffect(() => {
-    if (!open || !item || !item.reason) return;
-    const el = ref.current;
-    if (!el) return;
-    const MAX = 400;
-    if (el.scrollHeight <= MAX) return;
-    if (showType) {
-      setShowType(false);
-      return;
-    }
-    if (visKeywords > 0) {
-      setVisKeywords((v) => Math.max(0, v - 2));
-      return;
-    }
-    if (visReasons > 0) {
-      setVisReasons((v) => Math.max(0, v - 1));
-      return;
-    }
-  });
-  if (!item || !item.reason) return React.createElement("div", { className: "reason-pop" });
-  const r = normalizeReason(item.reason);
-  const reasons = r.reasons.slice(0, visReasons);
-  const keywords = r.keywords.slice(0, Math.min(visKeywords, KEYWORD_LIMIT));
+// 칸 팝업 — 모든 칸이 같다: 코드가 계산한 사실(fact) + 그룹 해석이 지목한 특이점(note).
+// 항목별 LLM 해석은 없다(2026-09-08 결정: 있다 없다 섞이느니 전부 없는 게 낫다).
+export function ReasonPopup({ item, pos, open, fact, note, onMouseEnter, onMouseLeave }) {
+  if (!item) return React.createElement("div", { className: "reason-pop" });
+  const headline = note || "이 그룹 해석이 짚은 특이점은 아니다";
+  const summary = fact || "지난 주 스냅숏이 없어 변동을 계산할 수 없다.";
   return React.createElement(
     "div",
     {
       className: "reason-pop" + (open ? " is-open" : ""),
       style: { left: pos.left, top: pos.top },
-      ref,
       onMouseEnter,
       onMouseLeave,
     },
@@ -128,51 +97,23 @@ export function ReasonPopup({ item, pos, open, onMouseEnter, onMouseLeave }) {
       "div",
       {
         style: {
-          fontSize: 20,
-          fontWeight: 900,
-          lineHeight: 1.25,
+          fontSize: note ? 15 : 13,
+          fontWeight: note ? 800 : 600,
+          lineHeight: 1.4,
           marginBottom: 8,
           letterSpacing: "-.01em",
+          color: note ? "var(--ink)" : "var(--ink-faint)",
+          wordBreak: "keep-all",
         },
         className: "balance",
       },
-      r.headline,
+      headline,
     ),
     React.createElement(
       "div",
-      {
-        style: {
-          fontSize: 13.5,
-          color: "var(--ink-soft)",
-          lineHeight: 1.55,
-          marginBottom: reasons.length ? 10 : 0,
-        },
-      },
-      r.summary,
+      { className: "mono", style: { fontSize: 12, color: "var(--ink-soft)", lineHeight: 1.6 } },
+      summary,
     ),
-    reasons.length > 0 &&
-      React.createElement(
-        "div",
-        { style: { marginBottom: keywords.length ? 8 : 0 } },
-        reasons.map((rs, i) =>
-          React.createElement(
-            "div",
-            { className: "reason-row", key: i },
-            React.createElement("span", { className: "reason-rank mono" }, i + 1),
-            React.createElement(
-              "div",
-              { style: { fontSize: 13, color: "var(--ink)", lineHeight: 1.5 } },
-              rs.detail,
-            ),
-          ),
-        ),
-      ),
-    keywords.length > 0 &&
-      React.createElement(
-        "div",
-        { style: { paddingTop: 8, borderTop: "1px solid var(--line)" } },
-        keywords.map((k, i) => React.createElement("span", { className: "chip", key: i }, k)),
-      ),
   );
 }
 
@@ -188,39 +129,12 @@ export function Cell({
   onToggleSelect,
   onEchoEnter,
   onEchoLeave,
-  onRetry,
 }) {
   const btnRef = useRef(null);
   const enterTimer = useRef(null);
   const leaveTimer = useRef(null);
   if (!item.raw) {
     return React.createElement("div", { className: "grid-cell is-empty" }, "—");
-  }
-  if (item.status === "failed") {
-    return React.createElement(
-      "button",
-      {
-        type: "button",
-        className: "grid-cell is-failed",
-        onClick: () => onRetry(item),
-      },
-      React.createElement(
-        "div",
-        { style: { width: "100%" } },
-        React.createElement("div", { className: "cell-title" }, item.title),
-        React.createElement(
-          "div",
-          { style: { fontSize: 11, color: "var(--danger)", fontWeight: 700, marginTop: 3 } },
-          "분석 실패 · 다시 시도",
-        ),
-        item.errorReason &&
-          React.createElement(
-            "div",
-            { style: { fontSize: 10, color: "var(--danger)", opacity: 0.8, marginTop: 1 } },
-            item.errorReason,
-          ),
-      ),
-    );
   }
   const handleEnter = () => {
     if (isTouchDevice() || !canInteract) return;

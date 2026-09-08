@@ -4,7 +4,7 @@
 // API 키 안 씀(§ 구독제). 순위·항목 텍스트는 보드가 만들고 서버는 손대지 않는다(§7).
 import { createServer } from "node:http";
 import { spawn } from "node:child_process";
-import { readFile } from "node:fs/promises";
+import { readFile, readdir, writeFile, mkdir } from "node:fs/promises";
 import { extname, join, normalize } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -61,8 +61,76 @@ function runClaude(prompt, model) {
 async function sample(prompt, opts) {
   const model = MODEL[opts?.modelTier] || MODEL.complex;
   await gate();
+  const t0 = Date.now();
+  const head = String(prompt).split("\n")[0].slice(0, 40);
   try { return await runClaude(prompt, model); }
-  finally { release(); }
+  finally {
+    release();
+    console.log(`[sample] ${Math.round((Date.now() - t0) / 1000)}초 · ${prompt.length}자 · ${head}`);
+  }
+}
+
+// ── 기록: data/runs/<id>.json 한 파일 = 업로드 한 번 + 그 해석 전부 ─────────
+// 보드가 localStorage 에 저장하는 것과 같은 스냅숏을 그대로 받는다. 서버는 내용을 해석하지 않는다.
+const RUNS = join(HERE, "..", "data", "runs");
+const runPath = (id) => (/^[A-Za-z0-9_-]{1,80}$/.test(id) ? join(RUNS, id + ".json") : null);
+async function listRuns() {
+  await mkdir(RUNS, { recursive: true });
+  const names = (await readdir(RUNS)).filter((n) => n.endsWith(".json"));
+  const rows = await Promise.all(
+    names.map(async (n) => {
+      try {
+        const r = JSON.parse(await readFile(join(RUNS, n), "utf8"));
+        return { id: n.slice(0, -5), savedAt: r.savedAt || "", week: r.week?.label || "", groups: (r.groupReads || []).length, bundles: (r.bundles || []).length, topline: !!(r.topline && r.topline.headline) };
+      } catch { return null; }
+    }),
+  );
+  return rows.filter(Boolean).sort((a, b) => b.savedAt.localeCompare(a.savedAt));
+}
+function sendJSON(res, status, data) {
+  res.writeHead(status, { "content-type": "application/json; charset=utf-8" });
+  res.end(JSON.stringify(data));
+}
+async function handleRuns(req, res, id) {
+  try {
+    if (!id) return sendJSON(res, 200, await listRuns());
+    const file = runPath(id);
+    if (!file) throw new Error("잘못된 id");
+    if (req.method === "GET") return sendJSON(res, 200, JSON.parse(await readFile(file, "utf8")));
+    if (req.method === "PUT") {
+      await mkdir(RUNS, { recursive: true });
+      await writeFile(file, await readBody(req));
+      return sendJSON(res, 200, { ok: true });
+    }
+    throw new Error("지원하지 않는 메서드");
+  } catch (e) {
+    sendJSON(res, e.code === "ENOENT" ? 404 : 400, { error: String(e.message || e) });
+  }
+}
+
+// ── 내보내기: GET /export/<id>.html — 서버 없이 열리는 한 파일 ───────────
+// index.html 에 CSS 를 인라인하고, ES 모듈 6개는 data: URL 로 importmap 에 걸고, 기록 JSON 은
+// window.__RUN__ 으로 품는다. React·XLSX·서체는 그대로 CDN(인터넷 필요).
+const MODS = ["data", "util", "prompts", "state", "components", "board"];
+async function buildExport(id) {
+  const file = runPath(id);
+  if (!file) throw new Error("잘못된 id");
+  const run = await readFile(file, "utf8");
+  const html = await readFile(join(PUBLIC, "index.html"), "utf8");
+  const css = await readFile(join(PUBLIC, "css", "board.css"), "utf8");
+  const imports = {};
+  for (const m of MODS) {
+    const src = (await readFile(join(PUBLIC, "js", m + ".mjs"), "utf8")).replace(/from "\.\/(\w+)\.mjs"/g, 'from "$1"');
+    imports[m] = "data:text/javascript;base64," + Buffer.from(src, "utf8").toString("base64");
+  }
+  return html
+    .replace('<link rel="stylesheet" href="css/board.css">', "<style>\n" + css + "\n</style>")
+    .replace(
+      '<script type="module" src="js/board.mjs"></script>',
+      `<script type="importmap">${JSON.stringify({ imports })}</script>\n` +
+        `<script>window.__RUN__ = ${run.replace(/<\/script/gi, "<\\/script")};</script>\n` +
+        `<script type="module">import "board";</script>`,
+    );
 }
 
 // ── HTTP ────────────────────────────────────────────────────────────
@@ -91,6 +159,18 @@ async function serveStatic(req, res) {
 
 const server = createServer(async (req, res) => {
   const url = new URL(req.url, "http://x");
+  const runs = url.pathname.match(/^\/api\/runs(?:\/([^/]+))?$/);
+  if (runs) return handleRuns(req, res, runs[1] ? decodeURIComponent(runs[1]) : "");
+  const exp = url.pathname.match(/^\/export\/([^/]+)\.html$/);
+  if (exp) {
+    try {
+      const body = await buildExport(decodeURIComponent(exp[1]));
+      res.writeHead(200, { "content-type": "text/html; charset=utf-8", "content-disposition": `attachment; filename="${exp[1]}.html"` });
+      return res.end(body);
+    } catch (e) {
+      return sendJSON(res, e.code === "ENOENT" ? 404 : 400, { error: String(e.message || e) });
+    }
+  }
   if (req.method === "POST" && url.pathname === "/api/sample") {
     try {
       const { prompt, opts } = JSON.parse((await readBody(req)).toString("utf8"));

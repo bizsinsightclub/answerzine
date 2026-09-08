@@ -1,10 +1,12 @@
 // ==================================================================
 // App — 루트 컴포넌트 + 마운트
 // ==================================================================
-import { WEEK, DEMO_MATRIX, GROUP_READS, CATEGORY_SOURCES, CATEGORY_GROUPS, PREFILLED, PREFILLED_VARIANTS, SAMPLE_PREV_IDS, PREFILLED_BUNDLES, TOPLINE_SAMPLE, CLIENTS, CC_RULES } from "./data.mjs";
-import { buildReasonPrompt, buildBundlePrompt, buildAutoPrompt, buildClientPrompt, buildAutoClientPrompt, buildToplinePrompt, likedBlockFor, ideaPrefBlock } from "./prompts.mjs";
-import { csvCell, buildChartCsv, buildGroupPlan, parseRawTitle, buildItemsFromMatrix, normTitleKey, normalizeIdeas, groupByCategory, useSectionOpen, computePopupPos, uidSeq, uid, asText, hlText, normalizeReason, KEYWORD_LIMIT, isTouchDevice, sampleWithTimeout, describeSampleError } from "./util.mjs";
-import { attachPrefilled, PREV_KEY, makeSamplePrev, loadPrevChart, snapshotChart, savePrevChart, sameChart, PREF_KEY, IDEA_PREF_KEY, loadPrefs, savePrefs, upsertPref, makePrefilledBundles, STORAGE_KEY, loadPersisted, makeInitialState, reducer } from "./state.mjs";
+import { CATEGORY_SOURCES, CLIENTS } from "./data.mjs";
+import { buildGroupReadPrompt, buildBundlePrompt, buildAutoPrompt, buildClientPrompt, buildAutoClientPrompt, buildToplinePrompt, likedBlockFor, ideaPrefBlock } from "./prompts.mjs";
+import { csvCell, buildChartCsv, buildGroupPlan, parseRawTitle, buildItemsFromMatrix, normTitleKey, normalizeIdeas, groupByCategory, useSectionOpen, computePopupPos, uidSeq, uid, asText, hlText, isTouchDevice, sampleWithTimeout, describeSampleError, computeFacts } from "./util.mjs";
+import { loadPrevChart, snapshotChart, savePrevChart, sameChart, IDEA_PREF_KEY, loadPrefs, savePrefs, upsertPref, STORAGE_KEY, makeInitialState, reducer, newRunId } from "./state.mjs";
+// 내보낸 한 파일(HTML)로 열렸는가 — 서버가 없으니 AI·기록 동기화는 끈다
+const EXPORTED = typeof window !== "undefined" && !!window.__RUN__;
 import { ErrorBoundary, ReasonPopup, Cell, ManualEditor } from "./components.mjs";
 
 const { useState, useEffect, useRef, useReducer, useLayoutEffect, useCallback, useMemo } = React;
@@ -61,9 +63,7 @@ function App() {
   const [ccSec, setCcSec] = useState(0);
   const [ccQuery, setCcQuery] = useState("");
   const [ccBrand, setCcBrand] = useState(null);
-  const [prevChart, setPrevChart] = useState(
-    () => loadPrevChart() || (state.isSample ? makeSamplePrev() : null),
-  );
+  const [prevChart, setPrevChart] = useState(() => loadPrevChart());
   const [toplineLoading, setToplineLoading] = useState(false);
   const [toplineArchiveOpen, setToplineArchiveOpen] = useState(false);
   const [dlFn, setDlFn] = useState(null);
@@ -110,45 +110,7 @@ function App() {
     };
   }, [chartOpen, state.categories.length]);
   const [bundOpen, toggleBund] = useSectionOpen("trend-sensing:sec:bundles");
-  const READS_KEY = "trend-sensing:reads:v1";
-  const [readsOpen, setReadsOpen] = useState(() => {
-    try {
-      return localStorage.getItem(READS_KEY) !== "closed";
-    } catch (e) {
-      return true;
-    }
-  });
-  const toggleReads = () =>
-    setReadsOpen((v) => {
-      const n = !v;
-      try {
-        localStorage.setItem(READS_KEY, n ? "open" : "closed");
-      } catch (e) {}
-      return n;
-    });
-  const [readPop, setReadPop] = useState({
-    idx: null,
-    pos: { left: 0, top: 0 },
-    open: false,
-    pinned: false,
-  });
-  const readPopTimer = useRef(null);
-  const openReadPop = (gi, rect, pinned) => {
-    clearTimeout(readPopTimer.current);
-    const m = 10,
-      w = 344,
-      hh = 360;
-    let left = rect.left,
-      top = rect.bottom + 8;
-    if (left + w > window.innerWidth - m) left = Math.max(m, window.innerWidth - m - w);
-    if (top + hh > window.innerHeight - m) top = Math.max(m, rect.top - hh - 8);
-    if (top < m) top = m;
-    setReadPop({ idx: gi, pos: { left, top }, open: true, pinned: !!pinned });
-  };
-  const closeReadPop = () => {
-    clearTimeout(readPopTimer.current);
-    setReadPop((p2) => ({ ...p2, open: false, pinned: false }));
-  };
+  // 첫 방문 안내 모달 — × 를 누르면 GUIDE_KEY 에 남겨 다시 안 뜬다
   const GUIDE_KEY = "trend-sensing:guide:v1";
   const [guideOpen, setGuideOpen] = useState(() => {
     try {
@@ -163,6 +125,48 @@ function App() {
       localStorage.setItem(GUIDE_KEY, "done");
     } catch (e) {}
   };
+  // 그룹 해석 전문은 표 헤더를 클릭했을 때 가운데 모달로 연다(호버 팝업은 잘려서 폐기).
+  const [readModal, setReadModal] = useState(null);
+  // 좁은 화면: 18열 표 대신 카테고리 탭 + 세로 한 열
+  const [isNarrow, setIsNarrow] = useState(
+    () => !!(window.matchMedia && window.matchMedia("(max-width: 720px)").matches),
+  );
+  const [mobileCatPick, setMobileCatPick] = useState(null);
+  useEffect(() => {
+    if (!window.matchMedia) return;
+    const mq = window.matchMedia("(max-width: 720px)");
+    const on = () => setIsNarrow(mq.matches);
+    mq.addEventListener("change", on);
+    return () => mq.removeEventListener("change", on);
+  }, []);
+  // 묶음 카드(손패)를 누르면 뒤집힌 뒤 모달로 내용이 뜬다
+  const [bundleOpen, setBundleOpen] = useState(false);
+  const openBundle = (id) => {
+    dispatch({ type: "SET_ACTIVE_BUNDLE", id });
+    setTimeout(() => setBundleOpen(true), 260); // 뒤집히는 걸 보고 연다
+  };
+  const closeBundle = () => setBundleOpen(false);
+  useEffect(() => {
+    if (readModal == null && !bundleOpen && !guideOpen) return;
+    const onKey = (e) => {
+      if (e.key !== "Escape") return;
+      setReadModal(null);
+      setBundleOpen(false);
+      if (guideOpen) closeGuide();
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [readModal, bundleOpen, guideOpen]);
+  // 전광판: 다섯 칸이 2.6초마다 다음 항목으로 함께 굴러간다. 커서를 올리면 멈춘다.
+  const [tick, setTick] = useState(0);
+  const tickerPause = useRef(false);
+  useEffect(() => {
+    if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const id = setInterval(() => {
+      if (!tickerPause.current) setTick((t) => t + 1);
+    }, 2600);
+    return () => clearInterval(id);
+  }, []);
   useEffect(() => {
     let alive = true;
     (async () => {
@@ -209,9 +213,8 @@ function App() {
   };
   const nextTopline = () => {
     if (!sampleFn || toplineLoading) return;
-    const ready = items.filter((it) => it.status === "ready" && it.reason);
-    if (ready.length < 4) return;
-    makeTopline(ready, true);
+    if (state.groupReads.length < 3) return;
+    makeTopline(state.groupReads, true);
   };
   // 지난 주 스냅숏이 있을 때만 배지를 붙인다. 없으면 아무것도 그리지 않는다 — 없는 걸 NEW로 속이지 않는다.
   const moveOf = (item) => {
@@ -219,7 +222,7 @@ function App() {
     const col = prevChart.map[item.category];
     if (!col) return null;
     const has = prevChart.ids && Object.prototype.hasOwnProperty.call(prevChart.ids, item.id);
-    const before = has ? prevChart.ids[item.id] : col[normTitleKey(item.title)];
+    const before = has ? prevChart.ids[item.id] : col[normTitleKey(item.raw)];
     if (before === "?") return null;
     if (before == null) return { kind: "new", label: "NEW", title: "지난 주 차트에 없던 항목" };
     const diff = before - item.rank;
@@ -231,6 +234,7 @@ function App() {
   // 새 차트를 올리는 순간, 지금 보고 있던 차트가 지난 주가 된다
   const rememberCurrentChart = (nextItems) => {
     toplineTried.current = false;
+    autoTriggered.current = false;
     if (sameChart(items, nextItems)) return;
     const snap = snapshotChart(items);
     savePrevChart(snap);
@@ -316,7 +320,7 @@ function App() {
           return d;
         },
       };
-      if (alive) setSampleFn(() => local);
+      if (alive) setSampleFn(() => (EXPORTED ? null : local));
     })();
     return () => {
       alive = false;
@@ -334,23 +338,78 @@ function App() {
     items.forEach((it) => m.set(it.id, it));
     return m;
   }, [items]);
-  useEffect(() => {
-    if (state.isSample || state.mode !== "grid") return;
+  // 코드가 계산한 사실(변동·복수 진입·교차 등장). 프롬프트와 칸 팝업이 같이 쓴다.
+  const facts = useMemo(() => computeFacts(items, moveOf), [items, prevChart]);
+  // 그룹 해석이 지목한 특이점 → 항목 id 별 한 줄
+  const anomalyNote = (id) => {
+    for (const r of state.groupReads) {
+      const a = (r.anomalies || []).find((x) => x.itemId === id);
+      if (a) return a.note;
+    }
+    return "";
+  };
+  // 기록(data/runs): 업로드 한 번 = 파일 하나. 목록은 헤더 아래 탭으로, 누르면 그대로 연다.
+  const [runs, setRuns] = useState([]);
+  const refreshRuns = () =>
+    fetch("/api/runs")
+      .then((r) => r.json())
+      .then((list) => Array.isArray(list) && setRuns(list))
+      .catch(() => {});
+  const loadRun = async (id) => {
     try {
-      localStorage.setItem(
-        STORAGE_KEY,
-        JSON.stringify({
-          week: state.week,
-          categories: state.categories,
-          items: state.items,
-          bundles: state.bundles,
-          feedback: state.feedback,
-          topline: state.topline,
-          toplineArchive: state.toplineArchive,
-        }),
-      );
+      const r = await fetch("/api/runs/" + encodeURIComponent(id));
+      const run = await r.json();
+      if (!run || run.error || !Array.isArray(run.items)) throw new Error((run && run.error) || "빈 기록");
+      toplineTried.current = false;
+      autoTriggered.current = false;
+      dispatch({ type: "LOAD_RUN", run, id });
+    } catch (e) {
+      dispatch({ type: "SET_TOAST", message: "기록을 열지 못했어요 (" + describeSampleError(e) + ")", id: Date.now() });
+    }
+  };
+  useEffect(() => {
+    if (EXPORTED) return;
+    // 켰을 때 로컬 저장이 없으면 가장 최근 기록을 연다 — 결과가 날아가지 않게
+    fetch("/api/runs")
+      .then((r) => r.json())
+      .then((list) => {
+        if (!Array.isArray(list)) return;
+        setRuns(list);
+        if (state.isSample && list[0]) loadRun(list[0].id);
+      })
+      .catch(() => {});
+  }, []);
+  const saveTimer = useRef(null);
+  useEffect(() => {
+    if (EXPORTED || state.isSample || state.mode !== "grid") return;
+    const snap = {
+      runId: state.runId,
+      savedAt: new Date().toISOString(),
+      week: state.week,
+      categories: state.categories,
+      items: state.items,
+      bundles: state.bundles,
+      feedback: state.feedback,
+      topline: state.topline,
+      toplineArchive: state.toplineArchive,
+      groupReads: state.groupReads,
+    };
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(snap));
     } catch (e) {}
-  }, [state.isSample, state.mode, state.week, state.categories, state.items, state.bundles]);
+    if (!state.runId) return;
+    // 서버에도 같은 스냅숏을. 잦은 갱신은 1초 묶어서.
+    clearTimeout(saveTimer.current);
+    saveTimer.current = setTimeout(() => {
+      fetch("/api/runs/" + encodeURIComponent(state.runId), {
+        method: "PUT",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(snap),
+      })
+        .then(refreshRuns)
+        .catch(() => {});
+    }, 1000);
+  }, [state.isSample, state.mode, state.week, state.categories, state.items, state.bundles, state.groupReads, state.topline, state.feedback]);
   const openPopup = (item, rect, pinned) => {
     clearTimeout(popupCloseTimer.current);
     const pos = computePopupPos(rect, 340, 420);
@@ -369,6 +428,7 @@ function App() {
   const visibleBundles = ccActive
     ? []
     : state.bundles.filter((b) => !b.archived || (archiveView && ratingOf(b) === archiveView));
+  const activeBundle = state.bundles.find((b) => b.bundleId === state.activeBundleId) || null;
   const chartCaption =
     String(state.week.label || "")
       .replace(/\s+/g, "")
@@ -416,7 +476,7 @@ function App() {
       const items2 = buildItemsFromMatrix(categories, dataRows);
       if (items2.length === 0) throw new Error("no items");
       rememberCurrentChart(items2);
-      dispatch({ type: "SET_DATA", categories, items: items2, week: state.week });
+      dispatch({ type: "SET_DATA", categories, items: items2, week: state.week, runId: newRunId(state.week) });
     } catch (e) {
       const categories = state.categories.length
         ? state.categories
@@ -438,45 +498,80 @@ function App() {
       categories: cats.length ? cats : categories,
       items: items2,
       week: state.week,
+      runId: newRunId(state.week),
     });
   };
+  // "분석하기" = 그룹(음악/영화/OTT/…)별 해석. 이미 있는 그룹은 다시 부르지 않는다.
+  // 그룹끼리 동시에 부른다(서버가 TREND_CONCURRENCY 로 게이트).
   const runAnalysis = async () => {
     if (!sampleFn) return;
+    const byCat = groupByCategory(items);
+    const have = new Set(state.groupReads.map((r) => r.group));
+    const todo = groupPlan.groups.filter((g) => g.label && !have.has(g.label));
+    if (!todo.length) return;
     dispatch({ type: "ANALYSIS_START" });
-    // 이유가 이미 발행된 항목은 건드리지 않는다. 비어 있는 카테고리만 부른다.
-    const entries = Array.from(groupByCategory(items).entries())
-      .map(([category, list]) => [category, list.filter((it) => !it.reason)])
-      .filter((e) => e[1].length > 0);
-    if (entries.length === 0) {
-      dispatch({ type: "ITEMS_FAILED", ids: [] });
-      return;
-    }
-    setAnalysisProgress({ done: 0, total: entries.length });
-    // 5개 카테고리를 동시에 부른다 — 예전 CTA 버전(느리지만 성공)과 같은 방식이다.
-    // 순서대로 하나씩 부르면 안전할 거라 생각해 한동안 순차 호출로 바꿨었지만, 실제
-    // 회귀 원인은 따로(있던 signal 옵션) 있었다. 순차 호출은 필요도 없이 전체 대기
-    // 시간만 최대 5배로 늘렸을 뿐이라 다시 병렬로 되돌린다.
+    setAnalysisProgress({ done: 0, total: todo.length });
+    let at = 0;
+    const catsOf = {};
+    groupPlan.groups.forEach((g) => {
+      catsOf[g.label] = groupPlan.ordered.slice(at, at + g.count);
+      at += g.count;
+    });
     await Promise.all(
-      entries.map(([category, catItems]) =>
-        runCategory(category, catItems).then(() => {
+      todo.map((g) =>
+        runGroupRead(g.label, catsOf[g.label], byCat).then(() => {
           setAnalysisProgress((p) => (p ? { ...p, done: p.done + 1 } : p));
         }),
       ),
     );
     setAnalysisProgress(null);
+    dispatch({ type: "ANALYSIS_DONE" });
   };
-  // 분석이 끝난 뒤(=최신 items가 리듀서에 반영된 뒤) 한 번만 뽑는다. 실패해도 나머지 화면에는 영향이 없다.
+  const runGroupRead = async (label, cats, byCat) => {
+    try {
+      const prompt = buildGroupReadPrompt(state.week, label, cats, byCat, facts.tag);
+      // 서버가 3개씩 게이트하므로 대기열까지 포함한 시간이다(그룹당 ~2분 × 3라운드)
+      const r = await sampleWithTimeout(sampleFn, prompt, { modelTier: "complex" }, 600e3);
+      const headline = asText(r && r.headline);
+      if (!headline) throw new Error("응답에 헤드라인 없음");
+      const anomalies = (r && Array.isArray(r.anomalies) ? r.anomalies : [])
+        .map((a) => ({ itemId: asText(a && a.itemId), note: asText(a && a.note) }))
+        .filter((a) => a.note && byId.has(a.itemId))
+        .map((a) => ({ ...a, title: byId.get(a.itemId).title }))
+        .slice(0, 3);
+      dispatch({
+        type: "GROUP_READ_APPLY",
+        read: {
+          group: label,
+          headline,
+          summary: asText(r.summary),
+          points: (Array.isArray(r.points) ? r.points : []).map(asText).filter(Boolean).slice(0, 5),
+          keywords: (Array.isArray(r.keywords) ? r.keywords : []).map(asText).map((k) => k.replace(/^#+/, "").trim()).filter(Boolean).slice(0, 6),
+          anomalies,
+        },
+      });
+    } catch (e) {
+      dispatch({ type: "SET_TOAST", message: `${label} 해석 실패 (${describeSampleError(e)})`, id: Date.now() });
+    }
+  };
+  // 그룹 해석이 끝나면 한 줄을 한 번만 뽑는다. 실패해도 나머지 화면에는 영향이 없다.
   const toplineTried = useRef(false);
   useEffect(() => {
     if (!sampleFn || state.topline || toplineTried.current) return;
-    if (state.analysisState !== "done") return;
-    const ready = items.filter((it) => it.status === "ready" && it.reason);
-    if (ready.length < 4) return;
+    if (state.analysisState !== "done" || state.groupReads.length < 3) return;
     toplineTried.current = true;
-    makeTopline(ready);
-  }, [state.analysisState, state.topline, items, sampleFn]);
-  const makeTopline = async (ready, replace) => {
-    if (!sampleFn || !ready || ready.length < 4) return;
+    makeTopline(state.groupReads);
+  }, [state.analysisState, state.topline, state.groupReads, sampleFn]);
+  // 한 줄이 나오면 연관 신호 Auto 를 한 번 자동으로 돌린다(사용자 결정 2026-09-08).
+  useEffect(() => {
+    if (!sampleFn || !state.topline || autoTriggered.current) return;
+    if (state.autoStatus !== "idle" || state.bundles.length) return;
+    autoTriggered.current = true;
+    runAuto();
+    wantAutoScroll.current = false; // 자동 실행은 화면을 끌어내리지 않는다
+  }, [state.topline, state.autoStatus, sampleFn]);
+  const makeTopline = async (reads, replace) => {
+    if (!sampleFn || !reads || reads.length < 3) return;
     setToplineLoading(true);
     try {
       const seen = (state.topline ? [state.topline] : [])
@@ -485,9 +580,9 @@ function App() {
         .filter(Boolean);
       const r = await sampleWithTimeout(
         sampleFn,
-        buildToplinePrompt(state.week, ready, replace ? seen : null),
+        buildToplinePrompt(state.week, reads, replace ? seen : null),
         { modelTier: "complex" },
-        9e4,
+        240e3,
       );
       const headline = asText((r && r.headline) || "");
       const kws = (r && Array.isArray(r.keywords) ? r.keywords : [])
@@ -509,63 +604,6 @@ function App() {
       setToplineLoading(false);
     }
   };
-  const runCategory = async (category, catItems) => {
-    try {
-      const prompt = buildReasonPrompt(state.week, category, catItems, moveOf);
-      const result = await sampleWithTimeout(sampleFn, prompt, { modelTier: "complex" }, 150e3);
-      if (!Array.isArray(result)) throw new Error("shape mismatch");
-      const updates = [];
-      const failedIds = [];
-      catItems.forEach((it, i) => {
-        const r = result[i];
-        if (!r || !r.headline) {
-          failedIds.push(it.id);
-          return;
-        }
-        const vg = Array.isArray(r.variantGroup)
-          ? r.variantGroup.map((n) => catItems[n - 1] && catItems[n - 1].id).filter(Boolean)
-          : null;
-        updates.push({
-          id: it.id,
-          itemType: r.itemType || "content",
-          reason: normalizeReason(r),
-          variantGroup: vg && vg.length > 1 ? vg : null,
-        });
-      });
-      if (updates.length) dispatch({ type: "CATEGORY_REASONS_READY", updates });
-      if (failedIds.length)
-        dispatch({ type: "ITEMS_FAILED", ids: failedIds, reason: "응답에 헤드라인 없음" });
-    } catch (e) {
-      dispatch({
-        type: "ITEMS_FAILED",
-        ids: catItems.map((it) => it.id),
-        reason: describeSampleError(e),
-      });
-    }
-  };
-  const runSingleItem = async (item) => {
-    if (!sampleFn) return;
-    dispatch({ type: "ITEMS_LOADING", ids: [item.id] });
-    try {
-      const prompt = buildReasonPrompt(state.week, item.category, [item], moveOf);
-      const result = await sampleWithTimeout(sampleFn, prompt, { modelTier: "complex" }, 6e4);
-      const r = Array.isArray(result) ? result[0] : null;
-      if (!r || !r.headline) throw new Error("empty");
-      dispatch({
-        type: "CATEGORY_REASONS_READY",
-        updates: [
-          {
-            id: item.id,
-            itemType: r.itemType || "content",
-            reason: normalizeReason(r),
-            variantGroup: null,
-          },
-        ],
-      });
-    } catch (e) {
-      dispatch({ type: "ITEMS_FAILED", ids: [item.id], reason: describeSampleError(e) });
-    }
-  };
   // 켜자마자 도는 자동 분석은 없다. 화면은 사전 작성된 기본 분석으로 이미 완성돼 있고,
   // AI 재분석은 "분석하기" CTA를 눌렀을 때만 시작된다. 묶음 추론 5개 자동 생성도
   // 지금은 켜지 않는다(사용자 요청: 나중에).
@@ -578,11 +616,6 @@ function App() {
     const t = setInterval(() => setElapsedSec(Math.round((Date.now() - started) / 1000)), 1000);
     return () => clearInterval(t);
   }, [state.analysisState]);
-  const regenerateAll = () => {
-    if (!sampleFn || state.analysisState === "running") return;
-    autoTriggered.current = false;
-    dispatch({ type: "RESET_FOR_REANALYSIS" });
-  };
   // 묶음 실패 사유는 코드가 아니라 사람이 읽고 그대로 전달할 수 있는 한국어로 남긴다.
   const autoFail = (msg) => {
     const e = new Error(msg);
@@ -638,11 +671,11 @@ function App() {
     wantAutoScroll.current = true;
     dispatch({ type: "AUTO_LOADING" });
     try {
-      const readyItems = items.filter((it) => it.status === "ready" && it.reason);
-      if (readyItems.length < 4)
-        throw autoFail("이유 분석이 끝난 항목이 너무 적어요. 먼저 항목 이유 분석을 끝내주세요.");
-      const prompt = buildAutoPrompt(state.week, readyItems, prefs);
-      const result = await sampleWithTimeout(sampleFn, prompt, { modelTier: "complex" }, 150e3);
+      const readyItems = items.filter((it) => it.raw);
+      if (readyItems.length < 4) throw autoFail("차트 항목이 너무 적어요.");
+      const prompt = buildAutoPrompt(state.week, readyItems, prefs, facts, state.groupReads);
+      // 180개 항목 전체가 들어가는 가장 큰 프롬프트 — 실측 5분 초과
+      const result = await sampleWithTimeout(sampleFn, prompt, { modelTier: "complex" }, 600e3);
       const rawList = Array.isArray(result)
         ? result
         : result && Array.isArray(result.bundles)
@@ -693,11 +726,11 @@ function App() {
   };
   const createBundle = async () => {
     if (state.selected.length < 2 || !sampleFn) return;
-    const picks = state.selected.map((id) => byId.get(id)).filter((it) => it && it.reason);
+    const picks = state.selected.map((id) => byId.get(id)).filter((it) => it && it.raw);
     if (picks.length < 2) return;
     setBundleLoading(true);
     try {
-      const prompt = buildBundlePrompt(state.week, picks);
+      const prompt = buildBundlePrompt(state.week, picks, facts.tag);
       const result = await sampleWithTimeout(sampleFn, prompt, { modelTier: "complex" }, 6e4);
       dispatch({
         type: "BUNDLE_CREATED",
@@ -729,24 +762,25 @@ function App() {
     return b ? new Set(b.itemIds) : null;
   }, [hoveredBundleId, state.bundles]);
   const echoSet = useMemo(() => (hoveredEcho ? new Set(hoveredEcho) : null), [hoveredEcho]);
-  const analysisDone = state.analysisState === "done";
   const analysisPct =
     analysisProgress && analysisProgress.total
       ? Math.round((analysisProgress.done / analysisProgress.total) * 100)
       : 0;
-  const hasRealAnalysis = items.some((it) => it.reason && !it.prefilled);
-  const missingReasonCount = items.filter((it) => it.raw && !it.reason).length;
-  const needsReasons = missingReasonCount > 0;
   const h = React.createElement;
   const groupPlan = buildGroupPlan(state.categories);
+  // 아직 해석이 없는 그룹 수 — "분석하기" CTA 의 기준
+  const missingReadCount = groupPlan.groups.filter(
+    (g) => g.label && !state.groupReads.some((r) => r.group === g.label),
+  ).length;
+  const needsReads = missingReadCount > 0;
   const gridCats = groupPlan.ordered;
   const ccGrey = {
-    fontSize: 11.5,
-    fontWeight: 700,
-    color: "var(--ink-soft)",
-    background: "var(--surface-2)",
-    border: "1px solid var(--line)",
-    borderRadius: 999,
+    fontSize: 12,
+    fontWeight: 500,
+    color: "var(--ink)",
+    background: "transparent",
+    border: "1px solid var(--ink)",
+    borderRadius: 0,
     padding: "5px 11px",
     cursor: "pointer",
   };
@@ -764,7 +798,7 @@ function App() {
     fontWeight: 700,
     color: "#fff",
     background: "var(--accent)",
-    borderRadius: 999,
+    borderRadius: 0,
     padding: "3px 9px",
   };
   const ccTagSoft = {
@@ -773,7 +807,7 @@ function App() {
     color: "var(--ink-soft)",
     background: "var(--surface-2)",
     border: "1px solid var(--line)",
-    borderRadius: 999,
+    borderRadius: 0,
     padding: "3px 9px",
   };
   const ccReady = !!sampleFn && prefs.liked.length > 0 && ccStatus !== "loading";
@@ -792,13 +826,18 @@ function App() {
     .sort((a, b) => ccFiled[b].at - ccFiled[a].at)
     .map((k) => [k, ccFiled[k]]);
   const ccArchiveCount = ccFiledList.length + ccArchived.reduce((n, r) => n + r.ideas.length, 0);
+  // 첫 방문에 한 번만 모달로. × 를 누르면 다시 안 뜬다(GUIDE_KEY).
   const guideEl =
     guideOpen && state.mode === "grid"
       ? h(
           "div",
+          { className: "read-modal-backdrop", onClick: closeGuide },
+          h(
+          "div",
           {
-            className: "card",
-            style: { padding: "20px 24px", marginBottom: 18, background: "var(--surface-2)" },
+            className: "read-modal card",
+            onClick: (e) => e.stopPropagation(),
+            style: { padding: "22px 26px 24px" },
           },
           h(
             "div",
@@ -808,11 +847,11 @@ function App() {
                 alignItems: "baseline",
                 justifyContent: "space-between",
                 gap: 12,
-                marginBottom: 12,
+                marginBottom: 14,
               },
             },
-            h("div", { style: { fontSize: 14, fontWeight: 800 } }, "이 보드를 쓰는 법"),
-            h("button", { onClick: closeGuide, style: ccGrey }, "알겠어요"),
+            h("div", { style: { fontSize: 18, fontWeight: 700, letterSpacing: "-.02em" } }, "이 보드를 쓰는 법"),
+            h("button", { className: "bundle-x", onClick: closeGuide, "aria-label": "닫기", title: "닫기" }, "×"),
           ),
           h(
             "div",
@@ -826,7 +865,7 @@ function App() {
             [
               [
                 "차트의 칸에 커서를 올린다",
-                "그 항목이 왜 상위에 올랐는지, 이유와 키워드가 바로 뜬다. 엑셀을 올리고 분석하면 칸마다 채워진다.",
+                "지난 주 대비 변동과 다른 차트 교차 등장이 뜬다. 표 위 그룹 이름(음악·OTT…)에 커서를 올리면 해석이 짚은 특이점 칸이 밝아지고, 클릭하면 그 그룹 해석 전문이 열린다.",
               ],
               [
                 "트렌드 합성하기",
@@ -883,206 +922,260 @@ function App() {
                 lineHeight: 1.6,
               },
             },
-            "AI 기능은 처음 누를 때 사용 동의를 한 번 묻는다. 업로드한 차트와 평가 기록은 각자의 브라우저에만 남고 다른 사람에게 보이지 않는다.",
+            "차트와 해석은 data/runs 에 기록으로 남고, 위 '기록' 탭에서 다시 연다. 좋아요·별로 평가는 이 브라우저에만 남는다.",
+          ),
           ),
         )
       : null;
-  const readsEl =
-    state.mode === "grid" && GROUP_READS.length
+  // 기록 탭 — 서버 data/runs 목록. 현재 열린 기록은 강조, 누르면 그 기록으로 바꾼다.
+  // 라벨 시각은 id 에 박힌 생성 시각(UTC) — savedAt 은 열 때마다 갱신돼 라벨로 못 쓴다
+  const fmtRun = (r) => {
+    const m = /-(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})$/.exec(r.id || "");
+    const d = m ? new Date(Date.UTC(+m[1], m[2] - 1, +m[3], +m[4], +m[5])) : new Date(r.savedAt);
+    return isNaN(d) ? "" : `${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+  };
+  const runsEl =
+    state.mode === "grid" && runs.length
       ? h(
           "div",
-          { style: { marginBottom: 18 } },
-          h(
-            "div",
-            {
-              style: {
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                gap: 12,
-                marginBottom: readsOpen ? 10 : 0,
-              },
-            },
-            h(
-              "div",
-              {
-                style: {
-                  fontSize: 12.5,
-                  fontWeight: 700,
-                  color: "var(--ink-faint)",
-                  letterSpacing: ".01em",
-                },
-              },
-              "카테고리 해석",
-            ),
-            h(
+          { style: { display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 18 } },
+          h("span", { style: { fontSize: 12.5, fontWeight: 700, color: "var(--ink-faint)" } }, "기록"),
+          runs.map((r) => {
+            const active = r.id === state.runId;
+            return h(
               "button",
-              { onClick: toggleReads, style: ccGrey },
-              readsOpen ? "숨기기" : "펼치기 " + GROUP_READS.length,
-            ),
-          ),
-          readsOpen
-            ? h(
-                "div",
-                { className: "read-grid" },
-                GROUP_READS.map((g, gi) =>
-                  h(
-                    "div",
-                    {
-                      key: gi,
-                      className:
-                        "read-card" + (readPop.open && readPop.idx === gi ? " is-flipped" : ""),
-                      onMouseEnter: (e) => {
-                        if (!isTouchDevice())
-                          openReadPop(gi, e.currentTarget.getBoundingClientRect(), false);
-                      },
-                      onMouseLeave: () => {
-                        if (!isTouchDevice()) {
-                          clearTimeout(readPopTimer.current);
-                          readPopTimer.current = setTimeout(
-                            () => setReadPop((p2) => (p2.pinned ? p2 : { ...p2, open: false })),
-                            140,
-                          );
-                        }
-                      },
-                      onClick: (e) => {
-                        if (readPop.open && readPop.idx === gi) {
-                          closeReadPop();
-                        } else {
-                          openReadPop(gi, e.currentTarget.getBoundingClientRect(), true);
-                        }
-                      },
-                    },
-                    h(
-                      "div",
-                      {
-                        style: {
-                          fontSize: 12,
-                          fontWeight: 800,
-                          color: "var(--accent-ink)",
-                          marginBottom: 8,
-                        },
-                      },
-                      g.group,
-                    ),
-                    h(
-                      "div",
-                      {
-                        style: {
-                          fontSize: 14.5,
-                          fontWeight: 800,
-                          lineHeight: 1.45,
-                          letterSpacing: "-.01em",
-                          wordBreak: "keep-all",
-                        },
-                      },
-                      g.headline,
-                    ),
-                    h(
-                      "div",
-                      { style: { fontSize: 11.5, color: "var(--ink-faint)", marginTop: 10 } },
-                      "커서를 올리면 자세히 →",
-                    ),
-                  ),
-                ),
-              )
-            : null,
+              {
+                key: r.id,
+                onClick: () => !active && loadRun(r.id),
+                title: r.id,
+                style: Object.assign({}, ccGrey, active ? { color: "var(--bg)", background: "var(--ink)" } : {}),
+              },
+              `${r.week || "차트"} · ${fmtRun(r)}`,
+              h(
+                "span",
+                { className: "mono", style: { marginLeft: 6, fontWeight: 600, opacity: 0.75 } },
+                `해석 ${r.groups}${r.topline ? " · 한줄" : ""}${r.bundles ? " · 묶음 " + r.bundles : ""}`,
+              ),
+            );
+          }),
         )
       : null;
-  const readPopG = readPop.idx == null ? null : GROUP_READS[readPop.idx];
-  const readPopEl = h(
-    "div",
-    {
-      className: "reason-pop read-pop" + (readPop.open && readPopG ? " is-open" : ""),
-      style: { left: readPop.pos.left, top: readPop.pos.top },
-      onMouseEnter: () => {
-        if (!isTouchDevice()) clearTimeout(readPopTimer.current);
-      },
-      onMouseLeave: () => {
-        if (!isTouchDevice() && !readPop.pinned) {
-          readPopTimer.current = setTimeout(
-            () => setReadPop((p2) => ({ ...p2, open: false })),
-            140,
-          );
-        }
-      },
-    },
-    readPopG
-      ? h(
-          React.Fragment,
-          null,
+  const groupReads = state.groupReads;
+  // 그룹 해석 모달 — 표 헤더 클릭. 제목은 헤더에 붙은 헤드라인 그대로(말이 달라지지 않게).
+  const readModalG = readModal == null ? null : groupReads[readModal];
+  const readModalEl = readModalG
+    ? h(
+        "div",
+        { className: "read-modal-backdrop", onClick: () => setReadModal(null) },
+        h(
+          "div",
+          { className: "read-modal card", onClick: (e) => e.stopPropagation() },
           h(
             "div",
-            {
-              className: "mono",
-              style: {
-                fontSize: 11,
-                fontWeight: 600,
-                color: "var(--ink-faint)",
-                marginBottom: 6,
-                letterSpacing: ".02em",
-              },
-            },
-            readPopG.group,
-          ),
-          h(
-            "div",
-            {
-              className: "balance",
-              style: {
-                fontSize: 19,
-                fontWeight: 900,
-                lineHeight: 1.28,
-                letterSpacing: "-.01em",
-                marginBottom: 8,
-                wordBreak: "keep-all",
-              },
-            },
-            readPopG.popHead,
+            { style: { display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12 } },
+            h(
+              "div",
+              null,
+              h(
+                "div",
+                { className: "mono", style: { fontSize: 11, fontWeight: 700, color: "var(--accent-ink)", letterSpacing: ".06em", marginBottom: 6 } },
+                readModalG.group,
+              ),
+              h(
+                "div",
+                { className: "balance", style: { fontSize: 22, fontWeight: 900, lineHeight: 1.25, letterSpacing: "-.01em", wordBreak: "keep-all" } },
+                readModalG.headline,
+              ),
+            ),
+            h("button", { onClick: () => setReadModal(null), style: ccGrey, "aria-label": "닫기" }, "닫기"),
           ),
           h(
             "p",
-            {
-              style: {
-                fontSize: 13,
-                color: "var(--ink-soft)",
-                lineHeight: 1.6,
-                margin: "0 0 10px",
-                wordBreak: "keep-all",
-              },
-            },
-            readPopG.summary,
+            { style: { fontSize: 13.5, color: "var(--ink-soft)", lineHeight: 1.65, margin: "12px 0 14px", wordBreak: "keep-all" } },
+            readModalG.summary,
           ),
           h(
             "div",
-            { style: { marginBottom: 8 } },
-            readPopG.points.map((pt, pi) =>
+            { style: { marginBottom: 12 } },
+            readModalG.points.map((pt, pi) =>
               h(
                 "div",
                 { className: "reason-row", key: pi },
                 h("span", { className: "reason-rank mono" }, pi + 1),
-                h(
-                  "div",
-                  {
-                    style: {
-                      fontSize: 12.5,
-                      color: "var(--ink)",
-                      lineHeight: 1.55,
-                      wordBreak: "keep-all",
-                    },
-                  },
-                  pt,
-                ),
+                h("div", { style: { fontSize: 13.5, color: "var(--ink)", lineHeight: 1.6, wordBreak: "keep-all" } }, pt),
               ),
             ),
           ),
+          (readModalG.anomalies || []).length
+            ? h(
+                "div",
+                { style: { paddingTop: 12, borderTop: "1px solid var(--line)", marginBottom: 12 } },
+                h(
+                  "div",
+                  { className: "mono", style: { fontSize: 10.5, fontWeight: 700, letterSpacing: ".06em", color: "var(--accent-ink)", marginBottom: 8 } },
+                  "특이점 — 표에서 밝게 표시된 칸",
+                ),
+                readModalG.anomalies.map((a, ai) =>
+                  h(
+                    "div",
+                    { key: ai, style: { fontSize: 13, lineHeight: 1.6, color: "var(--ink-soft)", wordBreak: "keep-all", marginTop: ai ? 6 : 0 } },
+                    h("b", { style: { color: "var(--ink)" } }, a.title),
+                    " — ",
+                    a.note,
+                  ),
+                ),
+              )
+            : null,
           h(
             "div",
-            { style: { paddingTop: 8, borderTop: "1px solid var(--line)" } },
-            readPopG.keywords.map((k, ki) => h("span", { className: "chip", key: ki }, k)),
+            { style: { paddingTop: 12, borderTop: "1px solid var(--line)" } },
+            readModalG.keywords.map((k, ki) => h("span", { className: "chip", key: ki }, k)),
+          ),
+        ),
+      )
+    : null;
+  // 전광판 — 한 페이지 = 한 카테고리의 다섯 칸. 카테고리는 위 가운데 한 번만.
+  const SLOTS = 5;
+  const tickerPages = [];
+  groupPlan.ordered.forEach((c) => {
+    const list = items.filter((it) => it.category === c && it.raw).sort((a, b) => a.rank - b.rank);
+    for (let i = 0; i < list.length; i += SLOTS) tickerPages.push({ cat: c, items: list.slice(i, i + SLOTS) });
+  });
+  const tickerPage = tickerPages.length ? tickerPages[tick % tickerPages.length] : null;
+  const tickerEl =
+    state.mode === "grid" && tickerPage
+      ? h(
+          "div",
+          {
+            className: "ticker",
+            onMouseEnter: () => (tickerPause.current = true),
+            onMouseLeave: () => (tickerPause.current = false),
+          },
+          h(
+            "div",
+            { className: "ticker-head", key: tickerPage.cat + tick },
+            tickerPage.cat,
+            h("span", { className: "ticker-src" }, CATEGORY_SOURCES[tickerPage.cat] ? " · " + CATEGORY_SOURCES[tickerPage.cat] : ""),
+          ),
+          h(
+            "div",
+            { className: "ticker-row" },
+            Array.from({ length: SLOTS }, (_, k) => {
+              const it = tickerPage.items[k];
+              const mv = it && moveOf(it);
+              return h(
+                "div",
+                { className: "ticker-slot", key: k },
+                it
+                  ? h(
+                      "div",
+                      { className: "ticker-item", key: it.id, title: it.raw },
+                      h("span", { className: "ticker-rank mono" }, String(it.rank).padStart(2, "0")),
+                      h("span", { className: "ticker-title" }, it.title),
+                      mv ? h("span", { className: "ticker-move mono is-" + mv.kind }, mv.label) : null,
+                    )
+                  : null,
+              );
+            }),
           ),
         )
+      : null;
+  // 카테고리 해석 마퀴 — 표 바로 위 한 줄. 9개 헤드라인이 오른쪽에서 들어와 왼쪽으로 흐른다(CSS 애니메이션).
+  // 이어 붙이려고 같은 목록을 두 번 그린다. 커서를 올리면 멈춘다.
+  const readsOrdered = groupPlan.groups
+    .map((g) => groupReads.findIndex((r) => r.group === g.label))
+    .filter((i) => i >= 0);
+  const marqueeItem = (ri, dup) => {
+    const r = groupReads[ri];
+    return h(
+      "button",
+      {
+        key: r.group + dup,
+        className: "marquee-item",
+        tabIndex: dup ? -1 : 0,
+        "aria-hidden": dup ? "true" : void 0,
+        onClick: () => setReadModal(ri),
+        onMouseEnter: () => setHoveredEcho((r.anomalies || []).map((a) => a.itemId)),
+        onMouseLeave: () => setHoveredEcho(null),
+      },
+      h("b", null, r.group),
+      h("span", null, r.headline),
+    );
+  };
+  const readsMarqueeEl = readsOrdered.length
+    ? h(
+        "div",
+        { className: "marquee", style: { "--n": readsOrdered.length } },
+        h(
+          "div",
+          { className: "marquee-track" },
+          readsOrdered.map((ri) => marqueeItem(ri, "")),
+          readsOrdered.map((ri) => marqueeItem(ri, "-dup")),
+        ),
+      )
+    : null;
+  // 좁은 화면용 표 — 카테고리 탭 하나 고르면 그 TOP10 이 세로 한 열. 칸은 데스크톱과 같은 Cell.
+  const mobileCat = gridCats.includes(mobileCatPick) ? mobileCatPick : gridCats[0];
+  const groupOfCat = {};
+  {
+    let at = 0;
+    groupPlan.groups.forEach((g) => {
+      for (let i = 0; i < g.count; i++) groupOfCat[groupPlan.ordered[at++]] = g.label;
+    });
+  }
+  const mobileReadIdx = groupReads.findIndex((r) => r.group === groupOfCat[mobileCat]);
+  const mobileRead = mobileReadIdx >= 0 ? groupReads[mobileReadIdx] : null;
+  const mobileChartEl = h(
+    "div",
+    { className: "card mobile-chart" },
+    h(
+      "div",
+      { className: "cat-strip" },
+      gridCats.map((c) =>
+        h(
+          "button",
+          { key: c, className: "cat-chip" + (c === mobileCat ? " is-on" : ""), onClick: () => setMobileCatPick(c) },
+          c,
+        ),
+      ),
+    ),
+    mobileRead
+      ? h(
+          "button",
+          {
+            className: "mobile-read",
+            onClick: () => setReadModal(mobileReadIdx),
+            onMouseEnter: () => setHoveredEcho((mobileRead.anomalies || []).map((a) => a.itemId)),
+            onMouseLeave: () => setHoveredEcho(null),
+          },
+          h("span", { className: "mobile-read-group" }, groupOfCat[mobileCat]),
+          mobileRead.headline,
+        )
       : null,
+    Array.from({ length: 10 }, (_, i) => {
+      const item = items.find((it) => it.category === mobileCat && it.rank === i + 1);
+      const selIdx = item ? state.selected.indexOf(item.id) : -1;
+      return h(
+        "div",
+        { className: "mobile-row", key: i },
+        h("div", { className: "rank-cell" }, String(i + 1).padStart(2, "0")),
+        item
+          ? h(Cell, {
+              item,
+              move: moveOf(item),
+              selIndex: selIdx >= 0 ? selIdx : null,
+              dimmed: !!(dimmedSet && !dimmedSet.has(item.id)),
+              echo: !!(echoSet && echoSet.has(item.id)),
+              canInteract: item.status === "ready",
+              onOpen: openPopup,
+              onClose: closePopup,
+              onToggleSelect: toggleSelect,
+              onEchoEnter: (it) => it.variantGroup && setHoveredEcho(it.variantGroup),
+              onEchoLeave: () => setHoveredEcho(null),
+            })
+          : h("div", { className: "grid-cell is-empty" }, "—"),
+      );
+    }),
   );
   const toplineEl =
     state.mode === "grid" && (state.topline || toplineLoading)
@@ -1117,7 +1210,7 @@ function App() {
           topOpen &&
             h(
               "div",
-              { className: "card topline-card", style: { borderTop: "3px solid var(--accent)" } },
+              { className: "card topline-card" },
               h(
                 "div",
                 {
@@ -1141,7 +1234,7 @@ function App() {
                       color: "var(--accent-ink)",
                     },
                   },
-                  "THIS WEEK — ONE LINE",
+                  "이번 주 한 줄",
                 ),
                 h(
                   "div",
@@ -1202,7 +1295,7 @@ function App() {
                                     fontWeight: 700,
                                     color: "var(--accent-ink)",
                                     background: "var(--accent-soft)",
-                                    borderRadius: 999,
+                                    borderRadius: 0,
                                     padding: "6px 12px",
                                   },
                                 },
@@ -1231,7 +1324,7 @@ function App() {
                                   marginBottom: 10,
                                 },
                               },
-                              "WHY NOW",
+                              "어디서 보이나",
                             ),
                             h("p", { className: "topline-body" }, hlText(state.topline.note)),
                           )
@@ -1331,7 +1424,7 @@ function App() {
                             fontWeight: 700,
                             color: "var(--ink-soft)",
                             background: "var(--surface-2)",
-                            borderRadius: 999,
+                            borderRadius: 0,
                             padding: "4px 9px",
                           },
                         },
@@ -1446,7 +1539,7 @@ function App() {
                     style: {
                       textAlign: "left",
                       padding: "10px 12px",
-                      borderRadius: 12,
+                      borderRadius: 0,
                       cursor: "pointer",
                       border: "1px solid " + (ccPick === c.id ? "var(--accent)" : "var(--line)"),
                       background: ccPick === c.id ? "rgba(49,130,246,.08)" : "transparent",
@@ -1496,7 +1589,7 @@ function App() {
                           fontSize: 12.5,
                           fontWeight: 600,
                           padding: "6px 11px",
-                          borderRadius: 999,
+                          borderRadius: 0,
                           cursor: "pointer",
                           color: ccBrand === b ? "#fff" : "var(--ink)",
                           background: ccBrand === b ? "var(--accent)" : "transparent",
@@ -1579,7 +1672,7 @@ function App() {
                   marginBottom: 6,
                 },
               },
-              "MANIFESTO",
+              "매니페스토",
             ),
             h(
               "h3",
@@ -1619,7 +1712,7 @@ function App() {
                         marginBottom: 12,
                       },
                     },
-                    "ACTIONS",
+                    "실행안",
                   ),
                   idea.actions.map((a, ai) =>
                     h(
@@ -1635,7 +1728,7 @@ function App() {
                             fontWeight: 800,
                             color: "var(--accent-ink)",
                             background: "var(--accent-soft)",
-                            borderRadius: 999,
+                            borderRadius: 0,
                             width: 20,
                             height: 20,
                             display: "flex",
@@ -2054,7 +2147,7 @@ function App() {
                 marginBottom: 4,
               },
             },
-            "CONSUMER TREND SENSING",
+            "주간 소비 트렌드",
           ),
           React.createElement(
             "div",
@@ -2076,13 +2169,13 @@ function App() {
                   color: "var(--ink-soft)",
                   background: "var(--surface-2)",
                   border: "1px solid var(--line)",
-                  borderRadius: 999,
+                  borderRadius: 0,
                   padding: "5px 11px",
                   whiteSpace: "nowrap",
                 },
               },
               React.createElement("span", {
-                style: { width: 6, height: 6, borderRadius: 999, background: "var(--accent)" },
+                style: { width: 6, height: 6, borderRadius: 0, background: "var(--accent)" },
               }),
               chartCaption,
             ),
@@ -2143,7 +2236,7 @@ function App() {
                       marginBottom: 10,
                     },
                   },
-                  "아티팩트 설정",
+                  "설정",
                 ),
                 React.createElement(
                   "button",
@@ -2182,6 +2275,20 @@ function App() {
                   },
                   "차트 다운로드 (CSV)",
                 ),
+                // 지금 보는 기록(차트 + 해석 전부)을 서버 없이 열리는 HTML 한 파일로
+                state.runId && !EXPORTED
+                  ? React.createElement(
+                      "a",
+                      {
+                        className: "btn btn-line",
+                        style: { width: "100%", display: "block", textAlign: "center", marginTop: 8, textDecoration: "none" },
+                        href: "/export/" + encodeURIComponent(state.runId) + ".html",
+                        download: state.runId + ".html",
+                        onClick: () => setSettingsOpen(false),
+                      },
+                      "HTML로 내보내기",
+                    )
+                  : null,
                 React.createElement(
                   "p",
                   {
@@ -2207,18 +2314,19 @@ function App() {
         ),
       ),
     ),
+    tickerEl,
     React.createElement(
       "div",
       { style: { maxWidth: 1120, margin: "0 auto", padding: "28px 24px 140px" } },
+      runsEl,
       guideEl,
       toplineEl,
       toplineArchiveEl,
-      readsEl,
       sampleFn === null &&
         React.createElement(
           "div",
           { style: { fontSize: 12.5, color: "var(--ink-soft)", marginBottom: 14 } },
-          "이 화면에서는 AI 생성 기능이 켜지지 않았습니다. 차트와 이유, 이미 발행된 묶음 추론은 그대로 보실 수 있고, 엑셀 업로드와 열람도 됩니다. 아티팩트 링크(claude.ai)로 여시면 AI 기능이 함께 켜집니다.",
+          "내보낸 파일이라 AI 기능은 꺼져 있습니다. 차트·해석·묶음은 그대로 볼 수 있습니다.",
         ),
       state.analysisState === "running" &&
         React.createElement(
@@ -2239,7 +2347,7 @@ function App() {
             React.createElement(
               "span",
               { style: { fontSize: 14, fontWeight: 700 } },
-              "AI가 이유를 다시 만드는 중",
+              "AI가 그룹별 해석을 만드는 중",
             ),
             React.createElement(
               "span",
@@ -2248,8 +2356,8 @@ function App() {
                 "% · " +
                 (analysisProgress ? analysisProgress.done : 0) +
                 "/" +
-                (analysisProgress ? analysisProgress.total : 5) +
-                " 카테고리 · " +
+                (analysisProgress ? analysisProgress.total : 9) +
+                " 그룹 · " +
                 elapsedSec +
                 "초 경과",
             ),
@@ -2259,7 +2367,7 @@ function App() {
             {
               style: {
                 height: 6,
-                borderRadius: 999,
+                borderRadius: 0,
                 background: "var(--surface-2)",
                 overflow: "hidden",
               },
@@ -2277,7 +2385,7 @@ function App() {
           React.createElement(
             "div",
             { style: { fontSize: 11.5, color: "var(--ink-faint)", marginTop: 8 } },
-            "보통 1~3분 걸려요. 먼저 끝난 카테고리부터 화면에 채워집니다. 기다리는 동안 기존 분석은 그대로 보실 수 있어요.",
+            "보통 1~3분 걸려요. 먼저 끝난 그룹부터 카드로 뜨고, 다 끝나면 이번 주 한 줄과 연관 신호 묶음이 이어서 만들어집니다.",
           ),
         ),
       state.mode === "manual-edit"
@@ -2290,6 +2398,7 @@ function App() {
         : React.createElement(
             React.Fragment,
             null,
+            readsMarqueeEl,
             React.createElement(
               "div",
               {
@@ -2319,10 +2428,13 @@ function App() {
                 chartOpen ? "숨기기" : "펼치기",
               ),
             ),
-            chartOpen &&
+            chartOpen && isNarrow
+              ? mobileChartEl
+              : chartOpen &&
               React.createElement(
                 "div",
-                { className: "card chart-bleed", style: { overflow: "hidden" } },
+                // 위 카드들과 같은 너비. 18열은 카드 안에서 가로 스크롤.
+                { className: "card", style: { overflow: "hidden" } },
                 React.createElement(
                   "div",
                   { ref: chartScrollRef, style: { overflowX: "auto" } },
@@ -2338,19 +2450,29 @@ function App() {
                     groupPlan.useGroups
                       ? React.createElement("div", { className: "grid-group-corner" })
                       : null,
+                    // 그룹 헤더에 카테고리 해석을 잇는다: 헤드라인을 붙이고, 호버하면 해석 팝업 + 특이점 칸 강조
                     groupPlan.useGroups
-                      ? groupPlan.groups.map((g, gi) =>
-                          React.createElement(
+                      ? groupPlan.groups.map((g, gi) => {
+                          const ri = groupReads.findIndex((r) => r.group === g.label);
+                          const read = ri >= 0 ? groupReads[ri] : null;
+                          return React.createElement(
                             "div",
                             {
-                              className: "grid-group-cell",
+                              className: "grid-group-cell" + (read ? " has-read" : ""),
                               key: gi,
                               style: { gridColumn: "span " + g.count },
                               title: g.label,
+                              // 호버 = 특이점 칸 강조, 클릭 = 해석 전문 모달
+                              onMouseEnter: () =>
+                                read && setHoveredEcho((read.anomalies || []).map((a) => a.itemId)),
+                              onMouseLeave: () => read && setHoveredEcho(null),
+                              onClick: () => read && setReadModal(ri),
                             },
                             g.label,
-                          ),
-                        )
+                            // 해석이 있으면 빨간 네모 하나. 헤드라인은 표 위 목록에 있다
+                            read ? React.createElement("span", { className: "grid-group-mark" }) : null,
+                          );
+                        })
                       : null,
                     React.createElement("div", { className: "grid-corner" }),
                     gridCats.map((c) =>
@@ -2400,7 +2522,6 @@ function App() {
                             onToggleSelect: toggleSelect,
                             onEchoEnter: (it) => it.variantGroup && setHoveredEcho(it.variantGroup),
                             onEchoLeave: () => setHoveredEcho(null),
-                            onRetry: runSingleItem,
                           });
                         }),
                       ),
@@ -2455,7 +2576,7 @@ function App() {
                     "Client Connect",
                   ),
                 ),
-                needsReasons && !ccOpen
+                needsReads && !ccOpen
                   ? React.createElement(
                       "button",
                       {
@@ -2465,8 +2586,8 @@ function App() {
                         disabled: !sampleFn || state.analysisState === "running",
                       },
                       state.analysisState === "running"
-                        ? "이유 분석 중 " + analysisPct + "%"
-                        : "이유 없는 항목 " + missingReasonCount + "개 분석하기",
+                        ? "해석 만드는 중 " + analysisPct + "%"
+                        : "카테고리 해석 만들기 (" + missingReadCount + "그룹)",
                     )
                   : null,
                 React.createElement(
@@ -2479,10 +2600,10 @@ function App() {
                       textAlign: "center",
                     },
                   },
-                  needsReasons
-                    ? "이유가 아직 없는 항목이 " +
-                        missingReasonCount +
-                        "개 있습니다. 한 번만 분석하면 그대로 확정되고, 이미 발행된 이유는 건드리지 않습니다."
+                  needsReads
+                    ? "해석이 아직 없는 그룹이 " +
+                        missingReadCount +
+                        "개 있습니다. 분석하면 그룹 해석 → 이번 주 한 줄 → 연관 신호 묶음 순으로 채워집니다."
                     : prefs.liked.length || prefs.disliked.length
                       ? "좋아요 " +
                         prefs.liked.length +
@@ -2613,26 +2734,55 @@ function App() {
                     bundOpen ? "숨기기" : "펼치기 " + visibleBundles.length,
                   ),
                 ),
+                // 손패: 앞면은 제목만. 누르면 뒤집히고 모달로 내용이 뜬다. 아래 선택 바(직접 묶기)와는 별개.
                 bundOpen &&
-                  visibleBundles.map((b) => {
-                    const active = state.activeBundleId === b.bundleId;
-                    const picks = b.itemIds.map((id) => byId.get(id)).filter(Boolean);
-                    return React.createElement(
-                      "div",
-                      {
-                        key: b.bundleId,
-                        className: "bundle-card" + (active ? " is-active" : ""),
-                        onMouseEnter: () => setHoveredBundleId(b.bundleId),
-                        onMouseLeave: () => setHoveredBundleId(null),
-                        onClick: (e) => {
-                          e.stopPropagation();
-                          dispatch({ type: "RESTORE_BUNDLE", id: b.bundleId });
+                  React.createElement(
+                    "div",
+                    { className: "hand" },
+                    visibleBundles.map((b) => {
+                      const flipped = bundleOpen && state.activeBundleId === b.bundleId;
+                      const fb = state.feedback[b.bundleId];
+                      return React.createElement(
+                        "div",
+                        {
+                          key: b.bundleId,
+                          className: "hand-card" + (flipped ? " is-flipped" : "") + (fb ? " is-rated-" + fb : ""),
+                          onMouseEnter: () => setHoveredBundleId(b.bundleId),
+                          onMouseLeave: () => setHoveredBundleId(null),
+                          onClick: (e) => {
+                            e.stopPropagation();
+                            openBundle(b.bundleId);
+                          },
                         },
-                      },
-                      active
-                        ? React.createElement(
-                            "div",
-                            { style: { padding: "22px 24px 20px" } },
+                        React.createElement(
+                          "div",
+                          { className: "hand-face hand-front" },
+                          React.createElement("div", { className: "hand-title balance" }, b.title),
+                          fb ? React.createElement("span", { className: "hand-fb" }, fb === "up" ? "좋아요" : "별로") : null,
+                          React.createElement("span", { className: "hand-hint" }, "눌러서 읽기"),
+                        ),
+                        React.createElement(
+                          "div",
+                          { className: "hand-face hand-back" },
+                          React.createElement("div", { className: "hand-title balance" }, b.title),
+                        ),
+                      );
+                    }),
+                  ),
+                bundleOpen && activeBundle
+                  ? (() => {
+                      const b = activeBundle;
+                      const picks = b.itemIds.map((id) => byId.get(id)).filter(Boolean);
+                      return React.createElement(
+                        "div",
+                        { className: "read-modal-backdrop", onClick: closeBundle },
+                        React.createElement(
+                          "div",
+                          {
+                            className: "read-modal card",
+                            onClick: (e) => e.stopPropagation(),
+                            style: { padding: "22px 24px 20px" },
+                          },
                             React.createElement(
                               "div",
                               {
@@ -2665,11 +2815,13 @@ function App() {
                                   "aria-label": "이 묶음 삭제",
                                   onClick: (e) => {
                                     e.stopPropagation();
+                                    closeBundle();
                                     dispatch({ type: "DELETE_BUNDLE", id: b.bundleId });
                                   },
                                 },
                                 "×",
                               ),
+                              React.createElement("button", { onClick: closeBundle, style: ccGrey }, "닫기"),
                             ),
                             React.createElement(
                               "div",
@@ -2751,7 +2903,7 @@ function App() {
                                           fontWeight: 700,
                                           color: "var(--accent-ink)",
                                           background: "var(--accent-soft)",
-                                          borderRadius: 999,
+                                          borderRadius: 0,
                                           padding: "5px 11px",
                                         },
                                       },
@@ -2833,70 +2985,10 @@ function App() {
                                   "다음 묶음에 반영됩니다",
                                 ),
                             ),
-                          )
-                        : React.createElement(
-                            "div",
-                            { className: "bundle-collapsed-row" },
-                            b.auto &&
-                              React.createElement(
-                                "span",
-                                {
-                                  className: "chip",
-                                  style: {
-                                    margin: 0,
-                                    flexShrink: 0,
-                                    background: "var(--accent-soft)",
-                                    color: "var(--accent-ink)",
-                                    fontWeight: 700,
-                                  },
-                                },
-                                "AUTO",
-                              ),
-                            React.createElement(
-                              "div",
-                              {
-                                style: {
-                                  fontSize: 14.5,
-                                  fontWeight: 700,
-                                  overflow: "hidden",
-                                  textOverflow: "ellipsis",
-                                  whiteSpace: "nowrap",
-                                },
-                              },
-                              b.title,
-                            ),
-                            state.feedback[b.bundleId] &&
-                              React.createElement(
-                                "span",
-                                {
-                                  style: {
-                                    flexShrink: 0,
-                                    fontSize: 11,
-                                    fontWeight: 700,
-                                    color:
-                                      state.feedback[b.bundleId] === "up"
-                                        ? "var(--accent-ink)"
-                                        : "var(--ink-faint)",
-                                  },
-                                },
-                                state.feedback[b.bundleId] === "up" ? "좋아요" : "별로",
-                              ),
-                            React.createElement(
-                              "button",
-                              {
-                                className: "bundle-x",
-                                title: "이 묶음 삭제",
-                                "aria-label": "이 묶음 삭제",
-                                onClick: (e) => {
-                                  e.stopPropagation();
-                                  dispatch({ type: "DELETE_BUNDLE", id: b.bundleId });
-                                },
-                              },
-                              "×",
-                            ),
-                          ),
-                    );
-                  }),
+                        ),
+                      );
+                    })()
+                  : null,
               ),
             state.autoStatus === "loading" &&
               React.createElement(
@@ -3017,6 +3109,8 @@ function App() {
       item: popup.item,
       pos: popup.pos,
       open: popup.open,
+      fact: popup.item ? facts.tag[popup.item.id] : "",
+      note: popup.item ? anomalyNote(popup.item.id) : "",
       onMouseEnter: () => {
         if (!isTouchDevice()) clearTimeout(popupCloseTimer.current);
       },
@@ -3024,7 +3118,7 @@ function App() {
         if (!isTouchDevice()) popupCloseTimer.current = setTimeout(closePopup, 100);
       },
     }),
-    readPopEl,
+    readModalEl,
     React.createElement(
       "div",
       { className: "toast" + (state.toast ? " is-shown" : "") },
@@ -3039,10 +3133,10 @@ function App() {
           className: "mono",
           style: { fontSize: 11, color: "var(--ink-faint)", letterSpacing: ".03em" },
         },
-        "v0.6 PROTOTYPE \xB7 서버 저장 없음 \xB7 ",
+        "v0.7 PROTOTYPE \xB7 ",
         state.isSample
           ? "새로고침하면 이번 주 기본 차트로 돌아갑니다"
-          : "업로드한 데이터는 이 브라우저에 남습니다",
+          : "차트와 해석은 data/runs/" + (state.runId || "") + ".json 에 남습니다",
       ),
     ),
   );

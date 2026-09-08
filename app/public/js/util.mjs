@@ -108,7 +108,8 @@ export function buildItemsFromMatrix(categories, rows) {
         raw: rawStr,
         itemType: null,
         reason: null,
-        status: "idle",
+        // 항목 해석은 온디맨드라 기다릴 게 없다 — 처음부터 상호작용 가능
+        status: "ready",
         variantGroup: null,
       });
     });
@@ -120,6 +121,56 @@ export function normTitleKey(v) {
   return String(v == null ? "" : v)
     .toLowerCase()
     .replace(/[\s\-_·,.'"()\[\]]/g, "");
+}
+
+// 지난 주 대비 순위 변동은 계산된 사실이다. AI가 추측하지 않도록 목록에 그대로 붙여 준다.
+export function moveNote(it, moveOf) {
+  const m = moveOf && moveOf(it);
+  if (!m) return "";
+  if (m.kind === "new") return "[지난 주 차트에 없던 신규 진입]";
+  if (m.kind === "same") return "[지난 주와 같은 " + it.rank + "위 유지]";
+  return `[지난 주 ${m.before}위 → 이번 주 ${it.rank}위, ${m.kind === "up" ? "상승" : "하락"}]`;
+}
+
+// 코드가 계산한 항목별 사실 태그(§2.2 뺄셈). LLM 은 이걸 사실로 받고 해석만 한다.
+//   tag[id]  = "[8위→2위 상승] [같은 팀/브랜드 3칸: 3위·6위] [다른 차트에도: 넷플릭스 3위]"
+//   echoes   = 서로 다른 카테고리에 같은 대상이 오른 id 묶음
+// ponytail: 아티스트 일치 + 제목 부분 일치(3자 이상)의 단순 휴리스틱. 색상·회차만 다른 변형은 못 잡는다 — LLM 이 목록에서 본다.
+export function computeFacts(items, moveOf) {
+  const live = items.filter((it) => it.raw);
+  const artistKey = (it) => normTitleKey(it.artist);
+  const titleKey = (it) => normTitleKey(it.title);
+  const related = (a, b) => {
+    const ak = artistKey(a), at = titleKey(a), bt = titleKey(b);
+    if (ak.length >= 2 && ak === artistKey(b)) return true;
+    if (at.length >= 2 && at === bt) return true;
+    // 부분 일치는 짧은 쪽이 4자 이상일 때만 — "BAD" 가 "Badly in Love" 에 붙는 걸 막는다
+    if (Math.min(at.length, bt.length) >= 4 && (at.includes(bt) || bt.includes(at))) return true;
+    return false;
+  };
+  const pos = (it) => it.category + " " + it.rank + "위";
+  const tag = {};
+  const echoes = [];
+  const seen = new Set();
+  live.forEach((it) => {
+    const same = live.filter((o) => o.id !== it.id && o.category === it.category && related(it, o));
+    const echo = live.filter((o) => o.category !== it.category && related(it, o));
+    const parts = [moveNote(it, moveOf)];
+    if (same.length) parts.push(`[같은 팀/브랜드 ${same.length + 1}칸: ${same.map((o) => o.rank + "위").join("·")}]`);
+    if (echo.length) parts.push(`[다른 차트에도: ${echo.map(pos).join("·")}]`);
+    tag[it.id] = parts.filter(Boolean).join(" ");
+    if (echo.length) {
+      const ids = [it.id].concat(echo.map((o) => o.id)).sort();
+      const k = ids.join("|");
+      if (!seen.has(k)) {
+        seen.add(k);
+        echoes.push(ids);
+      }
+    }
+  });
+  // 다른 묶음에 통째로 포함되는 묶음은 버린다(같은 브랜드 6칸이 부분집합 5개를 만드는 것 방지)
+  const sup = echoes.filter((g) => !echoes.some((o) => o !== g && o.length > g.length && g.every((id) => o.includes(id))));
+  return { tag, echoes: sup };
 }
 
 export function normalizeIdeas(raw, fallbackClient) {
@@ -220,30 +271,6 @@ export function hlText(v) {
     .split("**")
     .map((seg, i) => (i % 2 ? React.createElement("mark", { className: "hl", key: i }, seg) : seg));
 }
-
-export function normalizeReason(raw) {
-  const src = raw && typeof raw === "object" ? raw : {};
-  const reasons = (Array.isArray(src.reasons) ? src.reasons : [])
-    .slice(0, 10)
-    .map((x) => ({
-      detail: asText(x && typeof x === "object" ? (x.detail != null ? x.detail : x.text) : x),
-      anchorKeyword: asText(x && typeof x === "object" ? x.anchorKeyword : ""),
-    }))
-    .filter((x) => x.detail);
-  const keywords = (Array.isArray(src.keywords) ? src.keywords : [])
-    .map(asText)
-    .filter(Boolean)
-    .slice(0, 24);
-  return {
-    headline: asText(src.headline),
-    summary: asText(src.summary),
-    reasons,
-    keywords,
-    confidence: asText(src.confidence) || "medium",
-  };
-}
-
-export const KEYWORD_LIMIT = 10;
 
 export const isTouchDevice = () =>
   typeof window !== "undefined" && window.matchMedia && window.matchMedia("(hover: none)").matches;

@@ -253,12 +253,13 @@ def get_google_trends():
     return out[:10]
 
 
-# ── 수동 카테고리는 현재 보드 HTML 의 기본 차트를 그대로 옮긴다 ────────
+# ── 수동 카테고리는 보드의 기본 차트(app/public/js/data.mjs 의 DEMO_MATRIX)를 그대로 옮긴다 ──
 def load_manual_columns():
-    txt = open(os.path.join(ROOT, "trendboard_week36.html"), encoding="utf-8").read()
+    txt = open(os.path.join(ROOT, "app", "public", "js", "data.mjs"), encoding="utf-8").read()
     block = txt.split("const DEMO_MATRIX = {", 1)[1].split("\n};", 1)[0]
-    cats = json.loads(re.search(r"categories:\s*(\[.*?\])", block, re.S).group(1))
-    rows = json.loads(re.search(r"rows:\s*(\[.*\])", block, re.S).group(1))
+    strip = lambda s: re.sub(r",\s*([\]}])", r"\1", s)  # JS 트레일링 콤마는 JSON 이 못 읽는다
+    cats = json.loads(strip(re.search(r"categories:\s*(\[.*?\])", block, re.S).group(1)))
+    rows = json.loads(strip(re.search(r"rows:\s*(\[.*\])", block, re.S).group(1)))
     col = {}
     for i, c in enumerate(cats):
         col[c] = [clean(rows[r][i]) if i < len(rows[r]) else "" for r in range(min(10, len(rows)))]

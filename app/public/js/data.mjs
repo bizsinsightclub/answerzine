@@ -228,8 +228,6 @@ export const DEMO_MATRIX = {
   ],
 };
 
-export const GROUP_READS = [];
-
 export const CATEGORY_SOURCES = {
   음악: "YouTube Charts (KR 주간)",
   영화: "KOBIS 박스오피스",
@@ -262,16 +260,6 @@ export const CATEGORY_GROUPS = [
   { label: "패션·리테일", cats: ["무신사", "KREAM", "렉스몬드", "Jente"] },
   { label: "앱·게임", cats: ["구글 플레이 앱", "게임"] },
 ];
-
-export const PREFILLED = {};
-
-export const PREFILLED_VARIANTS = [];
-
-export const SAMPLE_PREV_IDS = {};
-
-export const PREFILLED_BUNDLES = [];
-
-export const TOPLINE_SAMPLE = null;
 
 export const CLIENTS = [
   {
