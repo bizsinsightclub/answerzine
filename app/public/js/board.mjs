@@ -113,6 +113,8 @@ function App() {
   // 첫 방문 안내 모달 — × 를 누르면 GUIDE_KEY 에 남겨 다시 안 뜬다
   const GUIDE_KEY = "trend-sensing:guide:v1";
   const [guideOpen, setGuideOpen] = useState(() => {
+    // 내보낸 한 파일은 업로드·분석이 없다 — 쓰는 법 안내를 띄우지 않는다
+    if (EXPORTED) return false;
     try {
       return localStorage.getItem(GUIDE_KEY) !== "done";
     } catch (e) {
