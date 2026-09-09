@@ -7,6 +7,8 @@ import { csvCell, buildChartCsv, buildGroupPlan, parseRawTitle, buildItemsFromMa
 import { loadPrevChart, snapshotChart, savePrevChart, sameChart, IDEA_PREF_KEY, loadPrefs, savePrefs, upsertPref, STORAGE_KEY, makeInitialState, reducer, newRunId } from "./state.mjs";
 // 내보낸 한 파일(HTML)로 열렸는가 — 서버가 없으니 AI·기록 동기화는 끈다
 const EXPORTED = typeof window !== "undefined" && !!window.__RUN__;
+// 마퀴 빨리감기 배속 — 우상단 버튼을 누르고 있는 동안만 적용된다
+const MARQUEE_FF_RATE = 6;
 import { ErrorBoundary, ReasonPopup, Cell, ManualEditor } from "./components.mjs";
 
 const { useState, useEffect, useRef, useReducer, useLayoutEffect, useCallback, useMemo } = React;
@@ -1104,15 +1106,68 @@ function App() {
       h("span", null, r.headline),
     );
   };
+  // 빨리감기 — 우상단 버튼을 누르고 있는 동안만 흐름이 빨라진다.
+  // CSS animation-duration 을 바꾸면 진행률이 튀므로 Web Animations 의 playbackRate 로 건드린다.
+  const marqueeWrapRef = useRef(null);
+  const [marqueeFF, setMarqueeFF] = useState(false);
+  useEffect(() => {
+    const track = marqueeWrapRef.current && marqueeWrapRef.current.querySelector(".marquee-track");
+    if (!track || !track.getAnimations) return;
+    track.getAnimations().forEach((a) => {
+      a.playbackRate = marqueeFF ? MARQUEE_FF_RATE : 1;
+    });
+  }, [marqueeFF, readsOrdered.length]);
+  const ffOn = (e) => {
+    if (e.currentTarget.setPointerCapture && e.pointerId != null) {
+      try {
+        e.currentTarget.setPointerCapture(e.pointerId);
+      } catch (err) {}
+    }
+    setMarqueeFF(true);
+  };
+  const ffOff = () => setMarqueeFF(false);
   const readsMarqueeEl = readsOrdered.length
     ? h(
         "div",
-        { className: "marquee", style: { "--n": readsOrdered.length } },
+        { className: "marquee-wrap" + (marqueeFF ? " is-ff" : ""), ref: marqueeWrapRef },
         h(
           "div",
-          { className: "marquee-track" },
-          readsOrdered.map((ri) => marqueeItem(ri, "")),
-          readsOrdered.map((ri) => marqueeItem(ri, "-dup")),
+          { className: "marquee", style: { "--n": readsOrdered.length } },
+          h(
+            "div",
+            { className: "marquee-track" },
+            readsOrdered.map((ri) => marqueeItem(ri, "")),
+            readsOrdered.map((ri) => marqueeItem(ri, "-dup")),
+          ),
+        ),
+        h(
+          "button",
+          {
+            className: "marquee-ff",
+            type: "button",
+            "aria-label": "빨리 감기 — 누르고 있는 동안",
+            title: "누르고 있으면 빨리 넘어갑니다",
+            onPointerDown: ffOn,
+            onPointerUp: ffOff,
+            onPointerCancel: ffOff,
+            onLostPointerCapture: ffOff,
+            onBlur: ffOff,
+            onKeyDown: (e) => {
+              if (e.key === " " || e.key === "Enter") {
+                e.preventDefault();
+                setMarqueeFF(true);
+              }
+            },
+            onKeyUp: (e) => {
+              if (e.key === " " || e.key === "Enter") ffOff();
+            },
+          },
+          h(
+            "svg",
+            { width: 18, height: 13, viewBox: "0 0 18 13", "aria-hidden": "true", focusable: "false" },
+            h("path", { d: "M0 0 L8 6.5 L0 13 Z", fill: "currentColor" }),
+            h("path", { d: "M10 0 L18 6.5 L10 13 Z", fill: "currentColor" }),
+          ),
         ),
       )
     : null;
